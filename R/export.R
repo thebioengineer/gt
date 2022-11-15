@@ -109,6 +109,11 @@
 #' ```r
 #' tab_1 %>% gtsave("tab_1.docx")
 #' ```
+#' With the `.pptx` extension, we'll get a powerpoint/pptx document.
+#'
+#' ```r
+#' tab_1 %>% gtsave("tab_1.pptx")
+#' ```
 #'
 #' @family table export functions
 #' @section Function ID:
@@ -139,7 +144,8 @@ gtsave <- function(
       "*" = "`.pdf`          (PDF file)",
       "*" = "`.tex`, `.rnw`  (LaTeX file)",
       "*" = "`.rtf`          (RTF file)",
-      "*" = "`.docx`         (Word file)"
+      "*" = "`.docx`         (Word file)",
+      "*" = "`.pptx`         (Powerpoint file)"
     ))
   }
 
@@ -156,6 +162,7 @@ gtsave <- function(
     "png" = ,
     "pdf" = gt_save_webshot(data = data, filename, path, ...),
     "docx" = gt_save_docx(data = data, filename, path, ...),
+    "pptx" = gt_save_pptx(data = data, filename, path, ...),
     {
       cli::cli_abort(c(
         "The file extension supplied (`.{file_ext}`) cannot be used.",
@@ -165,7 +172,8 @@ gtsave <- function(
         "*" = "`.pdf`          (PDF file)",
         "*" = "`.tex`, `.rnw`  (LaTeX file)",
         "*" = "`.rtf`          (RTF file)",
-        "*" = "`.docx`         (Word file)"
+        "*" = "`.docx`         (Word file)",
+        "*" = "`.pptx`         (Powerpoint file)"
       ))
     }
   )
@@ -286,8 +294,7 @@ gt_save_docx <- function(
     data,
     filename,
     path = NULL,
-    ...,
-    open = rlang::is_interactive()
+    ...
 ) {
 
   if (!rlang::is_installed("rmarkdown")) {
@@ -315,6 +322,57 @@ gt_save_docx <- function(
     input = word_md_file,
     output = filename
   )
+
+}
+
+#' Saving function for a Powerpoint (pptx) file
+#'
+#' @noRd
+gt_save_pptx <- function(
+  data,
+  filename,
+  path = NULL,
+  ...,
+  reference_doc = "default"
+) {
+
+  if (!rlang::is_installed("rmarkdown")) {
+    stop("{rmarkdown} package is necessary to save gt tables as word documents.")
+  }
+
+  filename <- gtsave_filename(path = path, filename = filename)
+
+  pptx_md_text <- paste0(c(
+    "```{=openxml}",
+    "<p:graphicFrame xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\">",
+    "<p:nvGraphicFramePr>",
+    "<p:cNvPr id=\"0\" name=\"Table 1\"></p:cNvPr>",
+    "<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp=\"1\"/></p:cNvGraphicFramePr>",
+    "</p:nvGraphicFramePr>",
+    "<p:xfrm><a:off x=\"1889387\" y=\"1600200\"/><a:ext cx=\"8128000\" cy=\"2225040\"/></p:xfrm>",
+    "<a:graphic>",
+    "<a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/table\">",
+    enc2utf8(as_word(data = data, caption_location = "embed", output_type = "pptx")),
+    "</a:graphicData>",
+    "</a:graphic>",
+    "</p:graphicFrame>",
+    "```",
+    ""),
+    collapse = "\n"
+  )
+
+  pptx_md_file <- tempfile(fileext = ".md")
+
+  writeChar(
+    pptx_md_text,
+    con = pptx_md_file
+  )
+
+  rmarkdown::pandoc_convert(
+    input = pptx_md_file,
+    output = filename
+  )
+
 }
 
 #' Get the lowercase extension from a filename
