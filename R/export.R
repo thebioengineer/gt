@@ -343,19 +343,24 @@ gt_save_pptx <- function(
   filename <- gtsave_filename(path = path, filename = filename)
 
   pptx_md_text <- paste0(c(
+    "",
+    "",
     "```{=openxml}",
     "<p:graphicFrame xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\">",
     "<p:nvGraphicFramePr>",
-    "<p:cNvPr id=\"0\" name=\"Table 1\"></p:cNvPr>",
+    "<p:cNvPr id=\"0\" name=\"Table 1\"/>",
     "<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp=\"1\"/></p:cNvGraphicFramePr>",
     "</p:nvGraphicFramePr>",
     "<p:xfrm><a:off x=\"1889387\" y=\"1600200\"/><a:ext cx=\"8128000\" cy=\"2225040\"/></p:xfrm>",
     "<a:graphic>",
     "<a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/table\">",
-    enc2utf8(as_word(data = data, caption_location = "embed", output_type = "pptx")),
+    gsub("[<][w][:]","<a:",
+         gsub("[<][/][w]:","<[/]a:",
+              enc2utf8(as_word(data = data, caption_location = "embed", output_type = "pptx"))
+         )
+    ),
     "</a:graphicData>",
     "</a:graphic>",
-    "</p:graphicFrame>",
     "```",
     ""),
     collapse = "\n"
@@ -365,12 +370,14 @@ gt_save_pptx <- function(
 
   writeChar(
     pptx_md_text,
-    con = pptx_md_file
+    con = pptx_md_file,
+    eos = NULL
   )
 
-  rmarkdown::pandoc_convert(
-    input = pptx_md_file,
-    output = filename
+  rmarkdown::render(
+    pptx_md_file,
+    output_file = filename,
+    output_format = "powerpoint_presentation"
   )
 
 }
@@ -737,13 +744,15 @@ as_word <- function(
     caption_location = c("top", "bottom", "embed"),
     caption_align = "left",
     split = FALSE,
-    keep_with_next = TRUE
+    keep_with_next = TRUE,
+    output_type = c("docx","pptx")
 ) {
 
   # Perform input object validation
   stop_if_not_gt(data = data)
 
   caption_location <- rlang::arg_match(caption_location)
+  output_type <- rlang::arg_match(output_type)
 
   # Build all table data objects through a common pipeline
   value <- build_data(data = data, context = "word")
@@ -773,7 +782,8 @@ as_word <- function(
       align = align,
       split = split,
       keep_with_next = keep_with_next,
-      embedded_heading = identical(caption_location, "embed")
+      embedded_heading = identical(caption_location, "embed"),
+      output_type = output_type
     )
 
   gt_xml <- c(gt_xml, tbl_xml)
@@ -848,11 +858,14 @@ as_word_tbl_body <- function(
     align = "center",
     split = FALSE,
     keep_with_next = TRUE,
-    embedded_heading = FALSE
+    embedded_heading = FALSE,
+    output_type = c("docx","pptx")
 ) {
 
   # Perform input object validation
   stop_if_not_gt(data = data)
+
+  output_type <- rlang::arg_match(output_type)
 
   # Composition of table Word OOXML -----------------------------------------------
 
@@ -882,6 +895,9 @@ as_word_tbl_body <- function(
   word_tbl <-
     xml_tbl(
       paste0(
+        if(output_type == "pptx"){
+          create_pptx_tbl_grid_compontent_xml(data = data)
+        },
         table_props_component,
         heading_component,
         columns_component,

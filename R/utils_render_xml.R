@@ -646,6 +646,68 @@ xml_raw <- function(...) {
   text
 }
 
+
+# Creates the tblGrid property for pptx tables
+xml_tblGrid <- function(...,app = "word"){
+  # HTML-escape literal text
+  htmltools::tag(
+    `_tag_name` = xml_tag_type("xml_tblGrid", app),
+    varArgs = list(
+      htmltools::HTML(paste0(...))
+    )
+  )
+}
+
+# Creates the xml_gridCol property for pptx tables
+xml_gridCol <- function(w,app = "word"){
+  # HTML-escape literal text
+  htmltools::tag(
+    `_tag_name` = xml_tag_type("xml_gridCol", app),
+    varArgs = list(
+      `w:w` = w
+    )
+  )
+}
+
+
+#' Create the caption component of a table (OOXML)
+#'
+#' The table heading component contains the title and possibly a subtitle; if
+#' there are no heading components defined this function will return an empty
+#' string.
+#'
+#' @noRd
+create_pptx_tbl_grid_compontent_xml <- function(data){
+
+  # Obtain the number of visible columns in the built table
+  n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
+  stub_components <- dt_stub_components(data = data)
+  stub_available <- dt_stub_components_has_rowname(stub_components)
+
+  # If a stub is present then the effective number of columns increases by 1
+  if (stub_available) {
+    n_data_cols <- n_data_cols + 1
+  }
+
+  ## default width for each column
+  ## EMU/inch * default slide width in inches * % I want to take up by default)
+  col_width_default <- floor((914400 * 10 * .8) / n_data_cols)
+
+  grid_cols <- lapply(seq_len(n_data_cols),function(x) xml_gridCol(w = col_width_default))
+
+  xml_tblGrid(
+    paste(
+      vapply(
+        grid_cols,
+        FUN.VALUE = character(1),
+        FUN = paste
+      ),
+      collapse = ""
+    )
+  )
+
+}
+
 # TODO: make table widths work for XML
 # Get the attributes for the table tag
 create_table_props_component_xml <- function(data, align = "center") {
