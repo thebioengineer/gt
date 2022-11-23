@@ -978,7 +978,7 @@ create_columns_component_xml <- function(
   spanners_present <- dt_spanners_exists(data = data)
 
   # Get the column alignments for all visible columns
-  col_alignment <- dplyr::pull(subset(boxh, type == "default"), column_align)
+  col_alignment <- boxh[boxh$type == "default", ][["column_align"]]
 
   # Get the column headings
   headings_vars <- dplyr::pull(subset(boxh, type == "default"), var)
@@ -1098,7 +1098,7 @@ create_columns_component_xml <- function(
         style = cell_style[["cell_text"]][["style"]],
         stretch = cell_style[["cell_text"]][["stretch"]],
         whitespace = cell_style[["cell_text"]][["whitespace"]],
-        align = cell_style[["cell_text"]][["align"]],
+        align = cell_style[["cell_text"]][["align"]] %||% col_alignment[i],
         v_align = cell_style[["cell_text"]][["v_align"]],
         fill = cell_style[["cell_fill"]][["color"]],
         border = list(
@@ -1474,10 +1474,26 @@ create_body_component_xml <- function(
               align = cell_style[["cell_text"]][["align"]] %||% alignment[y],
               v_align = cell_style[["cell_text"]][["v_align"]],
               border = list(
-                top = cell_border(color = table_body_hlines_color),
-                bottom = cell_border(color = table_body_hlines_color),
-                left = cell_border(color = table_body_vlines_color),
-                right = cell_border(color = table_body_vlines_color)
+                top = cell_border(
+                  color = cell_style[["cell_border_top"]][["color"]] %||% table_body_hlines_color,
+                  type = docx_line_style(cell_style[["cell_border_top"]][["style"]] %||% "single"),
+                  size = px_to_points(cell_style[["cell_border_top"]][["size"]])
+                  ),
+                bottom = cell_border(
+                  color = cell_style[["cell_border_bottom"]][["color"]] %||% table_body_hlines_color,
+                  type = docx_line_style(cell_style[["cell_border_top"]][["style"]] %||% "single"),
+                  size = px_to_points(cell_style[["cell_border_top"]][["size"]])
+                ),
+                left = cell_border(
+                  color = cell_style[["cell_border_left"]][["color"]] %||% table_body_hlines_color,
+                  type = docx_line_style(cell_style[["cell_border_top"]][["style"]] %||% "single"),
+                  size = px_to_points(cell_style[["cell_border_top"]][["size"]])
+                ),
+                right = cell_border(
+                  color = cell_style[["cell_border_right"]][["color"]] %||% table_body_hlines_color,
+                  type = docx_line_style(cell_style[["cell_border_top"]][["style"]] %||% "single"),
+                  size = px_to_points(cell_style[["cell_border_top"]][["size"]])
+                )
               ),
               fill = cell_style[["cell_fill"]][["color"]],
               keep_with_next = keep_with_next
@@ -1847,6 +1863,10 @@ cell_border <- function(
     type = "single"
 ) {
 
+  if(identical(color,"transparent")){
+    return(NULL)
+  }
+
   list(
     color = color,
     size = size,
@@ -1925,6 +1945,26 @@ white_space_to_t_xml_space <- function(x = NULL){
     spacing <- "preserve"
   }
   spacing
+}
+
+docx_line_style <- function(x = NULL){
+  if(is.null(x)){
+    return("single")
+  }else{
+    c("solid" = "single",
+      "dashed" = "dashed",
+      "dotted" = "dotted",
+      "hidden" = "none",
+      "double" = "double ")[x]
+  }
+}
+
+px_to_points <- function(x = NULL){
+  if(is.null(x)){
+    return(2)
+  }else{
+    as.numeric(gsub("(\\d+).+","\\1",x)) * 2
+  }
 }
 
 #' define ooxml table cells
