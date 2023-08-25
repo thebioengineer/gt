@@ -36,7 +36,7 @@ data <-
       ~mean(., na.rm = TRUE),
       ~sum(., na.rm = TRUE))
   ) %>%
-  summary_rows(
+  grand_summary_rows(
     columns = c(hp, wt),
     fns = list(
       ~mean(., na.rm = TRUE),
@@ -60,7 +60,7 @@ selection_text <- function(html, selection) {
   rvest::html_text(rvest::html_nodes(html, selection))
 }
 
-test_that("a gt table can store the correct style statements", {
+test_that("A gt table can store the correct style statements", {
 
   # Check that specific suggested packages are available
   check_suggests()
@@ -423,7 +423,7 @@ test_that("a gt table can store the correct style statements", {
   expect_warning(data %>% tab_row_group(others_label = "Others1"))
 })
 
-test_that("using fonts in `cell_text()` works", {
+test_that("Using fonts in `cell_text()` works", {
 
   # Prepare a small gt table for all tests
   tbl <- exibble %>% dplyr::select(char, time) %>% gt()
@@ -437,7 +437,7 @@ test_that("using fonts in `cell_text()` works", {
     ) %>%
     as_raw_html() %>%
     expect_match(
-      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Comic Sans MS', Menlo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;\" valign=\"middle\" align=\"right\">13:35</td>"
+      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"border-style: none; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Comic Sans MS', Menlo, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';\" valign=\"middle\" align=\"right\">13:35</td>"
     )
 
   # Expect that a Google Fonts and system fonts can be combined
@@ -449,7 +449,7 @@ test_that("using fonts in `cell_text()` works", {
     ) %>%
     as_raw_html() %>%
     expect_match(
-      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Dancing Script', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;\" valign=\"middle\" align=\"right\">13:35</td>"
+      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"border-style: none; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Dancing Script', system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';\" valign=\"middle\" align=\"right\">13:35</td>"
     )
 
   tbl %>%
@@ -459,7 +459,7 @@ test_that("using fonts in `cell_text()` works", {
     ) %>%
     as_raw_html() %>%
     expect_match(
-      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Dancing Script', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;\" valign=\"middle\" align=\"right\">13:35</td>"
+      "<td headers=\"time\" class=\"gt_row gt_right\" style=\"border-style: none; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: right; font-variant-numeric: tabular-nums; font-family: 'Dancing Script', system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';\" valign=\"middle\" align=\"right\">13:35</td>"
     )
 
   gtcars_tbl <-
@@ -553,7 +553,7 @@ test_that("using fonts in `cell_text()` works", {
   )
 })
 
-test_that("setting white-space options in `cell_text()` works", {
+test_that("Setting white-space options in `cell_text()` works", {
 
   tbl_ws <-
     dplyr::tibble(
@@ -570,11 +570,11 @@ test_that("setting white-space options in `cell_text()` works", {
     ) %>%
     as_raw_html() %>%
     expect_match(
-      "<td headers=\"ws\" class=\"gt_row gt_left\" style=\"padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: left; white-space: pre;\" valign=\"middle\" align=\"left\">   space   </td>"
+      "<td headers=\"ws\" class=\"gt_row gt_left\" style=\"border-style: none; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; text-align: left; white-space: pre;\" valign=\"middle\" align=\"left\">   space   </td>"
     )
 })
 
-test_that("hiding columns that have styles does not result in errors/warnings", {
+test_that("Hiding columns that have styles does not result in errors/warnings", {
 
   expect_error(
     regexp = NA,
@@ -605,4 +605,56 @@ test_that("hiding columns that have styles does not result in errors/warnings", 
       tab_style(style = cell_fill(), locations = cells_body(columns = date)) %>%
       cols_hide(columns = datetime)
   )
+})
+
+test_that("Using fonts in `from_column()` works within `cell_*()` fns", {
+
+  # Generate table with column of spelled-out numbers (`num`) and
+  # styling option values
+  tab <-
+    dplyr::tibble(
+      num = vec_fmt_spelled_num(1:4),
+      bkg_color = c("blue", "red", "yellow", "rebeccapurple"),
+      txt_color = c("white", "#FFF", "gray10", "#FFFFFFEE"),
+      size = paste0(c(14, 20, 24, 30), "px"),
+      align = c("left", "right", "center", "right"),
+      v_align = c("middle", "top", "bottom", "middle"),
+      style = c("normal", "italic", "oblique", "normal"),
+      weight = c("normal", "bold", "lighter", "bolder"),
+      stretch = c("normal", "semi-expanded", "expanded", "extra-expanded"),
+      decorate = c("overline", "line-through", "underline", "underline overline"),
+      transform = c("uppercase", "lowercase", "capitalize", "lowercase"),
+      whitespace = c("normal", "nowrap", "pre", "pre-wrap"),
+      indent = c(0, 4, 8, 10)
+    )
+
+  # Generate a gt table and use `tab_style()` along with `cell_*()`
+  # helper functions that in turn use the `from_column()` helper
+  gt_tbl_1 <-
+    tab %>%
+    gt() %>%
+    tab_style(
+      style = list(
+        cell_fill(
+          color = from_column(column = "bkg_color")
+        ),
+        cell_text(
+          color = from_column(column = "txt_color"),
+          size = from_column(column = "size"),
+          align = from_column(column = "align"),
+          v_align = from_column(column = "v_align"),
+          style = from_column(column = "style"),
+          weight = from_column(column = "weight"),
+          stretch = from_column(column = "stretch"),
+          decorate = from_column(column = "decorate"),
+          transform = from_column(column = "transform"),
+          whitespace = from_column(column = "whitespace"),
+          indent = from_column(column = "indent")
+        )
+      ),
+      locations = cells_body(columns = num)
+    )
+
+  # Perform snapshot test
+  gt_tbl_1 %>% render_as_html() %>% expect_snapshot()
 })

@@ -1,3 +1,27 @@
+#------------------------------------------------------------------------------#
+#
+#                /$$
+#               | $$
+#     /$$$$$$  /$$$$$$
+#    /$$__  $$|_  $$_/
+#   | $$  \ $$  | $$
+#   | $$  | $$  | $$ /$$
+#   |  $$$$$$$  |  $$$$/
+#    \____  $$   \___/
+#    /$$  \ $$
+#   |  $$$$$$/
+#    \______/
+#
+#  This file is part of the 'rstudio/gt' project.
+#
+#  Copyright (c) 2018-2023 gt authors
+#
+#  For full copyright and license information, please look at
+#  https://gt.rstudio.com/LICENSE.html
+#
+#------------------------------------------------------------------------------#
+
+
 #' Upgrader function for `cells_*` objects
 #'
 #' Upgrade a `cells_*` object to a `list()` if only a single instance is
@@ -58,16 +82,19 @@ add_summary_location_row <- function(
   # that are missing at render time will be ignored
   for (group in groups) {
 
-    summary_labels <-
+    id_vals <-
       unique(
         unlist(
           lapply(
             summary_data,
             FUN = function(summary_data_item) {
+
+              id_vals <- names(summary_data_item$fns)
+
               if (isTRUE(summary_data_item$groups)) {
-                summary_data_item$summary_labels
+                id_vals
               } else if (group %in% summary_data_item$groups) {
-                summary_data_item$summary_labels
+                id_vals
               }
             }
           )
@@ -95,7 +122,7 @@ add_summary_location_row <- function(
     rows <-
       resolve_vector_i(
         expr = !!loc$rows,
-        vector = summary_labels,
+        vector = id_vals,
         item_label = "summary row"
       )
 
@@ -148,14 +175,17 @@ add_grand_summary_location_row <- function(
 
   summary_data <- dt_summary_get(data = data)
 
-  grand_summary_labels <-
+  id_vals <-
     unique(
       unlist(
         lapply(
           summary_data,
           FUN = function(summary_data_item) {
-            if (is.null(summary_data_item$groups)) {
-              return(summary_data_item$summary_labels)
+
+            id_vals <- names(summary_data_item$fns)
+
+            if (":GRAND_SUMMARY:" %in% summary_data_item$groups) {
+              return(id_vals)
             }
             NULL
           }
@@ -184,7 +214,7 @@ add_grand_summary_location_row <- function(
   rows <-
     resolve_vector_i(
       expr = !!loc$rows,
-      vector = grand_summary_labels,
+      vector = id_vals,
       item_label = "grand summary row"
     )
 
@@ -271,6 +301,17 @@ resolve_location.cells_column_labels <- function(loc, data) {
   #       select all groups; this should be changed to select all groups
 
   # TODO: abort() if groups provided not in the available set of groups
+  class(loc) <- c("resolved", class(loc))
+
+  loc
+}
+
+resolve_location.cells_column_spanners <- function(loc, data) {
+
+  resolved <- resolve_cells_column_spanners(data = data, object = loc)
+
+  loc$spanners <- resolved$spanners
+
   class(loc) <- c("resolved", class(loc))
 
   loc

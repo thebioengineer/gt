@@ -6,7 +6,7 @@
 \usage{
 fmt_date(
   data,
-  columns,
+  columns = everything(),
   rows = everything(),
   date_style = "iso",
   pattern = "{x}",
@@ -14,38 +14,63 @@ fmt_date(
 )
 }
 \arguments{
-\item{data}{A table object that is created using the \code{\link[=gt]{gt()}} function.}
+\item{data}{\emph{The gt table data object}
 
-\item{columns}{The columns to format. Can either be a series of column names
-provided in \code{\link[=c]{c()}}, a vector of column indices, or a helper function
-focused on selections. The select helper functions are: \code{\link[=starts_with]{starts_with()}},
+\verb{obj:<gt_tbl>} // \strong{required}
+
+This is the \strong{gt} table object that is commonly created through use of the
+\code{\link[=gt]{gt()}} function.}
+
+\item{columns}{\emph{Columns to target}
+
+\verb{<column-targeting expression>} // \emph{default:} \code{everything()}
+
+Can either be a series of column names provided in \code{\link[=c]{c()}}, a vector of
+column indices, or a select helper function. Examples of select helper
+functions include \code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}},
+\code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}}, \code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}.}
+
+\item{rows}{\emph{Rows to target}
+
+\verb{<row-targeting expression>} // \emph{default:} \code{everything()}
+
+In conjunction with \code{columns}, we can specify which of their rows should
+undergo formatting. The default \code{\link[=everything]{everything()}} results in all rows in
+\code{columns} being formatted. Alternatively, we can supply a vector of row
+captions within \code{\link[=c]{c()}}, a vector of row indices, or a select helper
+function. Examples of select helper functions include \code{\link[=starts_with]{starts_with()}},
 \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}}, \code{\link[=num_range]{num_range()}}, and
-\code{\link[=everything]{everything()}}.}
+\code{\link[=everything]{everything()}}. We can also use expressions to filter down to the rows we
+need (e.g., \verb{[colname_1] > 100 & [colname_2] < 50}).}
 
-\item{rows}{Optional rows to format. Providing \code{\link[=everything]{everything()}} (the
-default) results in all rows in \code{columns} being formatted. Alternatively,
-we can supply a vector of row captions within \code{\link[=c]{c()}}, a vector of row
-indices, or a helper function focused on selections. The select helper
-functions are: \code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}},
-\code{\link[=one_of]{one_of()}}, \code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}. We can also use expressions
-to filter down to the rows we need (e.g.,
-\verb{[colname_1] > 100 & [colname_2] < 50}).}
+\item{date_style}{\emph{Predefined style for dates}
 
-\item{date_style}{The date style to use. By default this is \code{"iso"} which
-corresponds to ISO 8601 date formatting. The other date styles can be
-viewed using \code{\link[=info_date_style]{info_date_style()}}.}
+\verb{scalar<character>|scalar<numeric|integer>(1<=val<=41)} // \emph{default:} \code{"iso"}
 
-\item{pattern}{A formatting pattern that allows for decoration of the
-formatted value. The value itself is represented by \code{{x}} and all other
-characters are taken to be string literals.}
+The date style to use. By default this is the short name \code{"iso"} which
+corresponds to ISO 8601 date formatting. There are 41 date styles in total
+and their short names can be viewed using \code{\link[=info_date_style]{info_date_style()}}.}
 
-\item{locale}{An optional locale ID that can be used for formatting the value
+\item{pattern}{\emph{Specification of the formatting pattern}
+
+\verb{scalar<character>} // \emph{default:} \code{"{x}"}
+
+A formatting pattern that allows for decoration of the formatted value. The
+formatted value is represented by the \code{{x}} (which can be used multiple
+times, if needed) and all other characters will be interpreted as string
+literals.}
+
+\item{locale}{\emph{Locale identifier}
+
+\verb{scalar<character>} // \emph{default:} \code{NULL} (\code{optional})
+
+An optional locale identifier that can be used for formatting values
 according the locale's rules. Examples include \code{"en"} for English (United
-States) and \code{"fr"} for French (France). The use of a valid locale ID will
-override any values provided in \code{sep_mark} and \code{dec_mark}. We can use the
-\code{\link[=info_locales]{info_locales()}} function as a useful reference for all of the locales that
-are supported. Any \code{locale} value provided here will override any global
-locale setting performed in \code{\link[=gt]{gt()}}'s own \code{locale} argument.}
+States) and \code{"fr"} for French (France). We can use the \code{\link[=info_locales]{info_locales()}}
+function as a useful reference for all of the locales that are supported. A
+locale ID can be also set in the initial \code{\link[=gt]{gt()}} function call (where it
+would be used automatically by any function with a \code{locale} argument) but a
+\code{locale} value provided here will override that global locale.}
 }
 \value{
 An object of class \code{gt_tbl}.
@@ -56,13 +81,78 @@ can be in the form of \code{POSIXt} (i.e., datetimes), the \code{Date} type, or
 \code{character} (must be in the ISO 8601 form of \verb{YYYY-MM-DD HH:MM:SS} or
 \code{YYYY-MM-DD}).
 }
-\section{Targeting the values to be formatted}{
+\section{Compatibility of formatting function with data values}{
+
+
+The \code{fmt_date()} formatting function is compatible with body cells that are
+of the \code{"Date"}, \code{"POSIXt"} or \code{"character"} types. Any other types of body
+cells are ignored during formatting. This is to say that cells of
+incompatible data types may be targeted, but there will be no attempt to
+format them.
+}
+
+\section{Targeting cells with \code{columns} and \code{rows}}{
 
 
 Targeting of values is done through \code{columns} and additionally by \code{rows} (if
-nothing is provided for \code{rows} then entire columns are selected). Conditional
-formatting is possible by providing a conditional expression to the \code{rows}
-argument. See the \emph{Arguments} section for more information on this.
+nothing is provided for \code{rows} then entire columns are selected). The
+\code{columns} argument allows us to target a subset of cells contained in the
+resolved columns. We say resolved because aside from declaring column names
+in \code{c()} (with bare column names or names in quotes) we can use
+\strong{tidyselect}-style expressions. This can be as basic as supplying a select
+helper like \code{starts_with()}, or, providing a more complex incantation like
+
+\code{where(~ is.numeric(.x) && max(.x, na.rm = TRUE) > 1E6)}
+
+which targets numeric columns that have a maximum value greater than
+1,000,000 (excluding any \code{NA}s from consideration).
+
+By default all columns and rows are selected (with the \code{everything()}
+defaults). Cell values that are incompatible with a given formatting function
+will be skipped over, like \code{character} values and numeric \verb{fmt_*()}
+functions. So it's safe to select all columns with a particular formatting
+function (only those values that can be formatted will be formatted), but,
+you may not want that. One strategy is to format the bulk of cell values with
+one formatting function and then constrain the columns for later passes with
+other types of formatting (the last formatting done to a cell is what you get
+in the final output).
+
+Once the columns are targeted, we may also target the \code{rows} within those
+columns. This can be done in a variety of ways. If a stub is present, then we
+potentially have row identifiers. Those can be used much like column names in
+the \code{columns}-targeting scenario. We can use simpler \strong{tidyselect}-style
+expressions (the select helpers should work well here) and we can use quoted
+row identifiers in \code{c()}. It's also possible to use row indices (e.g.,
+\code{c(3, 5, 6)}) though these index values must correspond to the row numbers of
+the input data (the indices won't necessarily match those of rearranged rows
+if row groups are present). One more type of expression is possible, an
+expression that takes column values (can involve any of the available columns
+in the table) and returns a logical vector. This is nice if you want to base
+formatting on values in the column or another column, or, you'd like to use a
+more complex predicate expression.
+}
+
+\section{Compatibility of arguments with the \code{from_column()} helper function}{
+
+
+The \code{\link[=from_column]{from_column()}} helper function can be used with certain arguments of
+\code{fmt_date()} to obtain varying parameter values from a specified column
+within the table. This means that each row could be formatted a little bit
+differently. These arguments provide support for \code{\link[=from_column]{from_column()}}:
+\itemize{
+\item \code{date_style}
+\item \code{pattern}
+\item \code{locale}
+}
+
+Please note that for each of the aforementioned arguments, a \code{\link[=from_column]{from_column()}}
+call needs to reference a column that has data of the correct type (this is
+different for each argument). Additional columns for parameter values can be
+generated with the \code{\link[=cols_add]{cols_add()}} function (if not already present). Columns
+that contain parameter data can also be hidden from final display with
+\code{\link[=cols_hide]{cols_hide()}}. Finally, there is no limitation to how many arguments the
+\code{\link[=from_column]{from_column()}} helper is applied so long as the arguments belong to this
+closed set.
 }
 
 \section{Formatting with the \code{date_style} argument}{
@@ -122,20 +212,33 @@ values (corresponding to an input date of \code{2000-02-29}).\tabular{llll}{
 }
 
 
-We can use the \code{\link[=info_date_style]{info_date_style()}} within the console to view a similar table
-of date styles with example output.
+We can use the \code{\link[=info_date_style]{info_date_style()}} function within the console to view a
+similar table of date styles with example output.
+}
+
+\section{Adapting output to a specific \code{locale}}{
+
+
+This formatting function can adapt outputs according to a provided \code{locale}
+value. Examples include \code{"en"} for English (United States) and \code{"fr"} for
+French (France). Note that a \code{locale} value provided here will override any
+global locale setting performed in \code{\link[=gt]{gt()}}'s own \code{locale} argument (it is
+settable there as a value received by all other functions that have a
+\code{locale} argument). As a useful reference on which locales are supported, we
+can use the \code{\link[=info_locales]{info_locales()}} function to view an info table.
 }
 
 \section{Examples}{
 
 
-Use \code{\link{exibble}} to create a \strong{gt} table. Keep only the \code{date} and \code{time}
-columns. Format the \code{date} column to have dates formatted with the
+Let's use the \code{\link{exibble}} dataset to create a simple, two-column \strong{gt} table
+(keeping only the \code{date} and \code{time} columns). With the \code{fmt_date()} function,
+we'll format the \code{date} column to display dates formatted with the
 \code{"month_day_year"} date style.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble \%>\%
-  dplyr::select(date, time) \%>\%
-  gt() \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble |>
+  dplyr::select(date, time) |>
+  gt() |>
   fmt_date(
     columns = date,
     date_style = "month_day_year"
@@ -146,19 +249,22 @@ columns. Format the \code{date} column to have dates formatted with the
 <img src="https://raw.githubusercontent.com/rstudio/gt/master/images/man_fmt_date_1.png" alt="This image of a table was generated from the first code example in the `fmt_date()` help file." style="width:100\%;">
 }}
 
-Use \code{\link{exibble}} to create a \strong{gt} table. Keep only the \code{date} and \code{time}
-columns. Format the \code{date} column to have mixed date formats (dates after
-April will be different than the others because of the expressions used
-in the \code{rows} argument).
+Again using the \code{\link{exibble}} dataset, let's format the \code{date} column to have
+mixed date formats, where dates after April 1st will be different than the
+others because of the expressions used in the \code{rows} argument. This will
+involve two calls of \code{fmt_date()} with different statements provided for
+\code{rows}. In the first call (dates after the 1st of April) the date style
+\code{"m_day_year"} is used; for the second call, \code{"day_m_year"} is the named
+date style supplied to \code{date_style}.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble \%>\%
-  dplyr::select(date, time) \%>\%
-  gt() \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble |>
+  dplyr::select(date, time) |>
+  gt() |>
   fmt_date(
     columns = date,
     rows = as.Date(date) > as.Date("2015-04-01"),
     date_style = "m_day_year"
-  ) \%>\%
+  ) |>
   fmt_date(
     columns = date,
     rows = as.Date(date) <= as.Date("2015-04-01"),
@@ -170,16 +276,15 @@ in the \code{rows} argument).
 <img src="https://raw.githubusercontent.com/rstudio/gt/master/images/man_fmt_date_2.png" alt="This image of a table was generated from the second code example in the `fmt_date()` help file." style="width:100\%;">
 }}
 
-Use \code{\link{exibble}} to create another \strong{gt} table, this time only with the
-\code{date} column. Format the \code{date} column to use the \code{"yMMMEd"} date style
-(which is one of the 'flexible' styles). Also, set the locale to \code{"nl"} to
-get the dates in Dutch.
+Use the \code{\link{exibble}} dataset to create a single-column \strong{gt} table (with only
+the \code{date} column). Format the date values using the \code{"yMMMEd"} date style
+(which is one of the 'flexible' styles). Also, we'll set the locale to \code{"nl"}
+to get the dates in Dutch.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble \%>\%
-  dplyr::select(date) \%>\%
-  gt() \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{exibble |>
+  dplyr::select(date) |>
+  gt() |>
   fmt_date(
-    columns = date,
     date_style = "yMMMEd",
     locale = "nl"
   )
@@ -192,18 +297,31 @@ get the dates in Dutch.
 
 \section{Function ID}{
 
-3-11
+3-13
+}
+
+\section{Function Introduced}{
+
+\code{v0.2.0.5} (March 31, 2020)
 }
 
 \seealso{
+The vector-formatting version of this function: \code{\link[=vec_fmt_date]{vec_fmt_date()}}.
+
 Other data formatting functions: 
 \code{\link{data_color}()},
+\code{\link{fmt_auto}()},
+\code{\link{fmt_bins}()},
 \code{\link{fmt_bytes}()},
 \code{\link{fmt_currency}()},
 \code{\link{fmt_datetime}()},
 \code{\link{fmt_duration}()},
 \code{\link{fmt_engineering}()},
+\code{\link{fmt_flag}()},
 \code{\link{fmt_fraction}()},
+\code{\link{fmt_icon}()},
+\code{\link{fmt_image}()},
+\code{\link{fmt_index}()},
 \code{\link{fmt_integer}()},
 \code{\link{fmt_markdown}()},
 \code{\link{fmt_number}()},
@@ -212,13 +330,15 @@ Other data formatting functions:
 \code{\link{fmt_percent}()},
 \code{\link{fmt_roman}()},
 \code{\link{fmt_scientific}()},
+\code{\link{fmt_spelled_num}()},
 \code{\link{fmt_time}()},
+\code{\link{fmt_units}()},
+\code{\link{fmt_url}()},
 \code{\link{fmt}()},
 \code{\link{sub_large_vals}()},
 \code{\link{sub_missing}()},
 \code{\link{sub_small_vals}()},
 \code{\link{sub_values}()},
-\code{\link{sub_zero}()},
-\code{\link{text_transform}()}
+\code{\link{sub_zero}()}
 }
 \concept{data formatting functions}

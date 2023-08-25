@@ -7,7 +7,15 @@
 cells_column_labels(columns = everything())
 }
 \arguments{
-\item{columns}{The names of the column labels that are to be targeted.}
+\item{columns}{\emph{Columns to target}
+
+\verb{<column-targeting expression>} // \emph{default:} \code{everything()}
+
+The columns to which targeting operations are constrained. Can either
+be a series of column names provided in \code{\link[=c]{c()}}, a vector of column indices,
+or a select helper function. Examples of select helper functions include
+\code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}},
+\code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}.}
 }
 \value{
 A list object with the classes \code{cells_column_labels} and
@@ -20,7 +28,8 @@ with \code{\link[=tab_style]{tab_style()}}. The function is expressly used in ea
 functions' \code{locations} argument. The 'column_labels' location is present by
 default in every \strong{gt} table.
 }
-\section{Overview of Location Helper Functions}{
+\section{Overview of location helper functions}{
+
 
 Location helper functions can be used to target cells with virtually any
 function that has a \code{locations} argument. Here is a listing of all of the
@@ -62,25 +71,41 @@ can be targeted by enclosing several \verb{cells_*()} helper functions in a
 \code{list()} (e.g., \code{list(cells_body(), cells_grand_summary())}).
 }
 
+\section{Targeting columns with the \code{columns} argument}{
+
+
+The \code{columns} argument allows us to target a subset of columns contained in
+the table. We can declare column names in \code{c()} (with bare column names or
+names in quotes) or we can use \strong{tidyselect}-style expressions. This can be
+as basic as supplying a select helper like \code{starts_with()}, or, providing a
+more complex incantation like
+
+\code{where(~ is.numeric(.x) && max(.x, na.rm = TRUE) > 1E6)}
+
+which targets numeric columns that have a maximum value greater than
+1,000,000 (excluding any \code{NA}s from consideration).
+}
+
 \section{Examples}{
 
 
-Use \code{\link{sza}} to create a \strong{gt} table. Add footnotes to the column labels with
-\code{\link[=tab_footnote]{tab_footnote()}} and \code{cells_column_labels()} in \code{locations}.
+Let's use a small portion of the \code{\link{sza}} dataset to create a \strong{gt} table.
+Add footnotes to the column labels with \code{\link[=tab_footnote]{tab_footnote()}} and
+\code{cells_column_labels()} in \code{locations}.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{sza \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{sza |>
   dplyr::filter(
     latitude == 20 & month == "jan" &
       !is.na(sza)
-  ) \%>\%
-  dplyr::select(-latitude, -month) \%>\%
-  gt() \%>\%
+  ) |>
+  dplyr::select(-latitude, -month) |>
+  gt() |>
   tab_footnote(
     footnote = "True solar time.",
     locations = cells_column_labels(
       columns = tst
     )
-  ) \%>\%
+  ) |>
   tab_footnote(
     footnote = "Solar zenith angle.",
     locations = cells_column_labels(
@@ -96,7 +121,12 @@ Use \code{\link{sza}} to create a \strong{gt} table. Add footnotes to the column
 
 \section{Function ID}{
 
-7-9
+8-13
+}
+
+\section{Function Introduced}{
+
+\code{v0.2.0.5} (March 31, 2020)
 }
 
 \seealso{
@@ -119,7 +149,9 @@ Other helper functions:
 \code{\link{cells_title}()},
 \code{\link{currency}()},
 \code{\link{default_fonts}()},
+\code{\link{define_units}()},
 \code{\link{escape_latex}()},
+\code{\link{from_column}()},
 \code{\link{google_font}()},
 \code{\link{gt_latex_dependencies}()},
 \code{\link{html}()},
@@ -127,6 +159,7 @@ Other helper functions:
 \code{\link{pct}()},
 \code{\link{px}()},
 \code{\link{random_id}()},
-\code{\link{stub}()}
+\code{\link{stub}()},
+\code{\link{system_fonts}()}
 }
 \concept{helper functions}

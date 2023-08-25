@@ -1,3 +1,27 @@
+#------------------------------------------------------------------------------#
+#
+#                /$$
+#               | $$
+#     /$$$$$$  /$$$$$$
+#    /$$__  $$|_  $$_/
+#   | $$  \ $$  | $$
+#   | $$  | $$  | $$ /$$
+#   |  $$$$$$$  |  $$$$/
+#    \____  $$   \___/
+#    /$$  \ $$
+#   |  $$$$$$/
+#    \______/
+#
+#  This file is part of the 'rstudio/gt' project.
+#
+#  Copyright (c) 2018-2023 gt authors
+#
+#  For full copyright and license information, please look at
+#  https://gt.rstudio.com/LICENSE.html
+#
+#------------------------------------------------------------------------------#
+
+
 #' Filter an internal table to a single row with filtering expressions
 #'
 #' @param table The table to filter down to one row.
@@ -28,6 +52,24 @@ filter_table_to_value <- function(
   dplyr::pull(filtered_tbl, !!column_enquo)
 }
 
+normalize_locale <- function(locale = NULL) {
+
+  # Return NULL if the locale isn't specified
+  if (is.null(locale)) {
+    return(NULL)
+  }
+
+  # Normalize any underscores to hyphens
+  locale <- gsub("_", "-", locale)
+
+  # Resolve any default locales into their base names (e.g., 'en-US' -> 'en')
+  if (locale %in% default_locales$default_locale) {
+    locale <- default_locales[default_locales$default_locale == locale, ][["base_locale"]]
+  }
+
+  locale
+}
+
 #' Validate the user-supplied `locale` value
 #'
 #' @param locale The user-supplied `locale` value, found in several `fmt_*()`
@@ -37,7 +79,11 @@ validate_locale <- function(locale) {
 
   # Stop function if the `locale` provided
   # isn't a valid one
-  if (!is.null(locale) && !(locale %in% locales$base_locale_id)) {
+  if (
+    !is.null(locale) &&
+    !(gsub("_", "-", locale) %in% locales[["locale"]]) &&
+    !(gsub("_", "-", locale) %in% default_locales[["default_locale"]])
+  ) {
 
     cli::cli_abort(c(
       "The supplied `locale` is not available in the list of supported locales.",
@@ -90,27 +136,22 @@ get_locale_sep_mark <- function(
     use_seps
 ) {
 
-  # If `use_seps` is FALSE, then force
-  # `sep_mark` to be an empty string
+  # If `use_seps` is FALSE, then force `sep_mark` to be an empty string
   if (!use_seps) {
     return("")
   }
 
-  # If `locale` is NULL then return the
-  # default `sep_mark`
+  # If `locale` is NULL then return the default `sep_mark`
   if (is.null(locale)) {
     return(default)
   }
 
-  # Get the correct `group_sep` value from the
-  # `gt:::locales` lookup table
-  sep_mark <-
-    filter_table_to_value(locales, group_sep, base_locale_id == locale)
+  # Get the correct `group_sep` value from the `gt:::locales` lookup table
+  sep_mark <- filter_table_to_value(locales, group, locale == {{ locale }})
 
-  # TODO: Modify `locales` table to replace `""` with
-  # `" "` in `group_sep` column; once that is done, the
-  # below statement can be safely removed
-  if (sep_mark == "") sep_mark <- " "
+  # Replace any `""` or "\u00a0" with `" "` since an empty string actually
+  # signifies a space character, and, we want to normalize to a simple space
+  if (sep_mark == "" || sep_mark == "\u00a0") sep_mark <- " "
 
   sep_mark
 }
@@ -123,15 +164,124 @@ get_locale_sep_mark <- function(
 #' @noRd
 get_locale_dec_mark <- function(locale = NULL, default) {
 
-  # If `locale` is NULL then return the
-  # default `dec_mark`
+  # If `locale` is NULL then return the default `dec_mark`
   if (is.null(locale)) {
     return(default)
   }
 
-  # Get the correct `dec_sep` value from the
+  # Get the correct `decimal` value from the `gt:::locales` lookup table
+  filter_table_to_value(locales, decimal, locale == {{ locale }})
+}
+
+#' Get the currency code value associated with a locale's territory
+#'
+#' @param locale The user-supplied `locale` value, found in several `fmt_*()`
+#'   functions. This is expected as `NULL` if not supplied by the user.
+#' @noRd
+get_locale_currency_code <- function(locale = NULL) {
+
+  # If `locale` is NULL then return `"USD"`
+  if (is.null(locale)) {
+    return("USD")
+  }
+
+  locale <- locales[locales$locale == locale, ][["currency_code"]][[1]]
+
+  if (is.na(locale)) {
+    return("USD")
+  }
+
+  locale
+}
+
+#' Get the `idx_set` vector based on a locale
+#'
+#' @param locale The user-supplied `locale` value, found in several `fmt_*()`
+#'   functions. This is expected as `NULL` if not supplied by the user.
+#' @noRd
+get_locale_idx_set <- function(locale = NULL) {
+
+  # If `locale` is NULL then return `LETTERS`
+  if (is.null(locale)) {
+    return(LETTERS)
+  }
+
+  locales[locales$locale == locale, ][["chr_index"]][[1]]
+}
+
+#' Get the `idx_num_spellout` vector based on a locale
+#'
+#' @param locale The user-supplied `locale` value, found in several `fmt_*()`
+#'   functions. This is expected as `NULL` if not supplied by the user.
+#' @noRd
+get_locale_num_spellout <- function(locale = NULL) {
+
+  # If `locale` is NULL then set locale as 'en'
+  if (is.null(locale)) {
+    locale <- "en"
+  }
+
+  # If `locale` contains `sr-Latn` then set locale as 'sr-Latn'
+  if (grepl("sr-Latn", locale)) {
+    locale <- "sr-Latn"
+  }
+
+  # Get a vector of all locales from the column names of the
+  # `spelled_num` dataset
+  all_locales <- base::setdiff(names(spelled_num), "number")
+
+  # The user may supply a valid locale (even one from those available
+  # in `gt:::locales`) but there is no associated locale in `all_locales`;
+  # in such a case when strip it down to the language and check if it is
+  # then available in this internal dataset
+  if (!(locale %in% all_locales)) {
+
+    locale_segments <- get_locale_segments(locale = locale)
+
+    if (any(locale_segments %in% all_locales)) {
+
+      locale <- locale_segments[locale_segments %in% all_locales]
+
+    } else {
+      locale <- "en"
+    }
+  }
+
+  spelled_num[[locale]]
+}
+
+#' Get the `no_table_data_text` value based on a locale
+#'
+#' @param locale The user-supplied `locale` value, found in several `fmt_*()`
+#'   functions. This is expected as `NULL` if not supplied by the user.
+#' @noRd
+get_locale_no_table_data_text <- function(locale = NULL) {
+
+  # If `locale` is NULL then use the 'en' locale
+  if (is.null(locale)) {
+    locale <- "en"
+  }
+
+  # Get the correct `no_table_data_text` value from the
   # `gt:::locales` lookup table
-  filter_table_to_value(locales, dec_sep, base_locale_id == locale)
+  filter_table_to_value(locales, no_table_data_text, locale == {{ locale }})
+}
+
+get_locale_segments <- function(locale) {
+
+  if (!grepl("-", locale)) {
+    return(locale)
+  }
+
+  segments <- locale
+
+  while (grepl("-", locale)) {
+
+    locale <- gsub("-[^-]*$", "", locale)
+    segments <- c(segments, locale)
+  }
+
+  segments
 }
 
 #' Resolve the locale in functions with a `locale` argument
@@ -151,6 +301,13 @@ resolve_locale <- function(data, locale) {
   if (is.null(locale)) {
     locale <- dt_locale_get_value(data = data)
   }
+
+  # An 'undetermined' locale should map back to the `"en"` locale
+  if (!is.null(locale) && locale == "und") {
+    locale <- "en"
+  }
+
+  locale <- normalize_locale(locale = locale)
 
   validate_locale(locale = locale)
 
@@ -270,27 +427,35 @@ format_num_to_str <- function(
   # If this hardcoding is ever to change, then we need to
   # modify the regexes below
   if (system == "ind") {
+
     sep_mark <- ","
     dec_mark <- "."
   }
 
   if (format == "fg") {
+
     x <- signif(x, digits = n_sigfig)
     mode <- NULL
     digits <- n_sigfig
     flag <- "#"
     drop0trailing <- FALSE
+
   } else if (format == "f") {
+
     mode <- "double"
     digits <- decimals
     flag <- ""
     drop0trailing <- drop_trailing_zeros
+
   } else if (format == "e") {
+
     mode <- "double"
     digits <- decimals
     flag <- ""
-    drop0trailing <- drop_trailing_zeros
+    drop0trailing <- FALSE
+
   } else {
+
     cli::cli_abort("The format provided isn't recognized.")
   }
 
@@ -366,6 +531,7 @@ format_num_to_str_c <- function(
     x,
     context,
     decimals,
+    n_sigfig,
     sep_mark,
     dec_mark,
     drop_trailing_zeros = FALSE,
@@ -379,6 +545,7 @@ format_num_to_str_c <- function(
     x = x,
     context = context,
     decimals = decimals,
+    n_sigfig = n_sigfig,
     sep_mark = sep_mark,
     dec_mark = dec_mark,
     drop_trailing_zeros = drop_trailing_zeros,
@@ -427,31 +594,42 @@ context_missing_text <- function(missing_text, context) {
 
   is_asis <- inherits(missing_text, "AsIs")
 
-  switch(
-    context,
-    html = ,
-    latex = ,
-    word =
-      {
-        if (!is_asis && missing_text == "---") {
-          "\U02014"
-        } else if (!is_asis && missing_text == "--") {
-          "\U02013"
-        } else {
-          process_text(missing_text, context)
+  missing_text <-
+    switch(
+      context,
+      html = ,
+      latex = ,
+      word =
+        {
+          if (!is_asis && missing_text == "---") {
+            "\U02014"
+          } else if (!is_asis && missing_text == "--") {
+            "\U02013"
+          } else {
+            process_text(missing_text, context)
+          }
+        },
+      rtf =
+        {
+          if (!is_asis && missing_text == "---") {
+            "\\'97"
+          } else if (!is_asis && missing_text == "--") {
+            "\\'96"
+          } else {
+            process_text(missing_text, context)
+          }
         }
-      },
-    rtf =
-      {
-        if (!is_asis && missing_text == "---") {
-          "\\'97"
-        } else if (!is_asis && missing_text == "--") {
-          "\\'96"
-        } else {
-          process_text(missing_text, context)
-        }
-      }
-  )
+    )
+
+  if (
+    context == "html" &&
+    !is_asis &&
+    (missing_text == "" || grepl("^\\s+$", missing_text))
+  ) {
+    missing_text <- "<br />"
+  }
+
+  missing_text
 }
 
 context_dash_mark <- context_missing_text
@@ -633,6 +811,40 @@ context_exp_marks <- function(context) {
   )
 }
 
+#' Obtain the contextually correct string for scientific or engineering notation
+#' where the default style (`"x10n"`) is not used.
+#'
+#' @param context The output context.
+#' @param exp_style The style of formatting to use for the exponential notation.
+#' @noRd
+context_exp_str <- function(context, exp_style) {
+
+  # Set default value for `exp_str`
+  exp_str <- "E"
+
+  # For the 'low-ten' style, a different `exp_str` value will be obtained
+  # depending on the `context`
+  if (exp_style == "low-ten") {
+
+    exp_str <-
+      switch(
+        context,
+        html = c("<sub style='font-size: 65%;'>10</sub>"),
+        latex = c("{}_10"),
+        rtf = c("{\\sub 10}"),
+        word = c("10^"),
+        "E"
+      )
+  }
+
+  # If there is a single letter (or a letter and a '1') then
+  # used that letter as the `exp_str` value
+  if (grepl("^[a-zA-Z]{1}1?$", exp_style)) {
+    exp_str <- substr(exp_style, 1, 1)
+  }
+
+  exp_str
+}
 
 #' Obtain the contextually correct symbol string
 #'
@@ -674,7 +886,8 @@ context_symbol_str <- function(context, symbol) {
         if (!inherits(symbol, "AsIs")) {
           paste_between(
             markdown_to_latex(
-              get_currency_str(currency = symbol, fallback_to_code = TRUE)
+              get_currency_str(currency = symbol, fallback_to_code = TRUE),
+              md_engine = "commonmark"
             ),
             c("\\text{", "}")
           )
@@ -684,6 +897,8 @@ context_symbol_str <- function(context, symbol) {
       },
       get_currency_str(currency = symbol, fallback_to_code = TRUE)
     )
+
+  symbol
 }
 
 #' Paste a symbol string to a formatted number
@@ -712,42 +927,45 @@ format_symbol_str <- function(
     return(x_abs_str)
   }
 
-  vapply(
-    seq_along(x),
-    FUN.VALUE = character(1),
-    USE.NAMES = FALSE,
-    FUN = function(i) {
+  x_out <-
+    vapply(
+      seq_along(x),
+      FUN.VALUE = character(1),
+      USE.NAMES = FALSE,
+      FUN = function(i) {
 
-      # Using absolute value format, the minus mark will
-      # be added later
-      x_i <- x[i]
-      x_str_i <- x_abs_str[i]
+        # Using absolute value format, the minus mark will
+        # be added later
+        x_i <- x[i]
+        x_str_i <- x_abs_str[i]
 
-      # Place possible space and symbol on correct side of value
-      x_str_i <-
-        paste_on_side(
-          x_str_i,
-          x_side = ifelse(incl_space, " ", ""),
-          direction = placement
-        )
-      x_str_i <-
-        paste_on_side(
-          x_str_i,
-          x_side = as.character(symbol_str),
-          direction = placement
-        )
+        # Place possible space and symbol on correct side of value
+        x_str_i <-
+          paste_on_side(
+            x_str_i,
+            x_side = ifelse(incl_space, " ", ""),
+            direction = placement
+          )
+        x_str_i <-
+          paste_on_side(
+            x_str_i,
+            x_side = as.character(symbol_str),
+            direction = placement
+          )
 
-      # Create the minus mark for the context
-      minus_mark <- context_minus_mark(context)
+        # Create the minus mark for the context
+        minus_mark <- context_minus_mark(context)
 
-      # Place the `minus_mark` onto the formatted strings
-      if (x_i < 0) {
-        x_str_i <- paste_left(x_str_i, minus_mark)
+        # Place the `minus_mark` onto the formatted strings
+        if (x_i < 0) {
+          x_str_i <- paste_left(x_str_i, minus_mark)
+        }
+
+        x_str_i
       }
+    )
 
-      x_str_i
-    }
-  )
+  x_out
 }
 
 #' Transform currency values to accounting style
@@ -934,7 +1152,7 @@ num_fmt_factory <- function(
     format_fn
 ) {
 
-  # Force all arguments
+  # Force all arguments that don't have default values
   force(context)
   force(pattern)
   force(format_fn)
@@ -952,20 +1170,125 @@ num_fmt_factory <- function(
       # Create a possibly shorter vector of non-NA `x` values
       x_vals <- x[non_na_x]
 
+      #
       # Apply a series of transformations to `x_str_vals`
-      x_str_vals <-
-        x_vals %>%
-        # Format all non-NA x values with a formatting function
-        format_fn(context = context) %>%
-        # If in a LaTeX context, wrap values in math mode
-        { if (use_latex_math_mode) to_latex_math_mode(., context = context) else . } %>%
-        # Handle formatting of pattern
-        apply_pattern_fmt_x(pattern = pattern)
+      #
 
-      # Place the `x_str_vals` into `str` (at the non-NA indices)
+      # Format all non-NA `x` values with a formatting function
+      x_str_vals <- format_fn(x_vals, context = context)
+
+      # If in a LaTeX context, wrap values in math mode
+      if (use_latex_math_mode) {
+        x_str_vals <- to_latex_math_mode(x_str_vals, context = context)
+      }
+
+      # Handle formatting of pattern
+      x_str_vals <- apply_pattern_fmt_x(x_str_vals, pattern = pattern)
+
+      # Place the `x_str_vals` into `x_str` (at the non-NA indices)
       x_str[non_na_x] <- x_str_vals
     }
 
     x_str
   }
+}
+
+get_arg_names <- function(
+    function_name,
+    in_args = NULL,
+    all_args_except = NULL
+) {
+
+  if (!is.null(in_args) && !is.null(all_args_except)) {
+    stop("The `in_args` and `all_args_except` args should not both be used.")
+  }
+
+  if (is.null(in_args) && is.null(all_args_except)) {
+
+    arg_names <- names(formals(function_name))
+
+  } else if (!is.null(in_args) && is.null(all_args_except)) {
+
+    arg_names <- in_args
+
+  } else {
+
+    arg_names <-
+      base::setdiff(
+        names(formals(function_name)),
+        all_args_except
+      )
+  }
+
+  arg_names
+}
+
+args_have_gt_column_obj <- function(arg_vals) {
+
+  any(
+    vapply(
+      arg_vals,
+      FUN.VALUE = logical(1),
+      USE.NAMES = FALSE,
+      FUN = function(x) {
+        inherits(x, "gt_column")
+      }
+    )
+  )
+}
+
+generate_param_tbl <- function(
+    data,
+    arg_vals,
+    resolved_rows_idx
+  ) {
+
+  data_df <- dt_data_get(data = data)
+
+  param_tbl <- dplyr::tibble(.rows = length(resolved_rows_idx))
+
+  for (i in seq_along(names(arg_vals))) {
+
+    if (inherits(arg_vals[[i]], "gt_column")) {
+
+      resolved_column <-
+        resolve_cols_c(expr = arg_vals[[i]][["column"]], data = data)
+
+      param_vals <- data_df[resolved_rows_idx, ][[resolved_column]]
+
+      if (!is.null(arg_vals[[i]][["fn"]])) {
+
+        fn <- arg_vals[[i]][["fn"]]
+        param_vals <- fn(param_vals)
+      }
+
+      if (!is.null(arg_vals[[i]][["na_value"]])) {
+
+        na_value <- arg_vals[[i]][["na_value"]]
+        param_vals[is.na(param_vals)] <- na_value
+      }
+
+      param_tbl <-
+        dplyr::bind_cols(
+          param_tbl,
+          dplyr::tibble(!!names(arg_vals)[i] := param_vals)
+        )
+
+    } else {
+
+      arg_name <- names(arg_vals)[i]
+      default_for_arg <- rlang::eval_bare(formals(fmt_number)[[arg_name]])
+
+      if (!identical(arg_vals[[i]], default_for_arg) && !is.null(arg_vals[[i]])) {
+
+        param_tbl <-
+          dplyr::bind_cols(
+            param_tbl,
+            dplyr::tibble(!!arg_name := arg_vals[[i]][1])
+          )
+      }
+    }
+  }
+
+  param_tbl
 }

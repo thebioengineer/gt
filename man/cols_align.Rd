@@ -11,17 +11,32 @@ cols_align(
 )
 }
 \arguments{
-\item{data}{A table object that is created using the \code{\link[=gt]{gt()}} function.}
+\item{data}{\emph{The gt table data object}
 
-\item{align}{The alignment type. This can be any of \code{"center"}, \code{"left"}, or
-\code{"right"} for center-, left-, or right-alignment. Alternatively, the
-\code{"auto"} option (the default), will automatically align values in columns
-according to the data type (see the Details section for specifics on which
-alignments are applied).}
+\verb{obj:<gt_tbl>} // \strong{required}
 
-\item{columns}{The columns for which the alignment should be applied. By
-default this is set to \code{everything()} which means that the chosen alignment
-affects all columns.}
+This is the \strong{gt} table object that is commonly created through use of the
+\code{\link[=gt]{gt()}} function.}
+
+\item{align}{\emph{Alignment type}
+
+\verb{singl-kw:[auto|left|center|right]} // \emph{default:} \code{"auto"}
+
+This can be any of \code{"center"}, \code{"left"}, or \code{"right"} for center-, left-,
+or right-alignment. Alternatively, the \code{"auto"} option (the default), will
+automatically align values in columns according to the data type (see the
+Details section for specifics on which alignments are applied).}
+
+\item{columns}{\emph{Columns to target}
+
+\verb{<column-targeting expression>} // \emph{default:} \code{everything()}
+
+The columns for which the alignment should be applied. Can either be a
+series of column names provided in \code{\link[=c]{c()}}, a vector of column indices, or a
+select helper function. Examples of select helper functions include
+\code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}},
+\code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}. By default this is set to \code{\link[=everything]{everything()}}
+which means that the chosen alignment affects all columns.}
 }
 \value{
 An object of class \code{gt_tbl}.
@@ -43,14 +58,15 @@ right-alignment is used for the \code{numeric} and \code{integer} columns.
 \section{Examples}{
 
 
-Use \code{\link{countrypops}} to create a \strong{gt} table. Align the \code{population} column
-data to the left.
+Let's use \code{\link{countrypops}} to create a small \strong{gt} table. We can change the
+alignment of the \code{population} column with \code{cols_align()}. In this example,
+the label and body cells of \code{population} will be aligned to the left.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{countrypops \%>\%
-  dplyr::select(-contains("code")) \%>\%
-  dplyr::filter(country_name == "Mongolia") \%>\%
-  tail(5) \%>\%
-  gt() \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{countrypops |>
+  dplyr::select(-contains("code")) |>
+  dplyr::filter(country_name == "San Marino") |>
+  dplyr::slice_tail(n = 5) |>
+  gt(rowname_col = "year", groupname_col = "country_name") |>
   cols_align(
     align = "left",
     columns = population
@@ -64,13 +80,20 @@ data to the left.
 
 \section{Function ID}{
 
-4-1
+5-1
+}
+
+\section{Function Introduced}{
+
+\code{v0.2.0.5} (March 31, 2020)
 }
 
 \seealso{
 Other column modification functions: 
+\code{\link{cols_add}()},
 \code{\link{cols_align_decimal}()},
 \code{\link{cols_hide}()},
+\code{\link{cols_label_with}()},
 \code{\link{cols_label}()},
 \code{\link{cols_merge_n_pct}()},
 \code{\link{cols_merge_range}()},
@@ -80,6 +103,7 @@ Other column modification functions:
 \code{\link{cols_move_to_start}()},
 \code{\link{cols_move}()},
 \code{\link{cols_unhide}()},
+\code{\link{cols_units}()},
 \code{\link{cols_width}()}
 }
 \concept{column modification functions}

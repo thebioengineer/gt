@@ -58,14 +58,16 @@ body_add_gt <- function(
     header_xml <- as_word_tbl_header_caption(data = value, align = caption_align, split = split, keep_with_next = keep_with_next)
     if (!identical(header_xml,c(""))) {
       for (header_component in header_xml) {
-        x <- officer::body_add_xml(x, str = header_component, pos)
+        x <- officer::body_add_xml(x, str = header_component, pos) %>%
+          suppressWarnings()
       }
     }
   }
 
   ## Create and add the table to the docxr. If the
   tbl_xml <- as_word_tbl_body(data = value, align = align, split = split, keep_with_next = keep_with_next, embedded_heading = identical(caption_location, "embed"))
-  x <- officer::body_add_xml(x, str = tbl_xml, pos)
+  x <- officer::body_add_xml(x, str = tbl_xml, pos) %>%
+    suppressWarnings()
 
   ## Create and add table caption if it is to come after the table
   if (caption_location %in% c("bottom")) {
@@ -73,7 +75,8 @@ body_add_gt <- function(
     header_xml <- as_word_tbl_header_caption(data = value, align = caption_align, split = split, keep_with_next = FALSE)
     if (!identical(header_xml,c(""))) {
       for (header_component in header_xml) {
-        x <- officer::body_add_xml(x, str = header_component, pos)
+        x <- officer::body_add_xml(x, str = header_component, pos)%>%
+          suppressWarnings()
       }
     }
   }
@@ -221,7 +224,8 @@ test_that("word ooxml can be generated from gt object", {
     as_word()
 
   gt_exibble_min_sha1 <- digest::sha1(gt_exibble_min)
-  expect_equal(gt_exibble_min_sha1, "a5101394f72dfc041b2b0fc5faf57a1a7dfb8dd6")
+  expect_equal(gt_exibble_min_sha1, "02a08c1cd57afd63d1e8a670579b59a3fffda177")
+
 })
 
 test_that("word ooxml escapes special characters in gt object", {
@@ -233,6 +237,20 @@ test_that("word ooxml escapes special characters in gt object", {
   ## basic table
   exibble_min %>%
     gt() %>%
+    as_word() %>%
+    expect_snapshot()
+
+})
+
+test_that("word ooxml escapes special characters in gt object footer", {
+
+  # Create a one-row table for these tests
+  exibble_min <- exibble[1, ]
+
+  ## basic table with invalid footnote
+  exibble_min %>%
+    gt() %>%
+    tab_footnote(footnote = "p < .05, ><&\n\r\"'") %>%
     as_word() %>%
     expect_snapshot()
 
@@ -716,13 +734,14 @@ test_that("tables with summaries can be added to a word doc", {
     dplyr::select(-c(fctr, date, time, datetime)) %>%
     gt(rowname_col = "row", groupname_col = "group") %>%
     summary_rows(
-      groups = TRUE,
+      groups = everything(),
       columns = num,
       fns = list(
         avg = ~mean(., na.rm = TRUE),
         total = ~sum(., na.rm = TRUE),
         s.d. = ~sd(., na.rm = TRUE)
-      )
+      ),
+      fmt = list(~ fmt_number(.))
     )
 
   ## Add table to empty word document
@@ -771,23 +790,238 @@ test_that("tables with summaries can be added to a word doc", {
     list(
       "grp_a",
       c("row_1", "1.111e-01", "apricot", "49.950"),
-      c("row_2", "2.222e+00",  "banana", "17.950"),
+      c("row_2", "2.222e+00", "banana", "17.950"),
       c("row_3", "3.333e+01", "coconut", "1.390"),
-      c("row_4", "4.444e+02",  "durian", "65100.000"),
-      c("avg",    "120.02",       "—", "—"),
-      c("total",    "480.06",       "—", "—"),
-      c("s.d.",    "216.79",       "—", "—"),
+      c("row_4", "4.444e+02", "durian", "65100.000"),
+      c("avg", "120.02", "—", "—"),
+      c("total", "480.06", "—", "—"),
+      c("s.d.", "216.79", "—", "—"),
       "grp_b",
-      c("row_5",    "5.550e+03",         "NA", "1325.810"),
-      c("row_6",           "NA",        "fig", "13.255"),
-      c("row_7",    "7.770e+05", "grapefruit", "NA"),
-      c("row_8",    "8.880e+06",   "honeydew", "0.440"),
-      c("avg", "3,220,850.00",          "—", "—"),
-      c("total", "9,662,550.00",          "—", "—"),
-      c("s.d.", "4,916,123.25",          "—", "—")
+      c("row_5", "5.550e+03", "NA", "1325.810"),
+      c("row_6", "NA", "fig", "13.255"),
+      c("row_7", "7.770e+05", "grapefruit", "NA"),
+      c("row_8", "8.880e+06", "honeydew", "0.440"),
+      c("avg", "3,220,850.00", "—", "—"),
+      c("total", "9,662,550.00", "—", "—"),
+      c("s.d.", "4,916,123.25", "—", "—")
     )
   )
+
+
+  ## Now place the summary on the top
+
+  ## simple table
+  gt_exibble_min_top <- exibble %>%
+    dplyr::select(-c(fctr, date, time, datetime)) %>%
+    gt(rowname_col = "row", groupname_col = "group") %>%
+    summary_rows(
+      groups = everything(),
+      columns = num,
+      fns = list(
+        avg = ~mean(., na.rm = TRUE),
+        total = ~sum(., na.rm = TRUE),
+        s.d. = ~sd(., na.rm = TRUE)
+      ),
+      fmt = list(~ fmt_number(.)),
+      side = "top"
+    )
+
+  ## Add table to empty word document
+  word_doc_top <- officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble_min_top,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file_top <- tempfile(fileext = ".docx")
+  print(word_doc_top,target = temp_word_file_top)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file_top)
+  }
+
+  ## Programmatic Review
+  docx_top <- officer::read_docx(temp_word_file_top)
+
+  ## get docx table contents
+  docx_contents_top <- docx_top$doc_obj$get() %>%
+    xml2::xml_children() %>%
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header_top <- docx_contents_top[1] %>%
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents_top <- docx_contents_top[1] %>%
+    xml2::xml_find_all(".//w:tr") %>%
+    setdiff(docx_table_body_header_top)
+
+  ## "" at beginning for stubheader
+  expect_equal(
+    docx_table_body_header_top  %>%
+      xml2::xml_find_all(".//w:p") %>%
+      xml2::xml_text(),
+    c( "", "num", "char", "currency")
+  )
+
+  expect_equal(
+    lapply(docx_table_body_contents_top, function(x)
+      x %>% xml2::xml_find_all(".//w:p") %>% xml2::xml_text()),
+    list(
+      "grp_a",
+      c("avg", "120.02", "—", "—"),
+      c("total", "480.06", "—", "—"),
+      c("s.d.", "216.79", "—", "—"),
+      c("row_1", "1.111e-01", "apricot", "49.950"),
+      c("row_2", "2.222e+00", "banana", "17.950"),
+      c("row_3", "3.333e+01", "coconut", "1.390"),
+      c("row_4", "4.444e+02", "durian", "65100.000"),
+      "grp_b",
+      c("avg", "3,220,850.00", "—", "—"),
+      c("total", "9,662,550.00", "—", "—"),
+      c("s.d.", "4,916,123.25", "—", "—"),
+      c("row_5", "5.550e+03", "NA", "1325.810"),
+      c("row_6", "NA", "fig", "13.255"),
+      c("row_7", "7.770e+05", "grapefruit", "NA"),
+      c("row_8", "8.880e+06", "honeydew", "0.440")
+    )
+  )
+
 })
+
+test_that("tables with grand summaries but no rownames can be added to a word doc", {
+
+  check_suggests_xml()
+
+  ## simple table
+  gt_exibble_min <- exibble %>%
+    dplyr::select(-c(fctr, date, time, datetime, row, group)) %>%
+    dplyr::slice(1:3) %>%
+    gt() %>%
+    grand_summary_rows(
+      c(everything(), -char),
+      fns = c("Total" = ~length(.))
+    )
+
+  ## Add table to empty word document
+  word_doc <- officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble_min,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- docx$doc_obj$get() %>%
+    xml2::xml_children() %>%
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <- docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <- docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tr") %>%
+    setdiff(docx_table_body_header)
+
+  ## "" at beginning for stubheader
+  expect_equal(
+    docx_table_body_header %>%
+      xml2::xml_find_all(".//w:p") %>%
+      xml2::xml_text(),
+    c( "", "num", "char", "currency")
+  )
+
+  expect_equal(
+    lapply(docx_table_body_contents, function(x)
+      x %>% xml2::xml_find_all(".//w:p") %>% xml2::xml_text()),
+    list(
+      c("", "0.1111", "apricot", "49.95"),
+      c("", "2.2220", "banana","17.95"),
+      c("", "33.3300", "coconut", "1.39"),
+      c("Total", "3","—", "3")
+    )
+  )
+
+  ## simple table
+  gt_exibble_min_top <- exibble %>%
+    dplyr::select(-c(fctr, date, time, datetime, row, group)) %>%
+    dplyr::slice(1:3) %>%
+    gt() %>%
+    grand_summary_rows(
+      c(everything(), -char),
+      fns = c("Total" = ~length(.)),
+      side = "top"
+    )
+
+  ## Add table to empty word document
+  word_doc_top <- officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble_min_top,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file_top <- tempfile(fileext = ".docx")
+  print(word_doc_top,target = temp_word_file_top)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file_top)
+  }
+
+  ## Programmatic Review
+  docx_top <- officer::read_docx(temp_word_file_top)
+
+  ## get docx table contents
+  docx_contents_top <- docx_top$doc_obj$get() %>%
+    xml2::xml_children() %>%
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header_top <- docx_contents_top[1] %>%
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents_top <- docx_contents_top[1] %>%
+    xml2::xml_find_all(".//w:tr") %>%
+    setdiff(docx_table_body_header_top)
+
+  ## "" at beginning for stubheader
+  expect_equal(
+    docx_table_body_header_top %>%
+      xml2::xml_find_all(".//w:p") %>%
+      xml2::xml_text(),
+    c( "", "num", "char", "currency")
+  )
+
+  expect_equal(
+    lapply(docx_table_body_contents_top, function(x)
+      x %>% xml2::xml_find_all(".//w:p") %>% xml2::xml_text()),
+    list(
+      c("Total", "3","—", "3"),
+      c("", "0.1111", "apricot", "49.95"),
+      c("", "2.2220", "banana","17.95"),
+      c("", "33.3300", "coconut", "1.39")
+    )
+  )
+
+
+})
+
+
 
 test_that("tables with footnotes can be added to a word doc", {
 
@@ -851,7 +1085,7 @@ test_that("tables with footnotes can be added to a word doc", {
       xml2::xml_find_all(".//w:p") %>%
       xml2::xml_text(),
     c(
-      "numtrue1false", "chartrue2false", "fctr", "date", "time",
+      "num1", "char2", "fctr", "date", "time",
       "datetime", "currency", "row", "group"
     )
   )
@@ -886,8 +1120,8 @@ test_that("tables with footnotes can be added to a word doc", {
         "row_2",
         "grp_a"
       ),
-      c("true1this is a footer example"),
-      c("true2this is a second footer example")
+      c("1this is a footer example"),
+      c("2this is a second footer example")
     )
   )
 })
@@ -1459,25 +1693,97 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
   expect_equal(
     docx_table_meta_info %>% lapply(function(x) x %>% xml2::xml_find_all(".//w:t") %>% xml2::xml_text()),
     list(
-      c("", "My Footnote"),
+      c("My Footnote"),
       c("1", "My Footnote 2"),
       c("My Source Note")
     )
   )
 
+  # TODO: fails due to PR#1268
   expect_equal(
     lapply(docx_table_meta_info, function(x) {
       x %>% xml2::xml_find_all(".//w:tc") %>% lapply(function(y) {
         y %>% xml2::xml_find_all(".//w:color") %>% xml2::xml_attr(attr = "val")
       })}),
     list(
-      list(c("A020F0", "A020F0")),
+      list("A020F0"),
       list(c("A020F0", "A020F0")),
       list("FFA500")
       )
   )
 
 })
+
+test_that("footnotes styling gets applied to footer marks", {
+
+  check_suggests_xml()
+
+  ## simple table
+  gt_exibble_min <- exibble[1:2,] %>%
+    gt() %>%
+    tab_footnote("My Footnote") %>%
+    tab_footnote("My Footnote 2", locations = cells_column_labels(1)) %>%
+    opt_footnote_spec(spec_ftr = "(b)")
+
+  if (!testthat::is_testing() & interactive()) {
+    print(gt_exibble_min)
+  }
+
+  ## Add table to empty word document
+  word_doc <- officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble_min,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- docx$doc_obj$get() %>%
+    xml2::xml_children() %>%
+    xml2::xml_children()
+
+  docx_table_body_header <- docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_meta_info <- docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tr") %>%
+    setdiff(docx_table_body_header) %>%
+    tail(2)
+
+  ## footer
+  expect_equal(
+    docx_table_meta_info %>% lapply(function(x) x %>% xml2::xml_find_all(".//w:t") %>% xml2::xml_text()),
+    list(
+      c("My Footnote"),
+      c("(1)", "My Footnote 2")
+    )
+  )
+
+  # Styling applied to bold text of footnote mark
+  expect_equal(
+    docx_table_meta_info[[2]] %>%
+      xml2::xml_find_all(".//w:tc") %>%
+      .[[1]] %>%
+      xml2::xml_find_all(".//w:rPr") %>%
+      .[[1]] %>%
+      as.character()
+    ,
+    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+  )
+
+})
+
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
 
@@ -1488,13 +1794,14 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
     dplyr::select(-c(fctr, date, time, datetime)) %>%
     gt(rowname_col = "row", groupname_col = "group") %>%
     summary_rows(
-      groups = TRUE,
+      groups = everything(),
       columns = num,
       fns = list(
         avg = ~mean(., na.rm = TRUE),
         total = ~sum(., na.rm = TRUE),
         s.d. = ~sd(., na.rm = TRUE)
-      )
+      ),
+      fmt = list(~ fmt_number(.))
     ) %>%
     grand_summary_rows(
       columns = num,
@@ -1502,7 +1809,8 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
         avg = ~mean(., na.rm = TRUE),
         total = ~sum(., na.rm = TRUE),
         s.d. = ~sd(., na.rm = TRUE)
-      )
+      ),
+      fmt = list(~ fmt_number(.))
     ) %>%
     tab_style(
       style = cell_text(color = "orange"),
@@ -1650,3 +1958,369 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
          )
   )
 })
+
+test_that("tables preserves spaces in text & can be added to a word doc", {
+
+  skip_on_ci()
+  check_suggests_xml()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1,1] %>%
+    dplyr::mutate(
+      `5 Spaces Before` = "     Preserve",
+      `5 Spaces After` = "Preserve     ",
+      `5 Spaces Before - preserve` = "     Preserve",
+      `5 Spaces After - preserve` = "Preserve     ") %>%
+    gt() %>%
+    tab_style(
+      style = cell_text(whitespace = "pre"),
+      location = cells_body(columns = contains("preserve"))
+    )
+
+  ## Add table to empty word document
+  word_doc_normal <-
+    officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc_normal,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
+    ),
+    list(
+      c("num","5 Spaces Before","5 Spaces After","5 Spaces Before - preserve","5 Spaces After - preserve"),
+      c("0.1111"," Preserve","Preserve ","     Preserve","Preserve     ")
+    )
+  )
+
+  ## text "space" is set to preserve only for last 2 body cols
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_attr((xml2::xml_find_all(x, ".//w:t")),"space")
+    ),
+    list(
+      c("default", "default", "default", "default", "default"),
+      c("default", "default", "default", "preserve","preserve")
+    )
+  )
+
+})
+
+test_that("tables respects column and cell alignment and can be added to a word doc", {
+
+  skip_on_ci()
+  check_suggests_xml()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1:2,1:4] %>%
+    `colnames<-`(c(
+      "wide column number 1",
+      "wide column number 2",
+      "wide column number 3",
+      "tcn4" #thin column number 4
+    )) %>%
+    gt() %>%
+    cols_align(
+      "right", columns = `wide column number 1`
+    ) %>%
+    cols_align(
+      "left", columns = c(`wide column number 2`, `wide column number 3`)
+    ) %>%
+    tab_style(
+      style = cell_text(align = "right"),
+      location = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
+    ) %>%
+    tab_style(
+      style = cell_text(align = "left"),
+      location = cells_body(columns = c(`wide column number 1`), rows = 2)
+    ) %>%
+    tab_style(
+      cell_text(align = "right"),
+      location = cells_column_labels(columns = c(tcn4))
+    )
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() %>%
+    body_add_gt(
+      gt_exibble,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() & interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
+    ),
+    list(
+      c(
+        "wide column number 1",
+        "wide column number 2",
+        "wide column number 3",
+        "tcn4"
+      ),
+      c("0.1111", "apricot", "one","2015-01-15"),
+      c("2.2220", "banana", "two","2015-02-15")
+    )
+  )
+
+  ## text "space" is set to preserve only for last 2 body cols
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x)
+        x %>%
+        xml2::xml_find_all(".//w:pPr") %>%
+        lapply(FUN = function(y) xml2::xml_attr(xml2::xml_find_all(y,".//w:jc"),"val"))
+    ),
+    list(
+      ## styling only on 1st and 4th column of header (stub and 3rd column) is right aligned
+      list("end", "start", "start", "end"),
+
+      ## styling as applied or as default from gt
+      list("end", "start", "start", "end"),
+      list("start", "end", "end", "end"))
+  )
+
+})
+
+test_that("markdown in the tables works out",{
+
+  skip_on_ci()
+  check_suggests_xml()
+
+  text_1a <- "
+### This is Markdown.
+
+Markdown's syntax is comprised entirely of
+punctuation characters, which punctuation
+characters have been carefully chosen so as
+to look like what they mean... assuming
+you've ever used email.
+
+
+this is a line break test
+
+"
+
+  text_1b <- "
+Info on **Markdown** _syntax_ can `be found` at [a website](https://daringfireball.net/projects/markdown/).
+"
+
+  text_2a <- "
+- `countrypops`
+- `sza`
+    - indented col
+
+
+1. newval
+2. another val
+3. will this work
+"
+
+  text_2b <- "
+There's a quick reference [here](https://commonmark.org/help/).
+"
+
+  markdown_gt <- dplyr::tribble(
+    ~Markdown, ~md,
+    text_1a,   text_2a,
+    text_1b,   text_2b
+  ) %>%
+    gt() %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_footnote(
+      "This is text",
+      locations = cells_column_labels(columns = md)
+    )
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(markdown_gt, filename = temp_docx)
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] %>%
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) {xml2::xml_find_all(x, ".//w:tc") %>%
+        lapply(function(x){ xml2::xml_text(xml2::xml_find_all(x,".//w:p"))})
+      }
+    ),
+    list(
+      list("Markdown", "md1"),
+      list(c("This is Markdown.",
+             "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
+             "this is a line break test"),
+           c("- countrypops",
+             "- sza",
+             "  -   indented col",
+             "1.    newval",
+             "2.    another val",
+             "3.    will this work")
+           ),
+      list(
+        "Info on Markdown syntax can be found at a website.",
+        "There's a quick reference here."),
+      list(
+        "1This is text"))
+  )
+
+  ## check styling in first row first column (Header)
+  styling_cell_text <- docx_table_body_contents[[2]] %>%
+    xml2::xml_find_all(".//w:tc") %>%
+    .[[1]] %>%
+    xml2::xml_find_all(".//w:rPr")
+
+  expect_equal(
+    as.character(styling_cell_text),
+    c(
+      "<w:rPr>\n  <w:sz w:val=\"28\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    )
+  )
+
+  ## check styling in second row first column (bold, italics, code, and website url styling)
+  styling_cell_text <- docx_table_body_contents[[3]] %>%
+    xml2::xml_find_all(".//w:tc") %>%
+    .[[1]] %>%
+    xml2::xml_find_all(".//w:rPr")
+
+  expect_equal(
+    as.character(styling_cell_text),
+    c(
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:i/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rStyle w:val=\"Macro Text\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rStyle w:val=\"Hyperlink\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    )
+  )
+
+
+
+
+})
+
+
+test_that("markdown with urls work",{
+
+  skip_on_ci()
+  check_suggests_xml()
+
+  text_sample <- "
+  Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
+  "
+
+  markdown_gt <- dplyr::tribble(
+     ~url,
+     text_sample
+    ) %>%
+    gt() %>%
+    fmt_markdown(columns = everything())
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(markdown_gt, filename = temp_docx)
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table hyperlinks
+  docx_table_hyperlinks <-
+    docx_contents[1] %>%
+    xml2::xml_find_all(".//w:hyperlink")
+
+  ## hyperlinks are preserved and updated to be rId
+  expect_equal(length(docx_table_hyperlinks), 2)
+  expect_true(all(grepl("^rId\\d+$",xml_attr(docx_table_hyperlinks, "id"))))
+
+  # first should be commonmark URL
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[1], "id")],
+    "https://commonmark.org/help/"
+  )
+
+  # second should be google URL
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[2], "id")],
+    "https://www.google.com"
+  )
+
+
+})
+

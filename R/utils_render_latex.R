@@ -1,16 +1,67 @@
+#------------------------------------------------------------------------------#
+#
+#                /$$
+#               | $$
+#     /$$$$$$  /$$$$$$
+#    /$$__  $$|_  $$_/
+#   | $$  \ $$  | $$
+#   | $$  | $$  | $$ /$$
+#   |  $$$$$$$  |  $$$$/
+#    \____  $$   \___/
+#    /$$  \ $$
+#   |  $$$$$$/
+#    \______/
+#
+#  This file is part of the 'rstudio/gt' project.
+#
+#  Copyright (c) 2018-2023 gt authors
+#
+#  For full copyright and license information, please look at
+#  https://gt.rstudio.com/LICENSE.html
+#
+#------------------------------------------------------------------------------#
+
+
 # Create a simple LaTeX group by surrounding a statement with curly braces
 latex_group <- function(...) {
   paste0("{", ..., "}")
 }
 
-# Create a vector of LaTeX packages to use as table dependencies
+# Get a vector of LaTeX packages to use as table dependencies
 latex_packages <- function() {
-  c("amsmath", "booktabs", "caption", "longtable")
+  getOption("gt.latex_packages")
 }
 
 # Transform a footnote mark to a LaTeX representation as a superscript
-footnote_mark_to_latex <- function(mark) {
-  ifelse(is.na(mark), "", paste0("\\textsuperscript{", mark, "}"))
+footnote_mark_to_latex <- function(
+    data,
+    mark,
+    location = c("ref", "ftr")
+) {
+
+  location <- match.arg(location)
+
+  if (length(mark) == 1 && is.na(mark)) {
+    return("")
+  }
+
+  spec <- get_footnote_spec_by_location(data = data, location = location)
+
+  if (is.null(spec)) {
+    spec <- "^i"
+  }
+
+  if (grepl("\\.", spec)) mark <- paste0(mark, ".")
+  if (grepl("b", spec)) mark <- paste0("\\textbf{", mark, "}")
+  if (grepl("i", spec)) mark <- paste0("\\textit{", mark, "}")
+  if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
+  if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
+
+  if (grepl("\\^", spec)) {
+    mark <- paste0("\\textsuperscript{", mark, "}")
+  }
+
+  mark
 }
 
 #' @noRd
@@ -31,7 +82,7 @@ latex_heading_row <- function(content) {
 
   paste0(
     paste(paste(content, collapse = " & "), "\\\\ \n"),
-    "\\midrule\n",
+    "\\midrule\\addlinespace[2.5pt]\n",
     collapse = ""
   )
 }
@@ -45,10 +96,10 @@ latex_group_row <- function(
 ) {
 
   paste0(
-    ifelse(top_border, "\\midrule\n", ""),
+    ifelse(top_border, "\\midrule\\addlinespace[2.5pt]\n", ""),
     "\\multicolumn{", n_cols, "}{l}{", group_name,
     "} \\\\ \n",
-    ifelse(bottom_border, "\\midrule\n", ""),
+    ifelse(bottom_border, "\\midrule\\addlinespace[2.5pt]\n", ""),
     collapse = ""
   )
 }
@@ -59,8 +110,14 @@ create_table_start_l <- function(data) {
   # Get vector representation of stub layout
   stub_layout <- get_stub_layout(data = data)
 
+  boxh_df <- dt_boxhead_get(data = data)
+
   # Get default alignments for body columns
   col_alignment <- dt_boxhead_get_vars_align_default(data = data)
+
+  if (length(stub_layout) > 0) {
+    col_alignment <- c(rep("left", length(stub_layout)), col_alignment)
+  }
 
   # Determine if there are any footnotes or source notes; if any,
   # add a `\setlength` command that will pull up the minipage environment
@@ -74,15 +131,86 @@ create_table_start_l <- function(data) {
     longtable_post_length <- ""
   }
 
-  # Generate setup statements for table including default right
+  # Obtain widths for each visible column label
+  col_widths <-
+    unlist(
+      dplyr::pull(
+        dplyr::arrange(
+          dplyr::filter(boxh_df, type %in% c("default", "stub")),
+          dplyr::desc(type)
+        ),
+        column_width
+      )
+    )
+
+  # Generate the column definitions for visible columns
+  # these can either be simple `l`, `c`, `r` directive if a width isn't set
+  # for a column, or, use `p{<width>}` statements with leading `>{...}`
+  # specifiers that should have one of the following:
+  # - `>{\raggedright\arraybackslash}` <- left alignment
+  # - `>{\raggedleft\arraybackslash}` <- right alignment
+  # - `>{\centering\arraybackslash}` <- center alignment
+  # the `\arraybackslash` command is used to restore the behavior of the
+  # `\\` command in the table (all of this uses the CTAN `array` package)
+
+  if (!is.null(col_widths)) {
+
+    col_defs <- c()
+
+    # TODO: check that length of `col_widths` is equal to that
+    # of `col_alignment`
+
+    if ("group_label" %in% stub_layout) {
+
+      group_label_width <-
+        unlist(
+          dplyr::pull(dplyr::filter(boxh_df, type == "row_group"), column_width)
+        )
+
+      col_widths <- c(group_label_width, col_widths)
+    }
+
+    for (i in seq_along(col_widths)) {
+
+      if (col_widths[i] != "") {
+
+        align <-
+          switch(
+            col_alignment[i],
+            left = ">{\\raggedright\\arraybackslash}",
+            right = ">{\\raggedleft\\arraybackslash}",
+            center = ">{\\centering\\arraybackslash}",
+            ">{\\raggedright\\arraybackslash}"
+          )
+
+        col_defs_i <- paste0(align, "p{", col_widths[i], "}")
+
+      } else {
+
+        col_defs_i <- substr(col_alignment[i], 1, 1)
+      }
+
+      col_defs <- c(col_defs, col_defs_i)
+    }
+
+  } else {
+
+    col_defs <- substr(col_alignment, 1, 1)
+  }
+
+  # Add borders to the right of any columns in the stub
+  if (length(stub_layout) > 0) {
+
+    col_defs[seq_along(stub_layout)] <-
+      paste0(col_defs[seq_along(stub_layout)], "|")
+  }
+
+  # Generate setup statements for table including default left
   # alignments and vertical lines for any stub columns
   paste0(
     longtable_post_length,
     "\\begin{longtable}{",
-    if (length(stub_layout) > 0) {
-      paste0(rep("l|", length(stub_layout)), collapse = "")
-    },
-    col_alignment %>% substr(1, 1) %>% paste(collapse = ""),
+    paste(col_defs, collapse = ""),
     "}\n",
     collapse = ""
   )
@@ -116,7 +244,10 @@ create_heading_component_l <- function(data) {
       )
 
     footnote_title_marks <-
-      footnote_mark_to_latex(mark = footnote_title_marks$fs_id_c)
+      footnote_mark_to_latex(
+        data = data,
+        mark = footnote_title_marks$fs_id_c
+      )
 
   } else {
     footnote_title_marks <- ""
@@ -132,7 +263,10 @@ create_heading_component_l <- function(data) {
       )
 
     footnote_subtitle_marks <-
-      footnote_mark_to_latex(mark = footnote_subtitle_marks$fs_id_c)
+      footnote_mark_to_latex(
+        data = data,
+        mark = footnote_subtitle_marks$fs_id_c
+      )
 
   } else {
     footnote_subtitle_marks <- ""
@@ -289,22 +423,29 @@ create_columns_component_l <- function(data) {
 #' @noRd
 create_body_component_l <- function(data) {
 
-  body <- dt_body_get(data = data)
+  summaries_present <- dt_summary_exists(data = data)
+  list_of_summaries <- dt_summary_df_get(data = data)
   groups_rows_df <- dt_groups_rows_get(data = data)
   stub_df <- dt_stub_df_get(data = data)
 
-  n_rows <- nrow(body)
-
   # Get vector representation of stub layout
   stub_layout <- get_stub_layout(data = data)
+
+  # Determine if there is a stub column in `stub_layout` and whether we
+  # have a two-column stub (with the group label on the left side)
   has_stub_column <- "rowname" %in% stub_layout
+  has_two_col_stub <- "group_label" %in% stub_layout
 
   n_cols <- get_effective_number_of_columns(data = data)
 
   # Get a matrix of body cells to render, split into a list of
   # character vectors by row, and create a vector of LaTeX body rows
   cell_matrix <- get_body_component_cell_matrix(data = data)
+
   row_splits_body <- split_row_content(cell_matrix)
+
+  # Get the number of rows in the body
+  n_rows <- nrow(cell_matrix)
 
   if ("group_label" %in% stub_layout) {
 
@@ -344,9 +485,13 @@ create_body_component_l <- function(data) {
     )
   }
 
-  body_rows <- create_body_rows_l(row_splits_body = row_splits_body)
+  body_rows <-
+    create_body_rows_l(
+      data = data,
+      row_splits_body = row_splits_body
+    )
 
-  # Replace an NA group with an empty string
+  # Replace an NA group with a small amount of vertical space
   if (any(is.na(groups_rows_df$group_label))) {
 
     groups_rows_df <-
@@ -358,43 +503,278 @@ create_body_component_l <- function(data) {
       )
   }
 
-  summary_rows <-
-    create_summary_rows_l(
-      data = data,
-      groups_rows_df = groups_rows_df,
-      n_rows = n_rows
+  current_group_id <- character(0)
+
+  body_rows <-
+    lapply(
+      seq_len(n_rows),
+      function(i) {
+
+        body_section <- list()
+
+        group_info <-
+          groups_rows_df[i >= groups_rows_df$row_start & i <= groups_rows_df$row_end, ]
+
+        if (nrow(group_info) == 0) {
+          group_info <- NULL
+        }
+
+        group_id <- group_info[["group_id"]]
+        group_label <- group_info[["group_label"]]
+        group_row_start <- group_info[["row_start"]]
+        group_row_end <- group_info[["row_end"]]
+        group_has_summary_rows <- group_info[["has_summary_rows"]]
+        group_summary_row_side <- group_info[["summary_row_side"]]
+
+        if (!is.null(group_id)) current_group_id <<- group_id
+
+        # Is there a group heading row (dedicated row w/ group label) at `i`?
+        group_heading_row_at_i <-
+          !is.null(group_id) &&
+          !has_two_col_stub &&
+          group_row_start == i
+
+        # Is this the first row of a group?
+        group_start <- !is.null(group_info) && group_row_start == i
+
+        # Insert a horizontal line if this is the beginning of a new row
+        # group and there is a two-column stub
+        if (group_start && has_two_col_stub && i != 1) {
+          body_section <-
+            append(body_section, "\\midrule\\addlinespace[2.5pt]\n")
+        }
+
+        #
+        # Create a group heading row
+        #
+
+        if (group_heading_row_at_i) {
+
+          group_heading_row <-
+            latex_group_row(
+              group_name = group_label,
+              n_cols = n_cols,
+              top_border = i != 1,
+              bottom_border = TRUE
+            )
+
+          body_section <- append(body_section, list(group_heading_row))
+        }
+
+        #
+        # Get groupwise summary rows (for either top or bottom of group)
+        #
+
+        if (
+          summaries_present &&
+          !is.null(group_has_summary_rows) &&
+          group_has_summary_rows &&
+          (
+            i %in% groups_rows_df$row_start &&
+            !is.null(group_summary_row_side) &&
+            !is.na(group_summary_row_side) &&
+            group_summary_row_side == "top"
+          ) ||
+          (
+            i %in% groups_rows_df$row_end &&
+            !is.null(group_summary_row_side) &&
+            !is.na(group_summary_row_side) &&
+            group_summary_row_side == "bottom"
+          )
+        ) {
+
+          summary_section <-
+            summary_rows_for_group_l(
+              data = data,
+              group_id = group_id,
+              side_group_summary = group_summary_row_side
+            )
+
+        } else {
+          summary_section <- NULL
+        }
+
+        body_row <- body_rows[i]
+
+        if (!is.null(summary_section) && group_summary_row_side == "top") {
+
+          if (!has_two_col_stub) {
+            summary_section <- paste0(summary_section, summary_h_border)
+          }
+
+          body_section <- append(body_section, summary_section)
+        }
+
+        body_section <- append(body_section, list(body_row))
+
+        if (!is.null(summary_section) && group_summary_row_side == "bottom") {
+
+          if (!(has_stub_column && has_two_col_stub)) {
+            summary_section <- paste0(summary_h_border, summary_section)
+          }
+
+          body_section <- append(body_section, summary_section)
+        }
+
+        # In a very particular case, we need to hoist the group label to the
+        # first row of summary labels (at the top of a row group where there
+        # is a two-column stub)
+        if (
+          has_stub_column &&
+          has_two_col_stub &&
+          group_row_start == i &&
+          !is.null(summary_section) &&
+          group_summary_row_side == "top" &&
+          length(body_section) > 1
+        ) {
+
+          body_row_idx <- length(body_section)
+          summary_idx <- body_row_idx - 1
+
+          group_name_fragment <- gsub("(^.*? & ).*", "\\1", body_section[[body_row_idx]])
+          body_section[[summary_idx]] <- sub("^.*? & ", "", body_section[[summary_idx]])
+          body_section[[summary_idx]] <- paste0(group_name_fragment, body_section[[summary_idx]])
+          body_section[[body_row_idx]] <- sub("^.*? & ", " & ", body_section[[body_row_idx]])
+        }
+
+        body_section
+      }
     )
 
-  grand_summary_rows <- create_grand_summary_rows_l(data = data)
+  body_rows <- unlist(body_rows)
 
-  paste0(
+  #
+  # Add grand summary rows
+  #
+
+  if (
+    summaries_present &&
+    grand_summary_col %in% names(list_of_summaries$summary_df_display_list)
+  ) {
+
+    side <- summary_row_side(data = data, group_id = grand_summary_col)
+
+    grand_summary_section <-
+      summary_rows_for_group_l(
+        data = data,
+        group_id = grand_summary_col,
+        side_grand_summary = side
+      )
+
+    if (side == "top") {
+      body_rows <- c(grand_summary_section, body_rows)
+    } else {
+      body_rows <- c(body_rows, grand_summary_section)
+    }
+  }
+
+  paste(body_rows, collapse = "")
+}
+
+summary_rows_for_group_l <- function(
+    data,
+    group_id,
+    side_group_summary = "bottom",
+    side_grand_summary = "bottom"
+) {
+
+  # Check that `group_id` isn't NULL and that length is exactly 1
+  if (is.null(group_id) || length(group_id) != 1) {
+    cli::cli_abort("`group_id` cannot be `NULL` and must be of length 1.")
+  }
+
+  list_of_summaries <- dt_summary_df_get(data = data)
+
+  # Obtain all of the visible (`"default"`), non-stub column names
+  # for the table from the `boxh` object
+  default_vars <- dt_boxhead_get_vars_default(data = data)
+
+  stub_layout <- get_stub_layout(data = data)
+
+  stub_is_2 <- length(stub_layout) > 1
+
+  summary_row_lines <- list()
+
+  # In the below conditions
+  # - `grand_summary_col` is a global variable (`"::GRAND_SUMMARY"`, assigned
+  #   in `dt_summary.R`)
+  # - `group_id` might be passed in as NA when there are unnamed groups (this
+  #   can happen usually when using `tab_row_group()` to build these row groups)
+  #   and you cannot create summary rows for unnamed groups
+  if (is.na(group_id)) {
+    return(summary_row_lines)
+  } else if (
+    group_id %in% names(list_of_summaries$summary_df_display_list) &&
+    group_id != grand_summary_col
+  ) {
+    summary_row_type <- "group"
+  } else if (group_id == grand_summary_col) {
+    summary_row_type <- "grand"
+  } else {
+    return(summary_row_lines)
+  }
+
+  # Obtain the summary data table specific to the group ID and
+  # select the column named `rowname` and all of the visible columns
+  summary_df <-
+    dplyr::select(
+      list_of_summaries$summary_df_display_list[[group_id]],
+      dplyr::all_of(rowname_col_private),
+      dplyr::all_of(default_vars)
+    )
+
+  row_splits_summary <- split_row_content(summary_df)
+
+  if (stub_is_2) {
+
+    row_splits_summary <-
+      lapply(
+        row_splits_summary,
+        function(x) {
+          x <- c("", x)
+          x[1:2] <- paste0("\\multicolumn{1}{l|}{", x[1:2], "}")
+          x
+        }
+      )
+  }
+
+  summary_rows <-
     paste0(
-      if (!("group_label" %in% stub_layout)) {
-
-        group_rows <-
-          create_group_rows_l(
-            groups_rows_df = groups_rows_df,
-            n_rows = n_rows,
-            n_cols = n_cols
-          )
-
-        paste0(group_rows, body_rows, summary_rows)
-
-      } else {
-
-        group_dividers <-
-          create_group_dividers_l(
-            groups_rows_df = groups_rows_df,
-            n_rows = n_rows
-          )
-
-        paste0(group_dividers, body_rows, summary_rows)
-      },
+      vapply(
+        row_splits_summary,
+        FUN.VALUE = character(1),
+        latex_body_row,
+        type = "row"
+      ),
       collapse = ""
-    ),
-    grand_summary_rows,
-    collapse = ""
-  )
+    )
+
+  if (summary_row_type != "grand") {
+
+    summary_rows <-
+      paste0(
+        if (side_group_summary == "top") summary_rows,
+        if ("group_label" %in% stub_layout && stub_is_2) {
+          paste0(
+            "\\cmidrule(l{-0.05em}r){2-",
+            ncol(summary_df) + 1,
+            "}\n"
+          )
+        },
+        if (side_group_summary == "bottom") summary_rows
+      )
+  }
+
+  if (summary_row_type == "grand") {
+
+    if (side_grand_summary == "top") {
+      summary_rows <- paste0(summary_rows, grand_summary_h_border)
+    } else {
+      summary_rows <- paste0(grand_summary_h_border, summary_rows)
+    }
+  }
+
+  summary_rows
 }
 
 #' @noRd
@@ -433,7 +813,11 @@ create_footer_component_l <- function(data) {
     # Create a vector of formatted footnotes
     footnotes <-
       paste0(
-        footnote_mark_to_latex(footnotes_tbl[["fs_id"]]),
+        footnote_mark_to_latex(
+          data = data,
+          mark = footnotes_tbl[["fs_id"]],
+          location = "ftr"
+        ),
         vapply(
           footnotes_tbl[["footnotes"]],
           FUN.VALUE = character(1),
@@ -443,10 +827,11 @@ create_footer_component_l <- function(data) {
       )
 
     if (footnotes_multiline) {
-      footnotes <- paste(footnotes, collapse = "\\\\\n") %>% paste_right("\\\\\n")
+      footnotes <- paste_right(paste(footnotes, collapse = "\\\\\n"), "\\\\\n")
     } else {
-      footnotes <- paste(footnotes, collapse = footnotes_sep) %>% paste_right("\\\\\n")
+      footnotes <- paste_right(paste(footnotes, collapse = footnotes_sep), "\\\\\n")
     }
+
   } else {
     footnotes <- ""
   }
@@ -455,9 +840,9 @@ create_footer_component_l <- function(data) {
   if (length(source_notes_vec) > 0) {
 
     if (source_notes_multiline) {
-      source_notes <- paste(source_notes_vec, collapse = "\\\\\n") %>% paste_right("\\\\\n")
+      source_notes <- paste_right(paste(source_notes_vec, collapse = "\\\\\n"), "\\\\\n")
     } else {
-      source_notes <- paste(source_notes_vec, collapse = source_notes_sep) %>% paste_right("\\\\\n")
+      source_notes <- paste_right(paste(source_notes_vec, collapse = source_notes_sep), "\\\\\n")
     }
 
   } else {
@@ -473,62 +858,128 @@ create_footer_component_l <- function(data) {
   )
 }
 
-# Function to build a vector of `group` rows in the table body
-create_group_rows_l <- function(
-    groups_rows_df,
-    n_rows,
-    n_cols
+# Function to build a vector of `body` rows
+create_body_rows_l <- function(
+    data,
+    row_splits_body
 ) {
 
-  unname(
-    unlist(
-      lapply(
-        seq_len(n_rows),
-        FUN = function(x) {
-          if (!(x %in% groups_rows_df$row_start)) {
-            return("")
+  styles_tbl <- dt_styles_get(data = data)
+  styles_tbl <- dplyr::filter(styles_tbl, locname %in% c("stub", "data", "row_groups"))
+
+  # Obtain all of the visible (`"default"`), non-stub column names
+  # for the table from the `boxh` object
+  default_vars <- dt_boxhead_get_vars_default(data = data)
+
+  stub_layout <- get_stub_layout(data = data)
+
+  stub_is_2 <- length(stub_layout) > 1
+
+  if (is.null(stub_layout)) {
+    vars <- default_vars
+  } else if (!is.null(stub_layout) && !stub_is_2 && stub_layout == "rowname") {
+    vars <- c("::stub::", default_vars)
+  } else if (!is.null(stub_layout) && !stub_is_2 && stub_layout == "group_label") {
+    vars <- c("::group::", default_vars)
+  } else if (!is.null(stub_layout) && stub_is_2) {
+    vars <- c("::group::", "::stub::", default_vars)
+  }
+
+  if ("::group::" %in% vars) {
+    styles_tbl <- dplyr::mutate(styles_tbl, rownum = round(rownum))
+  }
+
+  body_rows <-
+    unname(
+      unlist(
+        lapply(
+          seq_len(length(row_splits_body)),
+          FUN = function(x) {
+
+            content <- row_splits_body[[x]]
+            content_length <- length(content)
+
+            styles_tbl_i <- dplyr::filter(styles_tbl, rownum == x)
+
+            if (nrow(styles_tbl_i) < 1) {
+              return(paste(paste(content, collapse = " & "), "\\\\ \n"))
+            }
+
+            for (i in seq_len(content_length)) {
+
+              colname_i <- vars[i]
+
+              if (
+                colname_i == "::group::" &&
+                "row_groups" %in% styles_tbl_i[["locname"]]
+              ) {
+
+                styles_tbl_i_col <- dplyr::filter(styles_tbl_i, locname == "row_groups")
+                styles_i_col <- styles_tbl_i_col[["styles"]]
+
+              } else if (
+                colname_i == "::stub::" &&
+                "stub" %in% styles_tbl_i[["locname"]]
+              ) {
+
+                styles_tbl_i_col <- dplyr::filter(styles_tbl_i, locname == "stub")
+                styles_i_col <- styles_tbl_i_col[["styles"]]
+
+              } else if (
+                "data" %in% styles_tbl_i[["locname"]] &&
+                colname_i %in% styles_tbl_i[["colname"]]
+              ) {
+
+                styles_tbl_i_col <- dplyr::filter(styles_tbl_i, colname == colname_i)
+                styles_i_col <- styles_tbl_i_col[["styles"]]
+
+              } else {
+                styles_i_col <- NULL
+              }
+
+              if (!is.null(styles_i_col)) {
+
+                # TODO: this only considers the first entry; we need to iterate
+                # through them since there may be multiple styles set for each
+                # body cell and that might result in several rows in `styles_tbl_i_col`
+                # (i.e., length greater than 1 in `styles_i_col`)
+                styles_i_col_text_color <- styles_i_col[[1]][["cell_text"]][["color"]]
+                styles_i_col_cell_color <- styles_i_col[[1]][["cell_fill"]][["color"]]
+
+                if (
+                  !is.null(styles_i_col[[1]][["cell_text"]][["weight"]]) &&
+                  styles_i_col[[1]][["cell_text"]][["weight"]] == "bold"
+                ) {
+                  content[i] <- paste0("\\textbf{", content[i], "}")
+                }
+
+                if (!is.null(styles_i_col_text_color)) {
+                  content[i] <-
+                    paste0(
+                      "\\textcolor[HTML]{",
+                      gsub("#", "", styles_i_col_text_color, fixed = TRUE),
+                      "}{", content[i], "}"
+                    )
+                }
+
+                if (!is.null(styles_i_col_cell_color)) {
+                  content[i] <-
+                    paste0(
+                      "\\cellcolor[HTML]{",
+                      gsub("#", "", styles_i_col_cell_color, fixed = TRUE),
+                      "}{", content[i], "}"
+                    )
+                }
+              }
+            }
+
+            paste(paste(content, collapse = " & "), "\\\\ \n")
           }
-
-          latex_group_row(
-            group_name = groups_rows_df[groups_rows_df$row_start == x, "group_label"][[1]],
-            n_cols = n_cols,
-            top_border = x != 1,
-            bottom_border = x != n_rows
-          )
-        }
+        )
       )
     )
-  )
-}
 
-create_group_dividers_l <- function(groups_rows_df, n_rows) {
-
-  dividers <- rep_len("", n_rows)
-
-  # Dividing line is inserted *after* last row of each group
-  # so add 1 to `groups_rows_df$row_end`; bottom of series (outside
-  # row range) shouldn't have a dividing line
-  divider_idx <- groups_rows_df$row_end + 1
-  divider_idx <- divider_idx[divider_idx <= n_rows]
-
-  dividers[divider_idx] <- "\\midrule\n"
-
-  dividers
-}
-
-# Function to build a vector of `body` rows
-create_body_rows_l <- function(row_splits_body) {
-
-  unname(
-    unlist(
-      lapply(
-        seq_len(length(row_splits_body)),
-        FUN = function(x) {
-          latex_body_row(content = row_splits_body[[x]], type = "row")
-        }
-      )
-    )
-  )
+  body_rows
 }
 
 # Function to build a vector of `summary` rows in the table body
@@ -630,61 +1081,6 @@ create_summary_rows_l <- function(
       )
     )
   )
-}
-
-create_grand_summary_rows_l <- function(data) {
-
-  list_of_summaries <- dt_summary_df_get(data = data)
-
-  if (
-    length(list_of_summaries) < 1 ||
-    is.null(list_of_summaries$summary_df_display_list[[grand_summary_col]]) ||
-    nrow(list_of_summaries$summary_df_display_list[[grand_summary_col]]) < 1
-  ) {
-    return("")
-  }
-
-  # Get vector representation of stub layout
-  stub_layout <- get_stub_layout(data = data)
-  stub_width <- length(stub_layout)
-
-  # Obtain all of the visible (`"default"`), non-stub
-  # column names for the table
-  default_vars <- dt_boxhead_get_vars_default(data = data)
-
-  grand_summary_df <-
-    dplyr::select(
-      list_of_summaries$summary_df_display_list[[grand_summary_col]],
-      dplyr::all_of(rowname_col_private),
-      dplyr::all_of(default_vars)
-    )
-
-  row_splits_summary <- split_row_content(grand_summary_df)
-
-  if (stub_width > 1) {
-
-    row_splits_summary <-
-      lapply(
-        row_splits_summary,
-        function(x) {
-          x[[1]] <- paste0("\\multicolumn{", stub_width, "}{l|}{", x[1], "}")
-          x
-        }
-      )
-  }
-
-  grand_summary_rows <-
-    paste(
-      vapply(
-        row_splits_summary,
-        FUN.VALUE = character(1),
-        latex_body_row,
-        type = "row"
-      ),
-      collapse = ""
-    )
-
-  paste0(grand_summary_h_border, grand_summary_rows)
 }
 
 # Define horizontal border line types for

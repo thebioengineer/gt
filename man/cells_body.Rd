@@ -7,9 +7,28 @@
 cells_body(columns = everything(), rows = everything())
 }
 \arguments{
-\item{columns}{The names of the columns that are to be targeted.}
+\item{columns}{\emph{Columns to target}
 
-\item{rows}{The names of the rows that are to be targeted.}
+\verb{<column-targeting expression>} // \emph{default:} \code{everything()}
+
+The columns to which targeting operations are constrained. Can either
+be a series of column names provided in \code{\link[=c]{c()}}, a vector of column indices,
+or a select helper function. Examples of select helper functions include
+\code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}},
+\code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}.}
+
+\item{rows}{\emph{Rows to target}
+
+\verb{<row-targeting expression>} // \emph{default:} \code{everything()}
+
+In conjunction with \code{columns}, we can specify which of their rows should
+form a constraint for targeting operations. The default \code{\link[=everything]{everything()}}
+results in all rows in \code{columns} being formatted. Alternatively, we can
+supply a vector of row captions within \code{\link[=c]{c()}}, a vector of row indices, or a
+select helper function. Examples of select helper functions include
+\code{\link[=starts_with]{starts_with()}}, \code{\link[=ends_with]{ends_with()}}, \code{\link[=contains]{contains()}}, \code{\link[=matches]{matches()}}, \code{\link[=one_of]{one_of()}},
+\code{\link[=num_range]{num_range()}}, and \code{\link[=everything]{everything()}}. We can also use expressions to filter
+down to the rows we need (e.g., \verb{[colname_1] > 100 & [colname_2] < 50}).}
 }
 \value{
 A list object with the classes \code{cells_body} and \code{location_cells}.
@@ -22,7 +41,8 @@ with \code{\link[=text_transform]{text_transform()}}. The function is expressly 
 functions' \code{locations} argument. The 'body' location is present by default in
 every \strong{gt} table.
 }
-\section{Overview of Location Helper Functions}{
+\section{Overview of location helper functions}{
+
 
 Location helper functions can be used to target cells with virtually any
 function that has a \code{locations} argument. Here is a listing of all of the
@@ -64,24 +84,54 @@ can be targeted by enclosing several \verb{cells_*()} helper functions in a
 \code{list()} (e.g., \code{list(cells_body(), cells_grand_summary())}).
 }
 
+\section{Targeting cells with \code{columns} and \code{rows}}{
+
+
+Targeting of values is done through \code{columns} and additionally by \code{rows} (if
+nothing is provided for \code{rows} then entire columns are selected). The
+\code{columns} argument allows us to target a subset of cells contained in the
+resolved columns. We say resolved because aside from declaring column names
+in \code{c()} (with bare column names or names in quotes) we can use
+\strong{tidyselect}-style expressions. This can be as basic as supplying a select
+helper like \code{starts_with()}, or, providing a more complex incantation like
+
+\code{where(~ is.numeric(.x) && max(.x, na.rm = TRUE) > 1E6)}
+
+which targets numeric columns that have a maximum value greater than
+1,000,000 (excluding any \code{NA}s from consideration).
+
+Once the columns are targeted, we may also target the \code{rows} within those
+columns. This can be done in a variety of ways. If a stub is present, then we
+potentially have row identifiers. Those can be used much like column names in
+the \code{columns}-targeting scenario. We can use simpler \strong{tidyselect}-style
+expressions (the select helpers should work well here) and we can use quoted
+row identifiers in \code{c()}. It's also possible to use row indices (e.g.,
+\code{c(3, 5, 6)}) though these index values must correspond to the row numbers of
+the input data (the indices won't necessarily match those of rearranged rows
+if row groups are present). One more type of expression is possible, an
+expression that takes column values (can involve any of the available columns
+in the table) and returns a logical vector.
+}
+
 \section{Examples}{
 
 
-Use \code{\link{gtcars}} to create a \strong{gt} table. Add a footnote that targets a single
-data cell with \code{\link[=tab_footnote]{tab_footnote()}}, using \code{cells_body()} in \code{locations}
-(\code{rows = hp == max(hp)} will target a single row in the \code{hp} column).
+Let's use a subset of the \code{\link{gtcars}} dataset to create a \strong{gt} table. Add a
+footnote (with \code{\link[=tab_footnote]{tab_footnote()}}) that targets a single data cell via the use
+of \code{cells_body()} in \code{locations} (\code{rows = hp == max(hp)} will target a single
+row in the \code{hp} column).
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{gtcars \%>\%
-  dplyr::filter(ctry_origin == "United Kingdom") \%>\%
-  dplyr::select(mfr, model, year, hp) \%>\%
-  gt() \%>\%
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{gtcars |>
+  dplyr::filter(ctry_origin == "United Kingdom") |>
+  dplyr::select(mfr, model, year, hp) |>
+  gt() |>
   tab_footnote(
     footnote = "Highest horsepower.",
     locations = cells_body(
       columns = hp,
       rows = hp == max(hp)
     )
-  ) \%>\%
+  ) |>
   opt_footnote_marks(marks = c("*", "+"))
 }\if{html}{\out{</div>}}
 
@@ -92,7 +142,12 @@ data cell with \code{\link[=tab_footnote]{tab_footnote()}}, using \code{cells_bo
 
 \section{Function ID}{
 
-7-12
+8-16
+}
+
+\section{Function Introduced}{
+
+\code{v0.2.0.5} (March 31, 2020)
 }
 
 \seealso{
@@ -115,7 +170,9 @@ Other helper functions:
 \code{\link{cells_title}()},
 \code{\link{currency}()},
 \code{\link{default_fonts}()},
+\code{\link{define_units}()},
 \code{\link{escape_latex}()},
+\code{\link{from_column}()},
 \code{\link{google_font}()},
 \code{\link{gt_latex_dependencies}()},
 \code{\link{html}()},
@@ -123,6 +180,7 @@ Other helper functions:
 \code{\link{pct}()},
 \code{\link{px}()},
 \code{\link{random_id}()},
-\code{\link{stub}()}
+\code{\link{stub}()},
+\code{\link{system_fonts}()}
 }
 \concept{helper functions}
