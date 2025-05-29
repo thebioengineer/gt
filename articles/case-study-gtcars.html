@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Case Study: gtcars • gt</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -27,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gt</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,21 +113,21 @@ of the tibble using <code><a href="https://pillar.r-lib.org/reference/glimpse.ht
 <span><span class="fu">glimpse</span><span class="op">(</span><span class="va">gtcars</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 47</span></span>
 <span><span class="co">#&gt; Columns: 15</span></span>
-<span><span class="co">#&gt; $ mfr         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Ford", "Ferrari", "Ferrari", "Ferrari", "Ferrari", "Ferra…</span></span>
-<span><span class="co">#&gt; $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "GT", "458 Speciale", "458 Spider", "458 Italia", "488 GTB…</span></span>
-<span><span class="co">#&gt; $ year        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2017, 2015, 2015, 2014, 2016, 2015, 2017, 2015, 2015, 2015…</span></span>
-<span><span class="co">#&gt; $ trim        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Base Coupe", "Base Coupe", "Base", "Base Coupe", "Base Co…</span></span>
-<span><span class="co">#&gt; $ bdy_style   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "coupe", "coupe", "convertible", "coupe", "coupe", "conver…</span></span>
-<span><span class="co">#&gt; $ hp          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 647, 597, 562, 562, 661, 553, 680, 652, 731, 949, 573, 545…</span></span>
-<span><span class="co">#&gt; $ hp_rpm      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 6250, 9000, 9000, 9000, 8000, 7500, 8250, 8000, 8250, 9000…</span></span>
-<span><span class="co">#&gt; $ trq         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 550, 398, 398, 398, 561, 557, 514, 504, 509, 664, 476, 436…</span></span>
-<span><span class="co">#&gt; $ trq_rpm     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5900, 6000, 6000, 6000, 3000, 4750, 5750, 6000, 6000, 6750…</span></span>
-<span><span class="co">#&gt; $ mpg_c       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 11, 13, 13, 13, 15, 16, 12, 11, 11, 12, 21, 16, 11, 16, 12…</span></span>
-<span><span class="co">#&gt; $ mpg_h       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 18, 17, 17, 17, 22, 23, 17, 16, 16, 16, 22, 22, 18, 20, 20…</span></span>
-<span><span class="co">#&gt; $ drivetrain  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "rwd", "rwd", "rwd", "rwd", "rwd", "rwd", "awd", "awd", "r…</span></span>
-<span><span class="co">#&gt; $ trsmn       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "7a", "7a", "7a", "7a", "7a", "7a", "7a", "7a", "7a", "7a"…</span></span>
-<span><span class="co">#&gt; $ ctry_origin <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "United States", "Italy", "Italy", "Italy", "Italy", "Ital…</span></span>
-<span><span class="co">#&gt; $ msrp        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 447000, 291744, 263553, 233509, 245400, 198973, 298000, 29…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ mfr         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Ford"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Ferra…</span></span>
+<span><span class="co">#&gt; $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "GT"<span style="color: #949494;">, </span>"458 Speciale"<span style="color: #949494;">, </span>"458 Spider"<span style="color: #949494;">, </span>"458 Italia"<span style="color: #949494;">, </span>"488 GTB…</span></span>
+<span><span class="co">#&gt; $ year        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2017<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2014<span style="color: #949494;">, </span>2016<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2017<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2015…</span></span>
+<span><span class="co">#&gt; $ trim        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Base Coupe"<span style="color: #949494;">, </span>"Base Coupe"<span style="color: #949494;">, </span>"Base"<span style="color: #949494;">, </span>"Base Coupe"<span style="color: #949494;">, </span>"Base Co…</span></span>
+<span><span class="co">#&gt; $ bdy_style   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "coupe"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"convertible"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"conver…</span></span>
+<span><span class="co">#&gt; $ hp          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 647<span style="color: #949494;">, </span>597<span style="color: #949494;">, </span>562<span style="color: #949494;">, </span>562<span style="color: #949494;">, </span>661<span style="color: #949494;">, </span>553<span style="color: #949494;">, </span>680<span style="color: #949494;">, </span>652<span style="color: #949494;">, </span>731<span style="color: #949494;">, </span>949<span style="color: #949494;">, </span>573<span style="color: #949494;">, </span>545…</span></span>
+<span><span class="co">#&gt; $ hp_rpm      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 6250<span style="color: #949494;">, </span>9000<span style="color: #949494;">, </span>9000<span style="color: #949494;">, </span>9000<span style="color: #949494;">, </span>8000<span style="color: #949494;">, </span>7500<span style="color: #949494;">, </span>8250<span style="color: #949494;">, </span>8000<span style="color: #949494;">, </span>8250<span style="color: #949494;">, </span>9000…</span></span>
+<span><span class="co">#&gt; $ trq         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 550<span style="color: #949494;">, </span>398<span style="color: #949494;">, </span>398<span style="color: #949494;">, </span>398<span style="color: #949494;">, </span>561<span style="color: #949494;">, </span>557<span style="color: #949494;">, </span>514<span style="color: #949494;">, </span>504<span style="color: #949494;">, </span>509<span style="color: #949494;">, </span>664<span style="color: #949494;">, </span>476<span style="color: #949494;">, </span>436…</span></span>
+<span><span class="co">#&gt; $ trq_rpm     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5900<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>3000<span style="color: #949494;">, </span>4750<span style="color: #949494;">, </span>5750<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>6750…</span></span>
+<span><span class="co">#&gt; $ mpg_c       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 11<span style="color: #949494;">, </span>13<span style="color: #949494;">, </span>13<span style="color: #949494;">, </span>13<span style="color: #949494;">, </span>15<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>12<span style="color: #949494;">, </span>11<span style="color: #949494;">, </span>11<span style="color: #949494;">, </span>12<span style="color: #949494;">, </span>21<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>11<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>12…</span></span>
+<span><span class="co">#&gt; $ mpg_h       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 18<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>22<span style="color: #949494;">, </span>23<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>22<span style="color: #949494;">, </span>22<span style="color: #949494;">, </span>18<span style="color: #949494;">, </span>20<span style="color: #949494;">, </span>20…</span></span>
+<span><span class="co">#&gt; $ drivetrain  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"awd"<span style="color: #949494;">, </span>"awd"<span style="color: #949494;">, </span>"r…</span></span>
+<span><span class="co">#&gt; $ trsmn       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"…</span></span>
+<span><span class="co">#&gt; $ ctry_origin <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "United States"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Ital…</span></span>
+<span><span class="co">#&gt; $ msrp        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 447000<span style="color: #949494;">, </span>291744<span style="color: #949494;">, </span>263553<span style="color: #949494;">, </span>233509<span style="color: #949494;">, </span>245400<span style="color: #949494;">, </span>198973<span style="color: #949494;">, </span>298000<span style="color: #949494;">, </span>29…</span></span></code></pre></div>
 <p>For the purpose of simply learning more about <strong>gt</strong>,
 let’s reduce this 47-row tibble to one that has only 8 rows with a
 little <strong>dplyr</strong>ing:</p>
@@ -146,21 +145,21 @@ little <strong>dplyr</strong>ing:</p>
 <span><span class="fu">glimpse</span><span class="op">(</span><span class="va">gtcars_8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 8</span></span>
 <span><span class="co">#&gt; Columns: 15</span></span>
-<span><span class="co">#&gt; $ mfr         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "BMW", "BMW", "Ferrari", "Ferrari", "Acura", "Nissan", "Fo…</span></span>
-<span><span class="co">#&gt; $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6-Series", "i8", "458 Speciale", "458 Spider", "NSX", "GT…</span></span>
-<span><span class="co">#&gt; $ year        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2016, 2016, 2015, 2015, 2017, 2016, 2017, 2016</span></span>
-<span><span class="co">#&gt; $ trim        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "640 I Coupe", "Mega World Coupe", "Base Coupe", "Base", "…</span></span>
-<span><span class="co">#&gt; $ bdy_style   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "coupe", "coupe", "coupe", "convertible", "coupe", "coupe"…</span></span>
-<span><span class="co">#&gt; $ hp          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 315, 357, 597, 562, 573, 545, 647, 650</span></span>
-<span><span class="co">#&gt; $ hp_rpm      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5800, 5800, 9000, 9000, 6500, 6400, 6250, 6400</span></span>
-<span><span class="co">#&gt; $ trq         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 330, 420, 398, 398, 476, 436, 550, 650</span></span>
-<span><span class="co">#&gt; $ trq_rpm     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1400, 3700, 6000, 6000, 2000, 3200, 5900, 3600</span></span>
-<span><span class="co">#&gt; $ mpg_c       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 20, 28, 13, 13, 21, 16, 11, 15</span></span>
-<span><span class="co">#&gt; $ mpg_h       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 30, 29, 17, 17, 22, 22, 18, 22</span></span>
-<span><span class="co">#&gt; $ drivetrain  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "rwd", "awd", "rwd", "rwd", "awd", "awd", "rwd", "rwd"</span></span>
-<span><span class="co">#&gt; $ trsmn       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "8am", "6am", "7a", "7a", "9a", "6a", "7a", "7m"</span></span>
-<span><span class="co">#&gt; $ ctry_origin <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Germany", "Germany", "Italy", "Italy", "Japan", "Japan", …</span></span>
-<span><span class="co">#&gt; $ msrp        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 77300, 140700, 291744, 263553, 156000, 101770, 447000, 883…</span></span></code></pre></div>
+<span><span class="co">#&gt; $ mfr         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "BMW"<span style="color: #949494;">, </span>"BMW"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Ferrari"<span style="color: #949494;">, </span>"Acura"<span style="color: #949494;">, </span>"Nissan"<span style="color: #949494;">, </span>"Fo…</span></span>
+<span><span class="co">#&gt; $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6-Series"<span style="color: #949494;">, </span>"i8"<span style="color: #949494;">, </span>"458 Speciale"<span style="color: #949494;">, </span>"458 Spider"<span style="color: #949494;">, </span>"NSX"<span style="color: #949494;">, </span>"GT…</span></span>
+<span><span class="co">#&gt; $ year        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2016<span style="color: #949494;">, </span>2016<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2015<span style="color: #949494;">, </span>2017<span style="color: #949494;">, </span>2016<span style="color: #949494;">, </span>2017<span style="color: #949494;">, </span>2016</span></span>
+<span><span class="co">#&gt; $ trim        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "640 I Coupe"<span style="color: #949494;">, </span>"Mega World Coupe"<span style="color: #949494;">, </span>"Base Coupe"<span style="color: #949494;">, </span>"Base"<span style="color: #949494;">, </span>"…</span></span>
+<span><span class="co">#&gt; $ bdy_style   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "coupe"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"convertible"<span style="color: #949494;">, </span>"coupe"<span style="color: #949494;">, </span>"coupe"…</span></span>
+<span><span class="co">#&gt; $ hp          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 315<span style="color: #949494;">, </span>357<span style="color: #949494;">, </span>597<span style="color: #949494;">, </span>562<span style="color: #949494;">, </span>573<span style="color: #949494;">, </span>545<span style="color: #949494;">, </span>647<span style="color: #949494;">, </span>650</span></span>
+<span><span class="co">#&gt; $ hp_rpm      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5800<span style="color: #949494;">, </span>5800<span style="color: #949494;">, </span>9000<span style="color: #949494;">, </span>9000<span style="color: #949494;">, </span>6500<span style="color: #949494;">, </span>6400<span style="color: #949494;">, </span>6250<span style="color: #949494;">, </span>6400</span></span>
+<span><span class="co">#&gt; $ trq         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 330<span style="color: #949494;">, </span>420<span style="color: #949494;">, </span>398<span style="color: #949494;">, </span>398<span style="color: #949494;">, </span>476<span style="color: #949494;">, </span>436<span style="color: #949494;">, </span>550<span style="color: #949494;">, </span>650</span></span>
+<span><span class="co">#&gt; $ trq_rpm     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1400<span style="color: #949494;">, </span>3700<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>6000<span style="color: #949494;">, </span>2000<span style="color: #949494;">, </span>3200<span style="color: #949494;">, </span>5900<span style="color: #949494;">, </span>3600</span></span>
+<span><span class="co">#&gt; $ mpg_c       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 20<span style="color: #949494;">, </span>28<span style="color: #949494;">, </span>13<span style="color: #949494;">, </span>13<span style="color: #949494;">, </span>21<span style="color: #949494;">, </span>16<span style="color: #949494;">, </span>11<span style="color: #949494;">, </span>15</span></span>
+<span><span class="co">#&gt; $ mpg_h       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 30<span style="color: #949494;">, </span>29<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>17<span style="color: #949494;">, </span>22<span style="color: #949494;">, </span>22<span style="color: #949494;">, </span>18<span style="color: #949494;">, </span>22</span></span>
+<span><span class="co">#&gt; $ drivetrain  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "rwd"<span style="color: #949494;">, </span>"awd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"awd"<span style="color: #949494;">, </span>"awd"<span style="color: #949494;">, </span>"rwd"<span style="color: #949494;">, </span>"rwd"</span></span>
+<span><span class="co">#&gt; $ trsmn       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "8am"<span style="color: #949494;">, </span>"6am"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"9a"<span style="color: #949494;">, </span>"6a"<span style="color: #949494;">, </span>"7a"<span style="color: #949494;">, </span>"7m"</span></span>
+<span><span class="co">#&gt; $ ctry_origin <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Germany"<span style="color: #949494;">, </span>"Germany"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Italy"<span style="color: #949494;">, </span>"Japan"<span style="color: #949494;">, </span>"Japan"<span style="color: #949494;">, </span>…</span></span>
+<span><span class="co">#&gt; $ msrp        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 77300<span style="color: #949494;">, </span>140700<span style="color: #949494;">, </span>291744<span style="color: #949494;">, </span>263553<span style="color: #949494;">, </span>156000<span style="color: #949494;">, </span>101770<span style="color: #949494;">, </span>447000<span style="color: #949494;">, </span>883…</span></span></code></pre></div>
 <p>Let’s make a display table from this dataset. In doing so we’ll
 fulfill the following 10 requirements:</p>
 <ol style="list-style-type: decimal">
@@ -2697,8 +2696,8 @@ options here in <strong>gt</strong> via
 <code><a href="../reference/cols_move_to_start.html">cols_move_to_start()</a></code>, <code><a href="../reference/cols_move.html">cols_move()</a></code>, and
 <code><a href="../reference/cols_move_to_end.html">cols_move_to_end()</a></code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Use a few `cols_*()` functions to hide and move columns </span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<code class="sourceCode R"><span><span class="co"># Use a few `cols_*()` functions to hide and move columns</span></span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_hide.html">cols_hide</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">drivetrain</span>, <span class="va">bdy_style</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_move.html">cols_move</a></span><span class="op">(</span></span>
@@ -3310,7 +3309,7 @@ spanner column label is styled with Markdown by using the
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Put the first three columns under a spanner</span></span>
 <span><span class="co"># column with the label 'Performance'</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="st">"Performance"</span>,</span>
@@ -3956,7 +3955,7 @@ possible. It accepts a series of named arguments in the form of
 <code class="sourceCode R"><span><span class="co"># Perform three column merges to better present</span></span>
 <span><span class="co"># MPG, HP, and torque; relabel all the remaining</span></span>
 <span><span class="co"># columns for a nicer-looking presentation</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg_c</span>, <span class="va">mpg_h</span><span class="op">)</span>,</span>
@@ -4560,7 +4559,7 @@ want to apply the formatting to the entire column of data.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Format the `msrp` column to USD currency</span></span>
 <span><span class="co"># with no display of the currency subunits</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_currency.html">fmt_currency</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="va">msrp</span>, decimals <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
@@ -5157,7 +5156,7 @@ supply our target columns to its own <code>columns</code> argument.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Center-align three columns in the gt table and</span></span>
 <span><span class="co"># modify the text size of a few columns of data</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
 <span>    align <span class="op">=</span> <span class="st">"center"</span>,</span>
@@ -5755,16 +5754,15 @@ table.</p>
 <span><span class="co"># a custom function within `text_transform()`;</span></span>
 <span><span class="co"># here `x` represents a character vector defined</span></span>
 <span><span class="co"># in the `cells_body()` function</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/text_transform.html">text_transform</a></span><span class="op">(</span></span>
 <span>    locations <span class="op">=</span> <span class="fu"><a href="../reference/cells_body.html">cells_body</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="va">trsmn</span><span class="op">)</span>,</span>
 <span>    fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      </span>
 <span>      <span class="co"># The first character of `x` always</span></span>
 <span>      <span class="co"># indicates the number of transmission speeds</span></span>
 <span>      <span class="va">speed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>      </span>
+<span></span>
 <span>      <span class="co"># We can carefully determine which transmission</span></span>
 <span>      <span class="co"># type we have in `x` with a `dplyr::case_when()`</span></span>
 <span>      <span class="co"># statement</span></span>
@@ -5775,7 +5773,7 @@ table.</p>
 <span>          <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">==</span> <span class="st">"a"</span> <span class="op">~</span> <span class="st">"Automatic"</span>,</span>
 <span>          <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span> <span class="op">==</span> <span class="st">"dd"</span> <span class="op">~</span> <span class="st">"Direct Drive"</span></span>
 <span>        <span class="op">)</span></span>
-<span>      </span>
+<span></span>
 <span>      <span class="co"># Let's paste together the `speed` and `type`</span></span>
 <span>      <span class="co"># vectors to create HTML text replacing `x`</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">speed</span>, <span class="st">" Speed&lt;br&gt;&lt;em&gt;"</span>, <span class="va">type</span>, <span class="st">"&lt;/em&gt;"</span><span class="op">)</span></span>
@@ -6367,7 +6365,7 @@ below).</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add a table title and subtitle; we can use</span></span>
 <span><span class="co"># markdown with the `md()` helper function</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_header.html">tab_header</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span><span class="st">"The Cars of **gtcars**"</span><span class="op">)</span>,</span>
@@ -6965,7 +6963,7 @@ the source of the data.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add a source note to the bottom of the table; this</span></span>
 <span><span class="co"># appears below the footnotes</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">tab</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_source_note.html">tab_source_note</a></span><span class="op">(</span></span>
 <span>    source_note <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span></span>
@@ -6975,23 +6973,23 @@ the source of the data.</p>
 <span></span>
 <span><span class="co"># Show the table</span></span>
 <span><span class="va">tab</span></span></code></pre></div>
-<div id="ifmmyucmrw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ifmmyucmrw table {
+<div id="ucmrwtkdbi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ucmrwtkdbi table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#ifmmyucmrw thead, #ifmmyucmrw tbody, #ifmmyucmrw tfoot, #ifmmyucmrw tr, #ifmmyucmrw td, #ifmmyucmrw th {
+#ucmrwtkdbi thead, #ucmrwtkdbi tbody, #ucmrwtkdbi tfoot, #ucmrwtkdbi tr, #ucmrwtkdbi td, #ucmrwtkdbi th {
   border-style: none;
 }
 
-#ifmmyucmrw p {
+#ucmrwtkdbi p {
   margin: 0;
   padding: 0;
 }
 
-#ifmmyucmrw .gt_table {
+#ucmrwtkdbi .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -7017,12 +7015,12 @@ the source of the data.</p>
   border-left-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_caption {
+#ucmrwtkdbi .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#ifmmyucmrw .gt_title {
+#ucmrwtkdbi .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -7034,7 +7032,7 @@ the source of the data.</p>
   border-bottom-width: 0;
 }
 
-#ifmmyucmrw .gt_subtitle {
+#ucmrwtkdbi .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -7046,7 +7044,7 @@ the source of the data.</p>
   border-top-width: 0;
 }
 
-#ifmmyucmrw .gt_heading {
+#ucmrwtkdbi .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -7058,13 +7056,13 @@ the source of the data.</p>
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_bottom_border {
+#ucmrwtkdbi .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_col_headings {
+#ucmrwtkdbi .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7079,7 +7077,7 @@ the source of the data.</p>
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_col_heading {
+#ucmrwtkdbi .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7099,7 +7097,7 @@ the source of the data.</p>
   overflow-x: hidden;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer {
+#ucmrwtkdbi .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7111,15 +7109,15 @@ the source of the data.</p>
   padding-right: 4px;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer:first-child {
+#ucmrwtkdbi .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer:last-child {
+#ucmrwtkdbi .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ifmmyucmrw .gt_column_spanner {
+#ucmrwtkdbi .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -7131,11 +7129,11 @@ the source of the data.</p>
   width: 100%;
 }
 
-#ifmmyucmrw .gt_spanner_row {
+#ucmrwtkdbi .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#ifmmyucmrw .gt_group_heading {
+#ucmrwtkdbi .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7161,7 +7159,7 @@ the source of the data.</p>
   text-align: left;
 }
 
-#ifmmyucmrw .gt_empty_group_heading {
+#ucmrwtkdbi .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -7176,15 +7174,15 @@ the source of the data.</p>
   vertical-align: middle;
 }
 
-#ifmmyucmrw .gt_from_md > :first-child {
+#ucmrwtkdbi .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ifmmyucmrw .gt_from_md > :last-child {
+#ucmrwtkdbi .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ifmmyucmrw .gt_row {
+#ucmrwtkdbi .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7203,7 +7201,7 @@ the source of the data.</p>
   overflow-x: hidden;
 }
 
-#ifmmyucmrw .gt_stub {
+#ucmrwtkdbi .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7216,7 +7214,7 @@ the source of the data.</p>
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_stub_row_group {
+#ucmrwtkdbi .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7230,15 +7228,15 @@ the source of the data.</p>
   vertical-align: top;
 }
 
-#ifmmyucmrw .gt_row_group_first td {
+#ucmrwtkdbi .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_row_group_first th {
+#ucmrwtkdbi .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_summary_row {
+#ucmrwtkdbi .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7248,16 +7246,16 @@ the source of the data.</p>
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_first_summary_row {
+#ucmrwtkdbi .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_first_summary_row.thick {
+#ucmrwtkdbi .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_last_summary_row {
+#ucmrwtkdbi .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7267,7 +7265,7 @@ the source of the data.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_grand_summary_row {
+#ucmrwtkdbi .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7277,7 +7275,7 @@ the source of the data.</p>
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_first_grand_summary_row {
+#ucmrwtkdbi .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7287,7 +7285,7 @@ the source of the data.</p>
   border-top-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_last_grand_summary_row_top {
+#ucmrwtkdbi .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7297,11 +7295,11 @@ the source of the data.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_striped {
+#ucmrwtkdbi .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ifmmyucmrw .gt_table_body {
+#ucmrwtkdbi .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7310,7 +7308,7 @@ the source of the data.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_footnotes {
+#ucmrwtkdbi .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7324,7 +7322,7 @@ the source of the data.</p>
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_footnote {
+#ucmrwtkdbi .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -7333,7 +7331,7 @@ the source of the data.</p>
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_sourcenotes {
+#ucmrwtkdbi .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7347,7 +7345,7 @@ the source of the data.</p>
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_sourcenote {
+#ucmrwtkdbi .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -7355,72 +7353,72 @@ the source of the data.</p>
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_left {
+#ucmrwtkdbi .gt_left {
   text-align: left;
 }
 
-#ifmmyucmrw .gt_center {
+#ucmrwtkdbi .gt_center {
   text-align: center;
 }
 
-#ifmmyucmrw .gt_right {
+#ucmrwtkdbi .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ifmmyucmrw .gt_font_normal {
+#ucmrwtkdbi .gt_font_normal {
   font-weight: normal;
 }
 
-#ifmmyucmrw .gt_font_bold {
+#ucmrwtkdbi .gt_font_bold {
   font-weight: bold;
 }
 
-#ifmmyucmrw .gt_font_italic {
+#ucmrwtkdbi .gt_font_italic {
   font-style: italic;
 }
 
-#ifmmyucmrw .gt_super {
+#ucmrwtkdbi .gt_super {
   font-size: 65%;
 }
 
-#ifmmyucmrw .gt_footnote_marks {
+#ucmrwtkdbi .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#ifmmyucmrw .gt_asterisk {
+#ucmrwtkdbi .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ifmmyucmrw .gt_indent_1 {
+#ucmrwtkdbi .gt_indent_1 {
   text-indent: 5px;
 }
 
-#ifmmyucmrw .gt_indent_2 {
+#ucmrwtkdbi .gt_indent_2 {
   text-indent: 10px;
 }
 
-#ifmmyucmrw .gt_indent_3 {
+#ucmrwtkdbi .gt_indent_3 {
   text-indent: 15px;
 }
 
-#ifmmyucmrw .gt_indent_4 {
+#ucmrwtkdbi .gt_indent_4 {
   text-indent: 20px;
 }
 
-#ifmmyucmrw .gt_indent_5 {
+#ucmrwtkdbi .gt_indent_5 {
   text-indent: 25px;
 }
 
-#ifmmyucmrw .katex-display {
+#ucmrwtkdbi .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#ifmmyucmrw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ucmrwtkdbi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -7594,19 +7592,17 @@ in order) and expect the same output table.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use dplyr functions to get the car with the best city gas mileage;</span></span>
 <span><span class="co"># this will be used to target the correct cell for a footnote</span></span>
-<span><span class="va">best_gas_mileage_city</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">gtcars</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">arrange</span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">mpg_c</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="va">best_gas_mileage_city</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">gtcars</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">slice_max</span><span class="op">(</span><span class="va">mpg_c</span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>car <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">mfr</span>, <span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">pull</span><span class="op">(</span><span class="va">car</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use dplyr functions to get the car with the highest horsepower</span></span>
 <span><span class="co"># this will be used to target the correct cell for a footnote</span></span>
-<span><span class="va">highest_horsepower</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">gtcars</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">arrange</span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">hp</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="va">highest_horsepower</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">gtcars</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">slice_max</span><span class="op">(</span><span class="va">hp</span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>car <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">mfr</span>, <span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">pull</span><span class="op">(</span><span class="va">car</span><span class="op">)</span></span>
 <span></span>
@@ -7669,9 +7665,8 @@ in order) and expect the same output table.</p>
 <span>  <span class="fu"><a href="../reference/text_transform.html">text_transform</a></span><span class="op">(</span></span>
 <span>    locations <span class="op">=</span> <span class="fu"><a href="../reference/cells_body.html">cells_body</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="va">trsmn</span><span class="op">)</span>,</span>
 <span>    fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      </span>
 <span>      <span class="va">speed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>      </span>
+<span></span>
 <span>      <span class="va">type</span> <span class="op">&lt;-</span></span>
 <span>        <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>          <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span> <span class="op">==</span> <span class="st">"am"</span> <span class="op">~</span> <span class="st">"Automatic/Manual"</span>,</span>
@@ -7679,7 +7674,7 @@ in order) and expect the same output table.</p>
 <span>          <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">==</span> <span class="st">"a"</span> <span class="op">~</span> <span class="st">"Automatic"</span>,</span>
 <span>          <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span> <span class="op">==</span> <span class="st">"dd"</span> <span class="op">~</span> <span class="st">"Direct Drive"</span></span>
 <span>        <span class="op">)</span></span>
-<span>      </span>
+<span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">speed</span>, <span class="st">" Speed&lt;br&gt;&lt;em&gt;"</span>, <span class="va">type</span>, <span class="st">"&lt;/em&gt;"</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -7713,23 +7708,23 @@ in order) and expect the same output table.</p>
 <span></span>
 <span><span class="co"># Show the table</span></span>
 <span><span class="va">tab</span></span></code></pre></div>
-<div id="rslsqjlmpg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#rslsqjlmpg table {
+<div id="flgkjhvqlt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#flgkjhvqlt table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#rslsqjlmpg thead, #rslsqjlmpg tbody, #rslsqjlmpg tfoot, #rslsqjlmpg tr, #rslsqjlmpg td, #rslsqjlmpg th {
+#flgkjhvqlt thead, #flgkjhvqlt tbody, #flgkjhvqlt tfoot, #flgkjhvqlt tr, #flgkjhvqlt td, #flgkjhvqlt th {
   border-style: none;
 }
 
-#rslsqjlmpg p {
+#flgkjhvqlt p {
   margin: 0;
   padding: 0;
 }
 
-#rslsqjlmpg .gt_table {
+#flgkjhvqlt .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -7755,12 +7750,12 @@ in order) and expect the same output table.</p>
   border-left-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_caption {
+#flgkjhvqlt .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#rslsqjlmpg .gt_title {
+#flgkjhvqlt .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -7772,7 +7767,7 @@ in order) and expect the same output table.</p>
   border-bottom-width: 0;
 }
 
-#rslsqjlmpg .gt_subtitle {
+#flgkjhvqlt .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -7784,7 +7779,7 @@ in order) and expect the same output table.</p>
   border-top-width: 0;
 }
 
-#rslsqjlmpg .gt_heading {
+#flgkjhvqlt .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -7796,13 +7791,13 @@ in order) and expect the same output table.</p>
   border-right-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_bottom_border {
+#flgkjhvqlt .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_col_headings {
+#flgkjhvqlt .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7817,7 +7812,7 @@ in order) and expect the same output table.</p>
   border-right-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_col_heading {
+#flgkjhvqlt .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7837,7 +7832,7 @@ in order) and expect the same output table.</p>
   overflow-x: hidden;
 }
 
-#rslsqjlmpg .gt_column_spanner_outer {
+#flgkjhvqlt .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7849,15 +7844,15 @@ in order) and expect the same output table.</p>
   padding-right: 4px;
 }
 
-#rslsqjlmpg .gt_column_spanner_outer:first-child {
+#flgkjhvqlt .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#rslsqjlmpg .gt_column_spanner_outer:last-child {
+#flgkjhvqlt .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#rslsqjlmpg .gt_column_spanner {
+#flgkjhvqlt .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -7869,11 +7864,11 @@ in order) and expect the same output table.</p>
   width: 100%;
 }
 
-#rslsqjlmpg .gt_spanner_row {
+#flgkjhvqlt .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#rslsqjlmpg .gt_group_heading {
+#flgkjhvqlt .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7899,7 +7894,7 @@ in order) and expect the same output table.</p>
   text-align: left;
 }
 
-#rslsqjlmpg .gt_empty_group_heading {
+#flgkjhvqlt .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -7914,15 +7909,15 @@ in order) and expect the same output table.</p>
   vertical-align: middle;
 }
 
-#rslsqjlmpg .gt_from_md > :first-child {
+#flgkjhvqlt .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#rslsqjlmpg .gt_from_md > :last-child {
+#flgkjhvqlt .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#rslsqjlmpg .gt_row {
+#flgkjhvqlt .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7941,7 +7936,7 @@ in order) and expect the same output table.</p>
   overflow-x: hidden;
 }
 
-#rslsqjlmpg .gt_stub {
+#flgkjhvqlt .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7954,7 +7949,7 @@ in order) and expect the same output table.</p>
   padding-right: 5px;
 }
 
-#rslsqjlmpg .gt_stub_row_group {
+#flgkjhvqlt .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7968,15 +7963,15 @@ in order) and expect the same output table.</p>
   vertical-align: top;
 }
 
-#rslsqjlmpg .gt_row_group_first td {
+#flgkjhvqlt .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#rslsqjlmpg .gt_row_group_first th {
+#flgkjhvqlt .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#rslsqjlmpg .gt_summary_row {
+#flgkjhvqlt .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7986,16 +7981,16 @@ in order) and expect the same output table.</p>
   padding-right: 5px;
 }
 
-#rslsqjlmpg .gt_first_summary_row {
+#flgkjhvqlt .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_first_summary_row.thick {
+#flgkjhvqlt .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#rslsqjlmpg .gt_last_summary_row {
+#flgkjhvqlt .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8005,7 +8000,7 @@ in order) and expect the same output table.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_grand_summary_row {
+#flgkjhvqlt .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -8015,7 +8010,7 @@ in order) and expect the same output table.</p>
   padding-right: 5px;
 }
 
-#rslsqjlmpg .gt_first_grand_summary_row {
+#flgkjhvqlt .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8025,7 +8020,7 @@ in order) and expect the same output table.</p>
   border-top-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_last_grand_summary_row_top {
+#flgkjhvqlt .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8035,11 +8030,11 @@ in order) and expect the same output table.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_striped {
+#flgkjhvqlt .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#rslsqjlmpg .gt_table_body {
+#flgkjhvqlt .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -8048,7 +8043,7 @@ in order) and expect the same output table.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_footnotes {
+#flgkjhvqlt .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -8062,7 +8057,7 @@ in order) and expect the same output table.</p>
   border-right-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_footnote {
+#flgkjhvqlt .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -8071,7 +8066,7 @@ in order) and expect the same output table.</p>
   padding-right: 5px;
 }
 
-#rslsqjlmpg .gt_sourcenotes {
+#flgkjhvqlt .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -8085,7 +8080,7 @@ in order) and expect the same output table.</p>
   border-right-color: #D3D3D3;
 }
 
-#rslsqjlmpg .gt_sourcenote {
+#flgkjhvqlt .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -8093,72 +8088,72 @@ in order) and expect the same output table.</p>
   padding-right: 5px;
 }
 
-#rslsqjlmpg .gt_left {
+#flgkjhvqlt .gt_left {
   text-align: left;
 }
 
-#rslsqjlmpg .gt_center {
+#flgkjhvqlt .gt_center {
   text-align: center;
 }
 
-#rslsqjlmpg .gt_right {
+#flgkjhvqlt .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#rslsqjlmpg .gt_font_normal {
+#flgkjhvqlt .gt_font_normal {
   font-weight: normal;
 }
 
-#rslsqjlmpg .gt_font_bold {
+#flgkjhvqlt .gt_font_bold {
   font-weight: bold;
 }
 
-#rslsqjlmpg .gt_font_italic {
+#flgkjhvqlt .gt_font_italic {
   font-style: italic;
 }
 
-#rslsqjlmpg .gt_super {
+#flgkjhvqlt .gt_super {
   font-size: 65%;
 }
 
-#rslsqjlmpg .gt_footnote_marks {
+#flgkjhvqlt .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#rslsqjlmpg .gt_asterisk {
+#flgkjhvqlt .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#rslsqjlmpg .gt_indent_1 {
+#flgkjhvqlt .gt_indent_1 {
   text-indent: 5px;
 }
 
-#rslsqjlmpg .gt_indent_2 {
+#flgkjhvqlt .gt_indent_2 {
   text-indent: 10px;
 }
 
-#rslsqjlmpg .gt_indent_3 {
+#flgkjhvqlt .gt_indent_3 {
   text-indent: 15px;
 }
 
-#rslsqjlmpg .gt_indent_4 {
+#flgkjhvqlt .gt_indent_4 {
   text-indent: 20px;
 }
 
-#rslsqjlmpg .gt_indent_5 {
+#flgkjhvqlt .gt_indent_5 {
   text-indent: 25px;
 }
 
-#rslsqjlmpg .katex-display {
+#flgkjhvqlt .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#rslsqjlmpg div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#flgkjhvqlt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -8760,7 +8755,7 @@ HTML is accepted.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

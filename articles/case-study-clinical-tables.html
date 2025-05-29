@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Case Study: Clinical Tables • gt</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -27,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gt</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -149,42 +148,38 @@ to create a tibble with the shape of our desired table and then use
 <strong>gt</strong> functions to create the output table:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">custom_summary</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>, <span class="va">group_var</span>, <span class="va">sum_var</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  </span>
 <span>  <span class="va">group_var</span> <span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/defusing-advanced.html" class="external-link">ensym</a></span><span class="op">(</span><span class="va">group_var</span><span class="op">)</span></span>
 <span>  <span class="va">sum_var</span> <span class="op">&lt;-</span> <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/defusing-advanced.html" class="external-link">ensym</a></span><span class="op">(</span><span class="va">sum_var</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">is_categorical</span> <span class="op">&lt;-</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">is.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">is.factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> </span>
-<span>  </span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">is_categorical</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
-<span>    <span class="va">category_lbl</span> <span class="op">&lt;-</span> </span>
+<span>  <span class="va">is_categorical</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">is.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">is.factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">is_categorical</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">category_lbl</span> <span class="op">&lt;-</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%s, n (%%)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="st">"label"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>    <span class="va">df_out</span> <span class="op">&lt;-</span></span>
 <span>      <span class="va">df</span> <span class="op">|&gt;</span></span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
 <span>        val <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        pct <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span>,</span>
+<span>        pct <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span>,</span>
 <span>        .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span></span>
 <span>        id_cols <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span>, names_from <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">group_var</span>,</span>
 <span>        values_from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">val</span>, <span class="va">pct</span><span class="op">)</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>label <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>label <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>        <span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        <span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>        category <span class="op">=</span> <span class="va">category_lbl</span></span>
 <span>      <span class="op">)</span></span>
-<span></span>
 <span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span></span>
 <span>    <span class="va">category_lbl</span> <span class="op">&lt;-</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
 <span>        <span class="st">"%s (%s)"</span>,</span>
@@ -192,9 +187,9 @@ to create a tibble with the shape of our desired table and then use
 <span>        <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr</a></span><span class="op">(</span><span class="fu">`$`</span><span class="op">(</span><span class="va">df</span>, <span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="st">"units"</span><span class="op">)</span></span>
 <span>      <span class="op">)</span></span>
 <span></span>
-<span>    <span class="va">df_out</span> <span class="op">&lt;-</span> </span>
-<span>      <span class="va">df</span> <span class="op">|&gt;</span> </span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="va">df_out</span> <span class="op">&lt;-</span></span>
+<span>      <span class="va">df</span> <span class="op">|&gt;</span></span>
+<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">group_var</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
 <span>        n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">sum_var</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>        mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">sum_var</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -204,12 +199,12 @@ to create a tibble with the shape of our desired table and then use
 <span>        max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="va">sum_var</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>        min_max <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>        .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span></span>
 <span>        cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">mean</span>, <span class="va">median</span>, <span class="va">min_max</span><span class="op">)</span>,</span>
 <span>        names_to <span class="op">=</span> <span class="st">"label"</span>,</span>
 <span>        values_to <span class="op">=</span> <span class="st">"val"</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>        sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">label</span> <span class="op">==</span> <span class="st">"mean"</span>, <span class="va">sd</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>        max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">label</span> <span class="op">==</span> <span class="st">"min_max"</span>, <span class="va">max</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
@@ -220,20 +215,20 @@ to create a tibble with the shape of our desired table and then use
 <span>          <span class="st">"min_max"</span> <span class="op">=</span> <span class="st">"Min - Max"</span>,</span>
 <span>          <span class="st">"median"</span> <span class="op">=</span> <span class="st">"Median"</span></span>
 <span>        <span class="op">)</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span></span>
 <span>        id_cols <span class="op">=</span> <span class="va">label</span>,</span>
 <span>        names_from <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">group_var</span>,</span>
 <span>        values_from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">val</span>, <span class="va">sd</span>, <span class="va">min</span>, <span class="va">max</span><span class="op">)</span></span>
-<span>      <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>      <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>category <span class="op">=</span> <span class="va">category_lbl</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">df_out</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">adsl_summary</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">rx_adsl</span>, <span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span><span class="va">adsl_summary</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">rx_adsl</span>, <span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="op">(</span>\<span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span></span>
 <span>    .x <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">AGE</span>, <span class="va">AAGEGR1</span>, <span class="va">SEX</span>, <span class="va">ETHNIC</span>, <span class="va">BLBMI</span><span class="op">)</span>,</span>
 <span>    .f <span class="op">=</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">custom_summary</span><span class="op">(</span>df <span class="op">=</span> <span class="va">data</span>, group_var <span class="op">=</span> <span class="va">TRTA</span>, sum_var <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">x</span><span class="op">)</span></span>
@@ -243,12 +238,12 @@ variables to <strong>gt</strong> using <code><a href="../reference/gt.html">gt()
 be grouped by category, with labels as rownames. In addition, we can
 give our table a nice title and subtitle.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">adsl_summary</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">adsl_summary</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/gt.html">gt</a></span><span class="op">(</span></span>
 <span>    rowname_col <span class="op">=</span> <span class="st">"label"</span>,</span>
 <span>    groupname_col <span class="op">=</span> <span class="st">"category"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_header.html">tab_header</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"x.x: Demographic Characteristics"</span>,</span>
 <span>    subtitle <span class="op">=</span> <span class="st">"x.x.x: Demographic Characteristics - ITT Analysis Set"</span></span>
@@ -961,26 +956,26 @@ decimals, respectively. We are intentionally keeping the <code>NA</code>
 values for now, as these will be needed in the <code><a href="../reference/cols_merge.html">cols_merge()</a></code>
 pattern in the next step.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_integer.html">fmt_integer</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"val_"</span>, <span class="st">"min_"</span>, <span class="st">"max_"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    rows <span class="op">=</span> <span class="va">label</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"Median"</span>, <span class="st">"Min - Max"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_percent.html">fmt_percent</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"pct_"</span><span class="op">)</span>,</span>
 <span>    decimals <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"val_"</span><span class="op">)</span>,</span>
 <span>    rows <span class="op">=</span> <span class="va">label</span> <span class="op">==</span> <span class="st">"Mean (SD)"</span>,</span>
 <span>    decimals <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"sd_"</span><span class="op">)</span>,</span>
 <span>    rows <span class="op">=</span> <span class="va">label</span> <span class="op">==</span> <span class="st">"Mean (SD)"</span>,</span>
 <span>    decimals <span class="op">=</span> <span class="fl">2</span></span>
-<span>  <span class="op">)</span> </span>
+<span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_adsl_tbl</span></span></code></pre></div>
 <div id="eexombwkke" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -1687,12 +1682,12 @@ collapse the columns appropriately, we will use
 as n and percentages, respectively. We will use the <code>pattern</code>
 argument to specify our custom merging pattern.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"val_Placebo"</span>, <span class="st">"pct_Placebo"</span>, <span class="st">"sd_Placebo"</span>, <span class="st">"min_Placebo"</span>, <span class="st">"max_Placebo"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"&lt;&lt;{1}&gt;&gt;&lt;&lt; ({2})&gt;&gt;&lt;&lt; ({3})&gt;&gt;&lt;&lt;{4} - {5}&gt;&gt;"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"val_Drug 1"</span>, <span class="st">"pct_Drug 1"</span>, <span class="st">"sd_Drug 1"</span>, <span class="st">"min_Drug 1"</span>, <span class="st">"max_Drug 1"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"&lt;&lt;{1}&gt;&gt;&lt;&lt; ({2})&gt;&gt;&lt;&lt; ({3})&gt;&gt;&lt;&lt;{4} - {5}&gt;&gt;"</span></span>
@@ -2281,12 +2276,12 @@ values in the stub using <code><a href="../reference/tab_stub_indent.html">tab_s
 the title with <code><a href="../reference/opt_align_table_header.html">opt_align_table_header()</a></code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_stub_indent.html">tab_stub_indent</a></span><span class="op">(</span></span>
 <span>    rows <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    indent <span class="op">=</span> <span class="fl">5</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/opt_align_table_header.html">opt_align_table_header</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/opt_align_table_header.html">opt_align_table_header</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_adsl_tbl</span></span></code></pre></div>
 <div id="kgufivjubq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -2856,11 +2851,11 @@ and align all values to the center, making use of
 <code><a href="../reference/cols_width.html">cols_width()</a></code> and <code><a href="../reference/cols_align.html">cols_align()</a></code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_width.html">cols_width</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"val_"</span><span class="op">)</span> <span class="op">~</span> <span class="fu"><a href="../reference/px.html">px</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>,</span>
 <span>    <span class="fl">1</span> <span class="op">~</span> <span class="fu"><a href="../reference/px.html">px</a></span><span class="op">(</span><span class="fl">250</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
 <span>    align <span class="op">=</span> <span class="st">"center"</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"val_"</span><span class="op">)</span></span>
@@ -3442,20 +3437,20 @@ our new column labels in a named list.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Count subjects per arm and summarize values in a list</span></span>
 <span><span class="va">arm_n</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_adsl</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_adsl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
 <span>    lbl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%s N=%i (100%%)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span>, <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">collbl_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">arm_n</span><span class="op">$</span><span class="va">lbl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">collbl_list</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"val_"</span>, <span class="va">arm_n</span><span class="op">$</span><span class="va">TRTA</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span> </span>
+<span><span class="va">rx_adsl_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_adsl_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_label.html">cols_label</a></span><span class="op">(</span>.list <span class="op">=</span> <span class="va">collbl_list</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_adsl_tbl</span></span></code></pre></div>
@@ -4043,10 +4038,10 @@ subgroup defined by <code>AAGEGR1</code>, where confidence intervals
 around the event rates are computed using the Clopper Pearson
 method.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_responders</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_adsl</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span>, <span class="va">AAGEGR1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_responders</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_adsl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">ITTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span>, <span class="va">AAGEGR1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
 <span>    n_resp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span>,</span>
 <span>    n_total <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -4057,9 +4052,9 @@ method.</p>
 <span>          <span class="fl">0.975</span>,</span>
 <span>          <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>          <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span></span>
-<span>          <span class="op">)</span></span>
 <span>        <span class="op">)</span></span>
-<span>      <span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
 <span>    ci_low <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0</span>,</span>
 <span>      <span class="fl">0</span>,</span>
@@ -4069,53 +4064,53 @@ method.</p>
 <span>            <span class="fl">0.025</span>,</span>
 <span>            <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span>,</span>
 <span>            <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>            <span class="op">)</span></span>
 <span>          <span class="op">)</span></span>
-<span>        <span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>          <span class="op">)</span></span>
+<span>      <span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="op">)</span>,</span>
 <span>    odds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">EVNTFL</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span></span>
 <span>    id_cols <span class="op">=</span> <span class="va">AAGEGR1</span>,</span>
 <span>    names_from <span class="op">=</span> <span class="va">TRTA</span>,</span>
 <span>    values_from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_resp</span>, <span class="va">n_total</span>, <span class="va">pct</span>, <span class="va">ci_up</span>, <span class="va">ci_low</span>, <span class="va">odds</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    or <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
 <span>      <span class="va">odds_Placebo</span> <span class="op">==</span> <span class="fl">0</span>,</span>
 <span>      <span class="cn">NA_real_</span>,</span>
-<span>      <span class="op">!</span><span class="op">!</span> <span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"odds_Drug 1"</span><span class="op">)</span> <span class="op">/</span> <span class="va">odds_Placebo</span></span>
+<span>      <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"odds_Drug 1"</span><span class="op">)</span> <span class="op">/</span> <span class="va">odds_Placebo</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    or_ci_low <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">or</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">0.975</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span></span>
 <span>        <span class="fl">1</span> <span class="op">/</span> <span class="va">n_resp_Placebo</span> <span class="op">+</span></span>
-<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">n_total_Placebo</span> <span class="op">-</span> <span class="va">n_resp_Placebo</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_total_Drug 1"</span><span class="op">)</span> <span class="op">-</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span><span class="op">)</span></span>
+<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>            <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">n_total_Placebo</span> <span class="op">-</span> <span class="va">n_resp_Placebo</span><span class="op">)</span> <span class="op">+</span></span>
+<span>            <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_total_Drug 1"</span><span class="op">)</span> <span class="op">-</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span><span class="op">)</span></span>
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    or_ci_up <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">or</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">0.975</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span></span>
-<span>        <span class="fl">1</span> <span class="op">/</span> <span class="va">n_resp_Placebo</span> <span class="op">+</span> </span>
+<span>        <span class="fl">1</span> <span class="op">/</span> <span class="va">n_resp_Placebo</span> <span class="op">+</span></span>
 <span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">n_total_Placebo</span> <span class="op">-</span> <span class="va">n_resp_Placebo</span><span class="op">)</span> <span class="op">+</span></span>
-<span>          <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_total_Drug 1"</span><span class="op">)</span> <span class="op">-</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span><span class="op">)</span></span>
+<span>            <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">n_total_Placebo</span> <span class="op">-</span> <span class="va">n_resp_Placebo</span><span class="op">)</span> <span class="op">+</span></span>
+<span>            <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_total_Drug 1"</span><span class="op">)</span> <span class="op">-</span> <span class="op">!</span><span class="op">!</span><span class="fu"><a href="https://rlang.r-lib.org/reference/sym.html" class="external-link">sym</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span><span class="op">)</span><span class="op">)</span></span>
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu">tidyselect</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"odds_"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s first create a basic <strong>gt</strong> table with a
 left-aligned table title and subtitle. Here we are using
 <code><a href="../reference/tab_header.html">tab_header()</a></code> and <code><a href="../reference/opt_align_table_header.html">opt_align_table_header()</a></code>
 again.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span> <span class="va">rx_responders</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/gt.html">gt</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span> <span class="va">rx_responders</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/gt.html">gt</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_header.html">tab_header</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"x.x: Efficacy Data"</span>,</span>
 <span>    subtitle <span class="op">=</span> <span class="st">"x.x.x: Occurence of Event per Subgroup - {gt} Analysis Set"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/opt_align_table_header.html">opt_align_table_header</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
@@ -4635,11 +4630,11 @@ numbers with one decimal and odds ratio and the CI around the odds ratio
 as numbers with two decimals, in both cases using
 <code><a href="../reference/fmt_number.html">fmt_number()</a></code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/fmt_integer.html">fmt_integer</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"n_"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_"</span>, <span class="st">"ci_"</span><span class="op">)</span><span class="op">)</span>, decimals <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"or"</span><span class="op">)</span>, decimals <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/fmt_integer.html">fmt_integer</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"n_"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_"</span>, <span class="st">"ci_"</span><span class="op">)</span><span class="op">)</span>, decimals <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"or"</span><span class="op">)</span>, decimals <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
 <div id="fvsybhaagl" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -5159,35 +5154,35 @@ well as the 95% CI’s around the event rate using
 adding tab spanners with <code><a href="../reference/tab_spanner.html">tab_spanner()</a></code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_resp_Placebo"</span>, <span class="st">"n_total_Placebo"</span>, <span class="st">"pct_Placebo"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"{1}/{2} ({3})"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span>, <span class="st">"n_total_Drug 1"</span>, <span class="st">"pct_Drug 1"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"{1}/{2} ({3})"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ci_low_Placebo"</span>, <span class="st">"ci_up_Placebo"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"[{1}, {2}]"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ci_low_Drug 1"</span>, <span class="st">"ci_up_Drug 1"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"[{1}, {2}]"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge.html">cols_merge</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"or_ci_low"</span>, <span class="st">"or_ci_up"</span><span class="op">)</span>,</span>
 <span>    pattern <span class="op">=</span> <span class="st">"[{1}, {2}]"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="st">"Drug 1"</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_resp_Drug 1"</span>, <span class="st">"ci_low_Drug 1"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="st">"Placebo"</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_resp_Placebo"</span>, <span class="st">"ci_low_Placebo"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> </span>
+<span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
 <div id="vijbfglzvn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -5693,11 +5688,11 @@ We are using <code><a href="../reference/tab_row_group.html">tab_row_group()</a>
 label <em>Age</em>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_row_group.html">tab_row_group</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="st">"Age"</span>,</span>
 <span>    rows <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> </span>
+<span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
 <div id="egslqeqmfa" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -6209,12 +6204,12 @@ and 95% CI’s in both intervention groups.</p>
 apply a more convenient column width and left-align the first
 column.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
 <span>    align <span class="op">=</span> <span class="st">"center"</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_"</span>, <span class="st">"ci"</span>, <span class="st">"or"</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_label.html">cols_label</a></span><span class="op">(</span></span>
 <span>    .list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>      <span class="st">"AAGEGR1"</span> <span class="op">=</span> <span class="st">""</span>,</span>
@@ -6225,12 +6220,12 @@ column.</p>
 <span>      <span class="st">"or"</span> <span class="op">=</span> <span class="st">"Odds ratio"</span>,</span>
 <span>      <span class="st">"or_ci_low"</span> <span class="op">=</span> <span class="st">"[95% CI]"</span></span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_width.html">cols_width</a></span><span class="op">(</span></span>
 <span>    <span class="fl">1</span> <span class="op">~</span> <span class="fu"><a href="../reference/px.html">px</a></span><span class="op">(</span><span class="fl">80</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span> <span class="op">~</span> <span class="fu"><a href="../reference/px.html">px</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span>, columns <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span>, columns <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
 <div id="amrewkadgw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -6749,14 +6744,14 @@ default symbol choice of <code><a href="../reference/tab_footnote.html">tab_foot
 letters, we add <code>tab_options(footnote.marks = letters)</code>.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rx_resp_tbl</span> <span class="op">&lt;-</span></span>
-<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">rx_resp_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_footnote.html">tab_footnote</a></span><span class="op">(</span></span>
 <span>    footnote <span class="op">=</span> <span class="st">"Event rate 95% exact confidence interval uses the Clopper−Pearson method."</span>,</span>
 <span>    locations <span class="op">=</span> <span class="fu"><a href="../reference/cells_column_labels.html">cells_column_labels</a></span><span class="op">(</span></span>
 <span>      columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ci_low_Placebo"</span>, <span class="st">"ci_low_Drug 1"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    placement <span class="op">=</span> <span class="st">"right"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_options.html">tab_options</a></span><span class="op">(</span>footnotes.marks <span class="op">=</span> <span class="va">letters</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rx_resp_tbl</span></span></code></pre></div>
@@ -7336,25 +7331,25 @@ was related to COVID-19 or not. In order to build this table, we first
 need to apply some data wrangling with functions from
 <strong>dplyr</strong> and <strong>tidyr</strong>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_sum</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">rx_addv</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_sum</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">rx_addv</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    NTOT <span class="op">=</span> <span class="fu">n_distinct</span><span class="op">(</span><span class="va">USUBJID</span><span class="op">)</span>,</span>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span>, <span class="va">PARCAT1</span>, <span class="va">PARAM</span>, <span class="va">CRIT1FL</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">TRTA</span>, <span class="va">PARCAT1</span>, <span class="va">PARAM</span>, <span class="va">CRIT1FL</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
 <span>    n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">AVAL</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>    pct <span class="op">=</span> <span class="fl">100</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">AVAL</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">NTOT</span><span class="op">)</span>,</span>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span></span>
 <span>    id_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARCAT1</span>, <span class="va">PARAM</span><span class="op">)</span>,</span>
 <span>    names_from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRTA</span>, <span class="va">CRIT1FL</span><span class="op">)</span>,</span>
 <span>    values_from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">pct</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/add_row.html" class="external-link">add_row</a></span><span class="op">(</span>PARAM <span class="op">=</span> <span class="st">"Subjects with at least:"</span>, .before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">addv_sum</span></span>
@@ -7374,13 +7369,13 @@ need to apply some data wrangling with functions from
 <code>gt</code>. We will start by exposing the dataset to
 <code>gt</code> and add our usual left-aligned headers.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_sum</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/gt.html">gt</a></span><span class="op">(</span>rowname_col <span class="op">=</span> <span class="st">"PARAM"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_sum</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/gt.html">gt</a></span><span class="op">(</span>rowname_col <span class="op">=</span> <span class="st">"PARAM"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_header.html">tab_header</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"xx.x: Demographic and Baseline Data"</span>,</span>
 <span>    subtitle <span class="op">=</span> <span class="st">"xx.x.x: Major Protocol Deviations and Relationship to COVID-19 - ITT Set"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/opt_align_table_header.html">opt_align_table_header</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">addv_tbl</span></span></code></pre></div>
@@ -7954,12 +7949,12 @@ can create a summary row, using <code><a href="../reference/summary_rows.html">s
 (other summary functions are possible, but <code>fn = 'sum'</code> does
 the job for us).</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_row_group.html">tab_row_group</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="st">" "</span>,</span>
 <span>    rows <span class="op">=</span> <span class="va">PARCAT1</span> <span class="op">==</span> <span class="st">"PROTOCOL DEVIATION"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/row_group_order.html">row_group_order</a></span><span class="op">(</span>groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="st">" "</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/summary_rows.html">summary_rows</a></span><span class="op">(</span></span>
 <span>    groups <span class="op">=</span> <span class="st">" "</span>,</span>
@@ -8549,8 +8544,8 @@ the job for us).</p>
 generation of the row group. We can hide this column now using
 <code><a href="../reference/cols_hide.html">cols_hide()</a></code>:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_hide.html">cols_hide</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="st">"PARCAT1"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">addv_tbl</span></span></code></pre></div>
@@ -9125,28 +9120,28 @@ generation of the row group. We can hide this column now using
 format all numeric columns and merge columns for n’s and percentages by
 intervention group and COVID-19 relationship flag.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/sub_missing.html">sub_missing</a></span><span class="op">(</span></span>
 <span>    rows <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>    missing_text <span class="op">=</span> <span class="st">""</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_number.html">fmt_number</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"pct"</span><span class="op">)</span>,</span>
 <span>    decimals <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge_n_pct.html">cols_merge_n_pct</a></span><span class="op">(</span></span>
 <span>    col_n <span class="op">=</span> <span class="st">"n_Placebo_Y"</span>,</span>
 <span>    col_pct <span class="op">=</span> <span class="st">"pct_Placebo_Y"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge_n_pct.html">cols_merge_n_pct</a></span><span class="op">(</span></span>
 <span>    col_n <span class="op">=</span> <span class="st">"n_Placebo_N"</span>,</span>
 <span>    col_pct <span class="op">=</span> <span class="st">"pct_Placebo_N"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge_n_pct.html">cols_merge_n_pct</a></span><span class="op">(</span></span>
 <span>    col_n <span class="op">=</span> <span class="st">"n_Drug 1_Y"</span>,</span>
 <span>    col_pct <span class="op">=</span> <span class="st">"pct_Drug 1_Y"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_merge_n_pct.html">cols_merge_n_pct</a></span><span class="op">(</span></span>
 <span>    col_n <span class="op">=</span> <span class="st">"n_Drug 1_N"</span>,</span>
 <span>    col_pct <span class="op">=</span> <span class="st">"pct_Drug 1_N"</span></span>
@@ -9687,26 +9682,26 @@ intervention group and COVID-19 relationship flag.</p>
 <p>This looks more like a PD table! We can now modify the column names
 and create a cascade of column spanners.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span><span class="st">"COVID-19 Related"</span><span class="op">)</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_Placebo_Y"</span>, <span class="st">"n_Placebo_N"</span><span class="op">)</span>,</span>
 <span>    id <span class="op">=</span> <span class="st">"cov_pla"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span><span class="st">"COVID-19 Related"</span><span class="op">)</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_Drug 1_Y"</span>, <span class="st">"n_Drug 1_N"</span><span class="op">)</span>,</span>
 <span>    id <span class="op">=</span> <span class="st">"cov_dru"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span><span class="st">"Placebo  \n  N=90 (100%)  \n   n (%)"</span><span class="op">)</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_Placebo_Y"</span>, <span class="st">"n_Placebo_N"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_spanner.html">tab_spanner</a></span><span class="op">(</span></span>
 <span>    label <span class="op">=</span> <span class="fu"><a href="../reference/md.html">md</a></span><span class="op">(</span><span class="st">"Drug 1  \n  N=90 (100%)  \n   n (%)"</span><span class="op">)</span>,</span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_Drug 1_Y"</span>, <span class="st">"n_Drug 1_N"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/cols_label.html">cols_label</a></span><span class="op">(</span></span>
 <span>    .list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>      <span class="st">"n_Placebo_Y"</span> <span class="op">=</span> <span class="st">"Yes"</span>,</span>
@@ -9714,7 +9709,7 @@ and create a cascade of column spanners.</p>
 <span>      <span class="st">"n_Drug 1_Y"</span> <span class="op">=</span> <span class="st">"Yes"</span>,</span>
 <span>      <span class="st">"n_Drug 1_N"</span> <span class="op">=</span> <span class="st">"No"</span></span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_style.html">tab_style</a></span><span class="op">(</span></span>
 <span>    style <span class="op">=</span> <span class="fu"><a href="../reference/cell_text.html">cell_text</a></span><span class="op">(</span>align <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span>,</span>
 <span>    locations <span class="op">=</span> <span class="fu"><a href="../reference/cells_column_spanners.html">cells_column_spanners</a></span><span class="op">(</span>spanners <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -10282,8 +10277,8 @@ than one PD during the course of the study. The footnote is added with
 <code><a href="../reference/tab_footnote.html">tab_footnote()</a></code> to the row
 <code>At least one major Protocol Deviation</code>.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_footnote.html">tab_footnote</a></span><span class="op">(</span></span>
 <span>    footnote <span class="op">=</span> <span class="st">"Subjects can have more than one Protocol Deviation throughout the study."</span>,</span>
 <span>    locations <span class="op">=</span> <span class="fu"><a href="../reference/cells_stub.html">cells_stub</a></span><span class="op">(</span>rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"At least one major Protocol Deviation"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -10291,586 +10286,6 @@ than one PD during the course of the study. The footnote is added with
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">addv_tbl</span></span></code></pre></div>
-<div id="txjxwiyjis" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#txjxwiyjis table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#txjxwiyjis thead, #txjxwiyjis tbody, #txjxwiyjis tfoot, #txjxwiyjis tr, #txjxwiyjis td, #txjxwiyjis th {
-  border-style: none;
-}
-
-#txjxwiyjis p {
-  margin: 0;
-  padding: 0;
-}
-
-#txjxwiyjis .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#txjxwiyjis .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#txjxwiyjis .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#txjxwiyjis .gt_heading {
-  background-color: #FFFFFF;
-  text-align: left;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#txjxwiyjis .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#txjxwiyjis .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#txjxwiyjis .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#txjxwiyjis .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#txjxwiyjis .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#txjxwiyjis .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#txjxwiyjis .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#txjxwiyjis .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#txjxwiyjis .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#txjxwiyjis .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#txjxwiyjis .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#txjxwiyjis .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#txjxwiyjis .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#txjxwiyjis .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#txjxwiyjis .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#txjxwiyjis .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#txjxwiyjis .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#txjxwiyjis .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#txjxwiyjis .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#txjxwiyjis .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#txjxwiyjis .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#txjxwiyjis .gt_left {
-  text-align: left;
-}
-
-#txjxwiyjis .gt_center {
-  text-align: center;
-}
-
-#txjxwiyjis .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#txjxwiyjis .gt_font_normal {
-  font-weight: normal;
-}
-
-#txjxwiyjis .gt_font_bold {
-  font-weight: bold;
-}
-
-#txjxwiyjis .gt_font_italic {
-  font-style: italic;
-}
-
-#txjxwiyjis .gt_super {
-  font-size: 65%;
-}
-
-#txjxwiyjis .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#txjxwiyjis .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#txjxwiyjis .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#txjxwiyjis .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#txjxwiyjis .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#txjxwiyjis .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#txjxwiyjis .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#txjxwiyjis .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#txjxwiyjis div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead>
-<tr class="gt_heading">
-<td colspan="5" class="gt_heading gt_title gt_font_normal" style>xx.x: Demographic and Baseline Data</td>
-    </tr>
-<tr class="gt_heading">
-<td colspan="5" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>xx.x.x: Major Protocol Deviations and Relationship to COVID-19 - ITT Set</td>
-    </tr>
-<tr class="gt_col_headings gt_spanner_row">
-<th rowspan="1" colspan="1" scope="col"></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center; text-align: center;" scope="colgroup" id="Placebo  
-  N=90 (100%)  
-   n (%)">
-        <div class="gt_column_spanner"><span class="gt_from_md">Placebo<br>
-N=90 (100%)<br>
-n (%)</span></div>
-      </th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center; text-align: center;" scope="colgroup" id="Drug 1  
-  N=90 (100%)  
-   n (%)">
-        <div class="gt_column_spanner"><span class="gt_from_md">Drug 1<br>
-N=90 (100%)<br>
-n (%)</span></div>
-      </th>
-    </tr>
-<tr class="gt_col_headings gt_spanner_row">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="a::stub"></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center;" scope="colgroup" id="cov_pla">
-        <div class="gt_column_spanner"><span class="gt_from_md">COVID-19 Related</span></div>
-      </th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center;" scope="colgroup" id="cov_dru">
-        <div class="gt_column_spanner"><span class="gt_from_md">COVID-19 Related</span></div>
-      </th>
-    </tr>
-<tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Placebo_Y">Yes</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Placebo_N">No</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Drug-1_Y">Yes</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Drug-1_N">No</th>
-    </tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="gt_group_heading_row">
-<th colspan="5" class="gt_empty_group_heading" scope="colgroup"></th>
-    </tr>
-<tr class="gt_row_group_first">
-<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Subjects with at least:</th>
-<td headers="NA stub_1_1 n_Placebo_Y" class="gt_row gt_right"><br></td>
-<td headers="NA stub_1_1 n_Placebo_N" class="gt_row gt_right"><br></td>
-<td headers="NA stub_1_1 n_Drug 1_Y" class="gt_row gt_right"><br></td>
-<td headers="NA stub_1_1 n_Drug 1_N" class="gt_row gt_right"><br></td>
-</tr>
-<tr>
-<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">At least one major Protocol Deviation<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span>
-</th>
-<td headers="NA stub_1_2 n_Placebo_Y" class="gt_row gt_right">15 (16.7)</td>
-<td headers="NA stub_1_2 n_Placebo_N" class="gt_row gt_right">24 (26.7)</td>
-<td headers="NA stub_1_2 n_Drug 1_Y" class="gt_row gt_right">5 (5.6)</td>
-<td headers="NA stub_1_2 n_Drug 1_N" class="gt_row gt_right">23 (25.6)</td>
-</tr>
-<tr class="gt_group_heading_row">
-<th colspan="5" class="gt_group_heading" scope="colgroup" id=" "> </th>
-    </tr>
-<tr>
-<th id="summary_stub_ _1" scope="row" class="gt_row gt_left gt_stub gt_summary_row gt_first_summary_row thick gt_last_summary_row">Study Procedure Deviations</th>
-<td headers="  summary_stub_ _1 n_Placebo_Y" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">17</td>
-<td headers="  summary_stub_ _1 n_Placebo_N" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">44</td>
-<td headers="  summary_stub_ _1 n_Drug 1_Y" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">5</td>
-<td headers="  summary_stub_ _1 n_Drug 1_N" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">38</td>
-</tr>
-<tr class="gt_row_group_first">
-<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">GTQ not completed month 3.</th>
-<td headers="  stub_1_3 n_Placebo_Y" class="gt_row gt_right">0</td>
-<td headers="  stub_1_3 n_Placebo_N" class="gt_row gt_right">7 (7.8)</td>
-<td headers="  stub_1_3 n_Drug 1_Y" class="gt_row gt_right">0</td>
-<td headers="  stub_1_3 n_Drug 1_N" class="gt_row gt_right">12 (13.3)</td>
-</tr>
-<tr>
-<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Lab values not taken month 3.</th>
-<td headers="  stub_1_4 n_Placebo_Y" class="gt_row gt_right">3 (3.3)</td>
-<td headers="  stub_1_4 n_Placebo_N" class="gt_row gt_right">12 (13.3)</td>
-<td headers="  stub_1_4 n_Drug 1_Y" class="gt_row gt_right">0</td>
-<td headers="  stub_1_4 n_Drug 1_N" class="gt_row gt_right">7 (7.8)</td>
-</tr>
-<tr>
-<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">GTQ not completed month 6.</th>
-<td headers="  stub_1_5 n_Placebo_Y" class="gt_row gt_right">2 (2.2)</td>
-<td headers="  stub_1_5 n_Placebo_N" class="gt_row gt_right">7 (7.8)</td>
-<td headers="  stub_1_5 n_Drug 1_Y" class="gt_row gt_right">1 (1.1)</td>
-<td headers="  stub_1_5 n_Drug 1_N" class="gt_row gt_right">7 (7.8)</td>
-</tr>
-<tr>
-<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Month 3 Visit not done.</th>
-<td headers="  stub_1_6 n_Placebo_Y" class="gt_row gt_right">4 (4.4)</td>
-<td headers="  stub_1_6 n_Placebo_N" class="gt_row gt_right">9 (10.0)</td>
-<td headers="  stub_1_6 n_Drug 1_Y" class="gt_row gt_right">1 (1.1)</td>
-<td headers="  stub_1_6 n_Drug 1_N" class="gt_row gt_right">3 (3.3)</td>
-</tr>
-<tr>
-<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Month 6 Visit not done.</th>
-<td headers="  stub_1_7 n_Placebo_Y" class="gt_row gt_right">8 (8.9)</td>
-<td headers="  stub_1_7 n_Placebo_N" class="gt_row gt_right">9 (10.0)</td>
-<td headers="  stub_1_7 n_Drug 1_Y" class="gt_row gt_right">3 (3.3)</td>
-<td headers="  stub_1_7 n_Drug 1_N" class="gt_row gt_right">9 (10.0)</td>
-</tr>
-</tbody>
-<tfoot class="gt_footnotes"><tr>
-<td class="gt_footnote" colspan="5">
-<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> Subjects can have more than one Protocol Deviation throughout the study.</td>
-    </tr></tfoot>
-</table>
-</div>
-<p>Finally, we can style the table, indenting the individual PDs under
-<code>Study Procedure Deviations</code>, left-aligning the first column
-and centering all other columns. Note that for the indentation, we can
-still use the hidden column <code>PARCAT1</code> to identify individual
-PDs.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
-<span>    align <span class="op">=</span> <span class="st">"center"</span>,</span>
-<span>    columns <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">6</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
-<span>    align <span class="op">=</span> <span class="st">"left"</span>,</span>
-<span>    columns <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="../reference/tab_stub_indent.html">tab_stub_indent</a></span><span class="op">(</span></span>
-<span>    rows <span class="op">=</span> <span class="va">PARCAT1</span> <span class="op">==</span> <span class="st">"PROTOCOL DEVIATION"</span>,</span>
-<span>    indent <span class="op">=</span> <span class="fl">5</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
 <div id="kovhgshlcp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#kovhgshlcp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -11355,6 +10770,586 @@ n (%)</span></div>
       </th>
     </tr>
 <tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Placebo_Y">Yes</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Placebo_N">No</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Drug-1_Y">Yes</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n_Drug-1_N">No</th>
+    </tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row">
+<th colspan="5" class="gt_empty_group_heading" scope="colgroup"></th>
+    </tr>
+<tr class="gt_row_group_first">
+<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Subjects with at least:</th>
+<td headers="NA stub_1_1 n_Placebo_Y" class="gt_row gt_right"><br></td>
+<td headers="NA stub_1_1 n_Placebo_N" class="gt_row gt_right"><br></td>
+<td headers="NA stub_1_1 n_Drug 1_Y" class="gt_row gt_right"><br></td>
+<td headers="NA stub_1_1 n_Drug 1_N" class="gt_row gt_right"><br></td>
+</tr>
+<tr>
+<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">At least one major Protocol Deviation<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span>
+</th>
+<td headers="NA stub_1_2 n_Placebo_Y" class="gt_row gt_right">15 (16.7)</td>
+<td headers="NA stub_1_2 n_Placebo_N" class="gt_row gt_right">24 (26.7)</td>
+<td headers="NA stub_1_2 n_Drug 1_Y" class="gt_row gt_right">5 (5.6)</td>
+<td headers="NA stub_1_2 n_Drug 1_N" class="gt_row gt_right">23 (25.6)</td>
+</tr>
+<tr class="gt_group_heading_row">
+<th colspan="5" class="gt_group_heading" scope="colgroup" id=" "> </th>
+    </tr>
+<tr>
+<th id="summary_stub_ _1" scope="row" class="gt_row gt_left gt_stub gt_summary_row gt_first_summary_row thick gt_last_summary_row">Study Procedure Deviations</th>
+<td headers="  summary_stub_ _1 n_Placebo_Y" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">17</td>
+<td headers="  summary_stub_ _1 n_Placebo_N" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">44</td>
+<td headers="  summary_stub_ _1 n_Drug 1_Y" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">5</td>
+<td headers="  summary_stub_ _1 n_Drug 1_N" class="gt_row gt_right gt_summary_row gt_first_summary_row thick gt_last_summary_row">38</td>
+</tr>
+<tr class="gt_row_group_first">
+<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">GTQ not completed month 3.</th>
+<td headers="  stub_1_3 n_Placebo_Y" class="gt_row gt_right">0</td>
+<td headers="  stub_1_3 n_Placebo_N" class="gt_row gt_right">7 (7.8)</td>
+<td headers="  stub_1_3 n_Drug 1_Y" class="gt_row gt_right">0</td>
+<td headers="  stub_1_3 n_Drug 1_N" class="gt_row gt_right">12 (13.3)</td>
+</tr>
+<tr>
+<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Lab values not taken month 3.</th>
+<td headers="  stub_1_4 n_Placebo_Y" class="gt_row gt_right">3 (3.3)</td>
+<td headers="  stub_1_4 n_Placebo_N" class="gt_row gt_right">12 (13.3)</td>
+<td headers="  stub_1_4 n_Drug 1_Y" class="gt_row gt_right">0</td>
+<td headers="  stub_1_4 n_Drug 1_N" class="gt_row gt_right">7 (7.8)</td>
+</tr>
+<tr>
+<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">GTQ not completed month 6.</th>
+<td headers="  stub_1_5 n_Placebo_Y" class="gt_row gt_right">2 (2.2)</td>
+<td headers="  stub_1_5 n_Placebo_N" class="gt_row gt_right">7 (7.8)</td>
+<td headers="  stub_1_5 n_Drug 1_Y" class="gt_row gt_right">1 (1.1)</td>
+<td headers="  stub_1_5 n_Drug 1_N" class="gt_row gt_right">7 (7.8)</td>
+</tr>
+<tr>
+<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Month 3 Visit not done.</th>
+<td headers="  stub_1_6 n_Placebo_Y" class="gt_row gt_right">4 (4.4)</td>
+<td headers="  stub_1_6 n_Placebo_N" class="gt_row gt_right">9 (10.0)</td>
+<td headers="  stub_1_6 n_Drug 1_Y" class="gt_row gt_right">1 (1.1)</td>
+<td headers="  stub_1_6 n_Drug 1_N" class="gt_row gt_right">3 (3.3)</td>
+</tr>
+<tr>
+<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Month 6 Visit not done.</th>
+<td headers="  stub_1_7 n_Placebo_Y" class="gt_row gt_right">8 (8.9)</td>
+<td headers="  stub_1_7 n_Placebo_N" class="gt_row gt_right">9 (10.0)</td>
+<td headers="  stub_1_7 n_Drug 1_Y" class="gt_row gt_right">3 (3.3)</td>
+<td headers="  stub_1_7 n_Drug 1_N" class="gt_row gt_right">9 (10.0)</td>
+</tr>
+</tbody>
+<tfoot class="gt_footnotes"><tr>
+<td class="gt_footnote" colspan="5">
+<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> Subjects can have more than one Protocol Deviation throughout the study.</td>
+    </tr></tfoot>
+</table>
+</div>
+<p>Finally, we can style the table, indenting the individual PDs under
+<code>Study Procedure Deviations</code>, left-aligning the first column
+and centering all other columns. Note that for the indentation, we can
+still use the hidden column <code>PARCAT1</code> to identify individual
+PDs.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">addv_tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
+<span>    align <span class="op">=</span> <span class="st">"center"</span>,</span>
+<span>    columns <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">6</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/cols_align.html">cols_align</a></span><span class="op">(</span></span>
+<span>    align <span class="op">=</span> <span class="st">"left"</span>,</span>
+<span>    columns <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/tab_stub_indent.html">tab_stub_indent</a></span><span class="op">(</span></span>
+<span>    rows <span class="op">=</span> <span class="va">PARCAT1</span> <span class="op">==</span> <span class="st">"PROTOCOL DEVIATION"</span>,</span>
+<span>    indent <span class="op">=</span> <span class="fl">5</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<div id="bzjrestnbu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#bzjrestnbu table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#bzjrestnbu thead, #bzjrestnbu tbody, #bzjrestnbu tfoot, #bzjrestnbu tr, #bzjrestnbu td, #bzjrestnbu th {
+  border-style: none;
+}
+
+#bzjrestnbu p {
+  margin: 0;
+  padding: 0;
+}
+
+#bzjrestnbu .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#bzjrestnbu .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#bzjrestnbu .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#bzjrestnbu .gt_heading {
+  background-color: #FFFFFF;
+  text-align: left;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#bzjrestnbu .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#bzjrestnbu .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#bzjrestnbu .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#bzjrestnbu .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#bzjrestnbu .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#bzjrestnbu .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#bzjrestnbu .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#bzjrestnbu .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#bzjrestnbu .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#bzjrestnbu .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#bzjrestnbu .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bzjrestnbu .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#bzjrestnbu .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#bzjrestnbu .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#bzjrestnbu .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bzjrestnbu .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#bzjrestnbu .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bzjrestnbu .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#bzjrestnbu .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bzjrestnbu .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bzjrestnbu .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bzjrestnbu .gt_left {
+  text-align: left;
+}
+
+#bzjrestnbu .gt_center {
+  text-align: center;
+}
+
+#bzjrestnbu .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#bzjrestnbu .gt_font_normal {
+  font-weight: normal;
+}
+
+#bzjrestnbu .gt_font_bold {
+  font-weight: bold;
+}
+
+#bzjrestnbu .gt_font_italic {
+  font-style: italic;
+}
+
+#bzjrestnbu .gt_super {
+  font-size: 65%;
+}
+
+#bzjrestnbu .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#bzjrestnbu .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#bzjrestnbu .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#bzjrestnbu .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#bzjrestnbu .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#bzjrestnbu .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#bzjrestnbu .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#bzjrestnbu .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#bzjrestnbu div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading">
+<td colspan="5" class="gt_heading gt_title gt_font_normal" style>xx.x: Demographic and Baseline Data</td>
+    </tr>
+<tr class="gt_heading">
+<td colspan="5" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>xx.x.x: Major Protocol Deviations and Relationship to COVID-19 - ITT Set</td>
+    </tr>
+<tr class="gt_col_headings gt_spanner_row">
+<th rowspan="1" colspan="1" scope="col"></th>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center; text-align: center;" scope="colgroup" id="Placebo  
+  N=90 (100%)  
+   n (%)">
+        <div class="gt_column_spanner"><span class="gt_from_md">Placebo<br>
+N=90 (100%)<br>
+n (%)</span></div>
+      </th>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center; text-align: center;" scope="colgroup" id="Drug 1  
+  N=90 (100%)  
+   n (%)">
+        <div class="gt_column_spanner"><span class="gt_from_md">Drug 1<br>
+N=90 (100%)<br>
+n (%)</span></div>
+      </th>
+    </tr>
+<tr class="gt_col_headings gt_spanner_row">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="a::stub"></th>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center;" scope="colgroup" id="cov_pla">
+        <div class="gt_column_spanner"><span class="gt_from_md">COVID-19 Related</span></div>
+      </th>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" style="text-align: center;" scope="colgroup" id="cov_dru">
+        <div class="gt_column_spanner"><span class="gt_from_md">COVID-19 Related</span></div>
+      </th>
+    </tr>
+<tr class="gt_col_headings">
 <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="n_Placebo_Y">Yes</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="n_Placebo_N">No</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="n_Drug-1_Y">Yes</th>
@@ -11444,7 +11439,7 @@ n (%)</span></div>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

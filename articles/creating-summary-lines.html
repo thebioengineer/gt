@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Creating Summary Lines • gt</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -27,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gt</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1248,7 +1247,7 @@ provide our preferred names by naming the functions within the list
 <span><span class="co"># groups (using `groups = everything()`); use the</span></span>
 <span><span class="co"># `mean()`, `sum()`, and `sd()` functions</span></span>
 <span><span class="co"># (only for the `num` column)</span></span>
-<span><span class="va">exibble_b</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_b</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/summary_rows.html">summary_rows</a></span><span class="op">(</span></span>
 <span>    groups <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -1838,7 +1837,7 @@ avoid this, let’s rewrite the above using the
 <code class="sourceCode R"><span><span class="co"># Create group-wise summary rows for both</span></span>
 <span><span class="co"># groups (using `groups = everything()`); we will</span></span>
 <span><span class="co"># use names and formulas this time in `fns`</span></span>
-<span><span class="va">exibble_c</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_c</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/summary_rows.html">summary_rows</a></span><span class="op">(</span></span>
 <span>    groups <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -2413,17 +2412,17 @@ the options of <code>decimals = 3</code>).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define a named list of aggregation</span></span>
 <span><span class="co"># functions and summary row labels</span></span>
-<span><span class="va">fns_labels</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fns_labels</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    avg <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    total <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    s.d. <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    avg <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    total <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    s.d. <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">.</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create group-wise summary rows as</span></span>
 <span><span class="co"># before, supply `fns_labels` to `fns`,</span></span>
 <span><span class="co"># and format the cell summary data</span></span>
-<span><span class="va">exibble_d</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_d</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_scientific.html">fmt_scientific</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="va">num</span>,</span>
@@ -3023,7 +3022,7 @@ formatting:</p>
 <code class="sourceCode R"><span><span class="co"># Create group-wise summary rows as</span></span>
 <span><span class="co"># before, supply `fns_labels` to `fns`,</span></span>
 <span><span class="co"># and format the cell summary data</span></span>
-<span><span class="va">exibble_e</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_e</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_scientific.html">fmt_scientific</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="va">num</span>,</span>
@@ -3645,7 +3644,7 @@ Here’s an example of that, which additional passes the
 <code class="sourceCode R"><span><span class="co"># Provide common formatting parameters to a list</span></span>
 <span><span class="co"># object named `formats`; the number of decimal</span></span>
 <span><span class="co"># places will be `2` and the locale is "fr_BE"</span></span>
-<span><span class="va">formats</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">formats</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    decimals <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>    locale <span class="op">=</span> <span class="st">"fr_BE"</span>,</span>
@@ -3656,7 +3655,7 @@ Here’s an example of that, which additional passes the
 <span><span class="co"># (using the values stored in `formats`);</span></span>
 <span><span class="co"># when generating summary rows we can also</span></span>
 <span><span class="co"># supply formatter options from this list</span></span>
-<span><span class="va">exibble_f</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_f</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/fmt_scientific.html">fmt_scientific</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="va">num</span>,</span>
@@ -3682,8 +3681,8 @@ Here’s an example of that, which additional passes the
 <span>    columns <span class="op">=</span> <span class="va">currency</span>,</span>
 <span>    fns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>      <span class="va">fns_labels</span>,</span>
-<span>      min <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>,</span>
-<span>      max <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span></span>
+<span>      min <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span>,</span>
+<span>      max <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    fmt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="../reference/fmt_currency.html">fmt_currency</a></span><span class="op">(</span><span class="va">.</span>,</span>
 <span>      currency <span class="op">=</span> <span class="va">formats</span><span class="op">$</span><span class="va">currency</span>,</span>
@@ -4833,7 +4832,7 @@ Here’s an table where both types of summaries are present:</p>
 <span><span class="co"># grand summary rows (using two separate</span></span>
 <span><span class="co"># calls of `grand_summary_rows()` since</span></span>
 <span><span class="co"># the formatting will be different)</span></span>
-<span><span class="va">exibble_h</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_h</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_f</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/grand_summary_rows.html">grand_summary_rows</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="va">num</span>,</span>
@@ -5488,7 +5487,7 @@ footnotes are added.</p>
 <code class="sourceCode R"><span><span class="co"># Using the gt table of `exibble_h` as a</span></span>
 <span><span class="co"># starting point, style summary cells with</span></span>
 <span><span class="co"># `tab_options()` and add two footnotes</span></span>
-<span><span class="va">exibble_i</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_i</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_h</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/tab_options.html">tab_options</a></span><span class="op">(</span></span>
 <span>    summary_row.background.color <span class="op">=</span> <span class="st">"lightblue"</span>,</span>
@@ -6184,23 +6183,23 @@ summary table where the summary rows are now data rows:</p>
 <span>    decimals <span class="op">=</span> <span class="fl">1</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/sub_missing.html">sub_missing</a></span><span class="op">(</span>columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">char</span>, <span class="va">currency</span>, <span class="va">row</span>, <span class="va">group</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div id="kadgwxbhis" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#kadgwxbhis table {
+<div id="hisifmmyuc" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hisifmmyuc table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#kadgwxbhis thead, #kadgwxbhis tbody, #kadgwxbhis tfoot, #kadgwxbhis tr, #kadgwxbhis td, #kadgwxbhis th {
+#hisifmmyuc thead, #hisifmmyuc tbody, #hisifmmyuc tfoot, #hisifmmyuc tr, #hisifmmyuc td, #hisifmmyuc th {
   border-style: none;
 }
 
-#kadgwxbhis p {
+#hisifmmyuc p {
   margin: 0;
   padding: 0;
 }
 
-#kadgwxbhis .gt_table {
+#hisifmmyuc .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -6226,12 +6225,12 @@ summary table where the summary rows are now data rows:</p>
   border-left-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_caption {
+#hisifmmyuc .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#kadgwxbhis .gt_title {
+#hisifmmyuc .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -6243,7 +6242,7 @@ summary table where the summary rows are now data rows:</p>
   border-bottom-width: 0;
 }
 
-#kadgwxbhis .gt_subtitle {
+#hisifmmyuc .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -6255,7 +6254,7 @@ summary table where the summary rows are now data rows:</p>
   border-top-width: 0;
 }
 
-#kadgwxbhis .gt_heading {
+#hisifmmyuc .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -6267,13 +6266,13 @@ summary table where the summary rows are now data rows:</p>
   border-right-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_bottom_border {
+#hisifmmyuc .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_col_headings {
+#hisifmmyuc .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -6288,7 +6287,7 @@ summary table where the summary rows are now data rows:</p>
   border-right-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_col_heading {
+#hisifmmyuc .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6308,7 +6307,7 @@ summary table where the summary rows are now data rows:</p>
   overflow-x: hidden;
 }
 
-#kadgwxbhis .gt_column_spanner_outer {
+#hisifmmyuc .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6320,15 +6319,15 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 4px;
 }
 
-#kadgwxbhis .gt_column_spanner_outer:first-child {
+#hisifmmyuc .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#kadgwxbhis .gt_column_spanner_outer:last-child {
+#hisifmmyuc .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#kadgwxbhis .gt_column_spanner {
+#hisifmmyuc .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -6340,11 +6339,11 @@ summary table where the summary rows are now data rows:</p>
   width: 100%;
 }
 
-#kadgwxbhis .gt_spanner_row {
+#hisifmmyuc .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#kadgwxbhis .gt_group_heading {
+#hisifmmyuc .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6370,7 +6369,7 @@ summary table where the summary rows are now data rows:</p>
   text-align: left;
 }
 
-#kadgwxbhis .gt_empty_group_heading {
+#hisifmmyuc .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -6385,15 +6384,15 @@ summary table where the summary rows are now data rows:</p>
   vertical-align: middle;
 }
 
-#kadgwxbhis .gt_from_md > :first-child {
+#hisifmmyuc .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#kadgwxbhis .gt_from_md > :last-child {
+#hisifmmyuc .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#kadgwxbhis .gt_row {
+#hisifmmyuc .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6412,7 +6411,7 @@ summary table where the summary rows are now data rows:</p>
   overflow-x: hidden;
 }
 
-#kadgwxbhis .gt_stub {
+#hisifmmyuc .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6425,7 +6424,7 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 5px;
 }
 
-#kadgwxbhis .gt_stub_row_group {
+#hisifmmyuc .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6439,15 +6438,15 @@ summary table where the summary rows are now data rows:</p>
   vertical-align: top;
 }
 
-#kadgwxbhis .gt_row_group_first td {
+#hisifmmyuc .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#kadgwxbhis .gt_row_group_first th {
+#hisifmmyuc .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#kadgwxbhis .gt_summary_row {
+#hisifmmyuc .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -6457,16 +6456,16 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 5px;
 }
 
-#kadgwxbhis .gt_first_summary_row {
+#hisifmmyuc .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_first_summary_row.thick {
+#hisifmmyuc .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#kadgwxbhis .gt_last_summary_row {
+#hisifmmyuc .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6476,7 +6475,7 @@ summary table where the summary rows are now data rows:</p>
   border-bottom-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_grand_summary_row {
+#hisifmmyuc .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -6486,7 +6485,7 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 5px;
 }
 
-#kadgwxbhis .gt_first_grand_summary_row {
+#hisifmmyuc .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6496,7 +6495,7 @@ summary table where the summary rows are now data rows:</p>
   border-top-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_last_grand_summary_row_top {
+#hisifmmyuc .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6506,11 +6505,11 @@ summary table where the summary rows are now data rows:</p>
   border-bottom-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_striped {
+#hisifmmyuc .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#kadgwxbhis .gt_table_body {
+#hisifmmyuc .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -6519,7 +6518,7 @@ summary table where the summary rows are now data rows:</p>
   border-bottom-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_footnotes {
+#hisifmmyuc .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -6533,7 +6532,7 @@ summary table where the summary rows are now data rows:</p>
   border-right-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_footnote {
+#hisifmmyuc .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -6542,7 +6541,7 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 5px;
 }
 
-#kadgwxbhis .gt_sourcenotes {
+#hisifmmyuc .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -6556,7 +6555,7 @@ summary table where the summary rows are now data rows:</p>
   border-right-color: #D3D3D3;
 }
 
-#kadgwxbhis .gt_sourcenote {
+#hisifmmyuc .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -6564,72 +6563,72 @@ summary table where the summary rows are now data rows:</p>
   padding-right: 5px;
 }
 
-#kadgwxbhis .gt_left {
+#hisifmmyuc .gt_left {
   text-align: left;
 }
 
-#kadgwxbhis .gt_center {
+#hisifmmyuc .gt_center {
   text-align: center;
 }
 
-#kadgwxbhis .gt_right {
+#hisifmmyuc .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#kadgwxbhis .gt_font_normal {
+#hisifmmyuc .gt_font_normal {
   font-weight: normal;
 }
 
-#kadgwxbhis .gt_font_bold {
+#hisifmmyuc .gt_font_bold {
   font-weight: bold;
 }
 
-#kadgwxbhis .gt_font_italic {
+#hisifmmyuc .gt_font_italic {
   font-style: italic;
 }
 
-#kadgwxbhis .gt_super {
+#hisifmmyuc .gt_super {
   font-size: 65%;
 }
 
-#kadgwxbhis .gt_footnote_marks {
+#hisifmmyuc .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#kadgwxbhis .gt_asterisk {
+#hisifmmyuc .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#kadgwxbhis .gt_indent_1 {
+#hisifmmyuc .gt_indent_1 {
   text-indent: 5px;
 }
 
-#kadgwxbhis .gt_indent_2 {
+#hisifmmyuc .gt_indent_2 {
   text-indent: 10px;
 }
 
-#kadgwxbhis .gt_indent_3 {
+#hisifmmyuc .gt_indent_3 {
   text-indent: 15px;
 }
 
-#kadgwxbhis .gt_indent_4 {
+#hisifmmyuc .gt_indent_4 {
   text-indent: 20px;
 }
 
-#kadgwxbhis .gt_indent_5 {
+#hisifmmyuc .gt_indent_5 {
   text-indent: 25px;
 }
 
-#kadgwxbhis .katex-display {
+#hisifmmyuc .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#kadgwxbhis div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#hisifmmyuc div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -6730,10 +6729,9 @@ formatted <code>character</code> string.</p>
 <code class="sourceCode R"><span><span class="co"># Define a function that gives the</span></span>
 <span><span class="co"># highest two values above a threshold</span></span>
 <span><span class="va">agg_highest_two_above_value</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">threshold</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  </span>
 <span>  <span class="co"># Get sorted values above threshold value</span></span>
 <span>  <span class="va">values</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="va">x</span> <span class="op">&gt;=</span> <span class="va">threshold</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co"># Return character string with 2 highest values above threshold</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"No values above "</span>, <span class="va">threshold</span><span class="op">)</span><span class="op">)</span></span>
@@ -6742,8 +6740,13 @@ formatted <code>character</code> string.</p>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
 <span>        <span class="fu"><a href="https://rdrr.io/r/base/formatc.html" class="external-link">formatC</a></span><span class="op">(</span></span>
 <span>          <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span></span>
-<span>            <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="va">x</span> <span class="op">&gt;</span> <span class="va">threshold</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>          format <span class="op">=</span> <span class="st">"f"</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span><span class="op">)</span></span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="va">x</span> <span class="op">&gt;</span> <span class="va">threshold</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span></span>
+<span>          <span class="op">)</span>,</span>
+<span>          format <span class="op">=</span> <span class="st">"f"</span>, digits <span class="op">=</span> <span class="fl">2</span></span>
+<span>        <span class="op">)</span>,</span>
+<span>        collapse <span class="op">=</span> <span class="st">", "</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -6768,7 +6771,7 @@ do) and it provides the option to decorate the output with a
 <span><span class="co"># the custom function with a threshold of `20`;</span></span>
 <span><span class="co"># `fmt_passthrough()` allows for minimal formatting</span></span>
 <span><span class="co"># of the aggregate values</span></span>
-<span><span class="va">exibble_j</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">exibble_j</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">exibble_a</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/grand_summary_rows.html">grand_summary_rows</a></span><span class="op">(</span></span>
 <span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">num</span>, <span class="va">currency</span><span class="op">)</span>,</span>
@@ -6777,23 +6780,23 @@ do) and it provides the option to decorate the output with a
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">exibble_j</span></span></code></pre></div>
-<div id="ifmmyucmrw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ifmmyucmrw table {
+<div id="mrwtkdbirs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#mrwtkdbirs table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#ifmmyucmrw thead, #ifmmyucmrw tbody, #ifmmyucmrw tfoot, #ifmmyucmrw tr, #ifmmyucmrw td, #ifmmyucmrw th {
+#mrwtkdbirs thead, #mrwtkdbirs tbody, #mrwtkdbirs tfoot, #mrwtkdbirs tr, #mrwtkdbirs td, #mrwtkdbirs th {
   border-style: none;
 }
 
-#ifmmyucmrw p {
+#mrwtkdbirs p {
   margin: 0;
   padding: 0;
 }
 
-#ifmmyucmrw .gt_table {
+#mrwtkdbirs .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -6819,12 +6822,12 @@ do) and it provides the option to decorate the output with a
   border-left-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_caption {
+#mrwtkdbirs .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#ifmmyucmrw .gt_title {
+#mrwtkdbirs .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -6836,7 +6839,7 @@ do) and it provides the option to decorate the output with a
   border-bottom-width: 0;
 }
 
-#ifmmyucmrw .gt_subtitle {
+#mrwtkdbirs .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -6848,7 +6851,7 @@ do) and it provides the option to decorate the output with a
   border-top-width: 0;
 }
 
-#ifmmyucmrw .gt_heading {
+#mrwtkdbirs .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -6860,13 +6863,13 @@ do) and it provides the option to decorate the output with a
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_bottom_border {
+#mrwtkdbirs .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_col_headings {
+#mrwtkdbirs .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -6881,7 +6884,7 @@ do) and it provides the option to decorate the output with a
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_col_heading {
+#mrwtkdbirs .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6901,7 +6904,7 @@ do) and it provides the option to decorate the output with a
   overflow-x: hidden;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer {
+#mrwtkdbirs .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6913,15 +6916,15 @@ do) and it provides the option to decorate the output with a
   padding-right: 4px;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer:first-child {
+#mrwtkdbirs .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ifmmyucmrw .gt_column_spanner_outer:last-child {
+#mrwtkdbirs .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ifmmyucmrw .gt_column_spanner {
+#mrwtkdbirs .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -6933,11 +6936,11 @@ do) and it provides the option to decorate the output with a
   width: 100%;
 }
 
-#ifmmyucmrw .gt_spanner_row {
+#mrwtkdbirs .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#ifmmyucmrw .gt_group_heading {
+#mrwtkdbirs .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6963,7 +6966,7 @@ do) and it provides the option to decorate the output with a
   text-align: left;
 }
 
-#ifmmyucmrw .gt_empty_group_heading {
+#mrwtkdbirs .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -6978,15 +6981,15 @@ do) and it provides the option to decorate the output with a
   vertical-align: middle;
 }
 
-#ifmmyucmrw .gt_from_md > :first-child {
+#mrwtkdbirs .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ifmmyucmrw .gt_from_md > :last-child {
+#mrwtkdbirs .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ifmmyucmrw .gt_row {
+#mrwtkdbirs .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7005,7 +7008,7 @@ do) and it provides the option to decorate the output with a
   overflow-x: hidden;
 }
 
-#ifmmyucmrw .gt_stub {
+#mrwtkdbirs .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7018,7 +7021,7 @@ do) and it provides the option to decorate the output with a
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_stub_row_group {
+#mrwtkdbirs .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7032,15 +7035,15 @@ do) and it provides the option to decorate the output with a
   vertical-align: top;
 }
 
-#ifmmyucmrw .gt_row_group_first td {
+#mrwtkdbirs .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_row_group_first th {
+#mrwtkdbirs .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_summary_row {
+#mrwtkdbirs .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7050,16 +7053,16 @@ do) and it provides the option to decorate the output with a
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_first_summary_row {
+#mrwtkdbirs .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_first_summary_row.thick {
+#mrwtkdbirs .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ifmmyucmrw .gt_last_summary_row {
+#mrwtkdbirs .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7069,7 +7072,7 @@ do) and it provides the option to decorate the output with a
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_grand_summary_row {
+#mrwtkdbirs .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7079,7 +7082,7 @@ do) and it provides the option to decorate the output with a
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_first_grand_summary_row {
+#mrwtkdbirs .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7089,7 +7092,7 @@ do) and it provides the option to decorate the output with a
   border-top-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_last_grand_summary_row_top {
+#mrwtkdbirs .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7099,11 +7102,11 @@ do) and it provides the option to decorate the output with a
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_striped {
+#mrwtkdbirs .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ifmmyucmrw .gt_table_body {
+#mrwtkdbirs .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7112,7 +7115,7 @@ do) and it provides the option to decorate the output with a
   border-bottom-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_footnotes {
+#mrwtkdbirs .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7126,7 +7129,7 @@ do) and it provides the option to decorate the output with a
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_footnote {
+#mrwtkdbirs .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -7135,7 +7138,7 @@ do) and it provides the option to decorate the output with a
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_sourcenotes {
+#mrwtkdbirs .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7149,7 +7152,7 @@ do) and it provides the option to decorate the output with a
   border-right-color: #D3D3D3;
 }
 
-#ifmmyucmrw .gt_sourcenote {
+#mrwtkdbirs .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -7157,72 +7160,72 @@ do) and it provides the option to decorate the output with a
   padding-right: 5px;
 }
 
-#ifmmyucmrw .gt_left {
+#mrwtkdbirs .gt_left {
   text-align: left;
 }
 
-#ifmmyucmrw .gt_center {
+#mrwtkdbirs .gt_center {
   text-align: center;
 }
 
-#ifmmyucmrw .gt_right {
+#mrwtkdbirs .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ifmmyucmrw .gt_font_normal {
+#mrwtkdbirs .gt_font_normal {
   font-weight: normal;
 }
 
-#ifmmyucmrw .gt_font_bold {
+#mrwtkdbirs .gt_font_bold {
   font-weight: bold;
 }
 
-#ifmmyucmrw .gt_font_italic {
+#mrwtkdbirs .gt_font_italic {
   font-style: italic;
 }
 
-#ifmmyucmrw .gt_super {
+#mrwtkdbirs .gt_super {
   font-size: 65%;
 }
 
-#ifmmyucmrw .gt_footnote_marks {
+#mrwtkdbirs .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#ifmmyucmrw .gt_asterisk {
+#mrwtkdbirs .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ifmmyucmrw .gt_indent_1 {
+#mrwtkdbirs .gt_indent_1 {
   text-indent: 5px;
 }
 
-#ifmmyucmrw .gt_indent_2 {
+#mrwtkdbirs .gt_indent_2 {
   text-indent: 10px;
 }
 
-#ifmmyucmrw .gt_indent_3 {
+#mrwtkdbirs .gt_indent_3 {
   text-indent: 15px;
 }
 
-#ifmmyucmrw .gt_indent_4 {
+#mrwtkdbirs .gt_indent_4 {
   text-indent: 20px;
 }
 
-#ifmmyucmrw .gt_indent_5 {
+#mrwtkdbirs .gt_indent_5 {
   text-indent: 25px;
 }
 
-#ifmmyucmrw .katex-display {
+#mrwtkdbirs .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#ifmmyucmrw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#mrwtkdbirs div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -7330,7 +7333,7 @@ by the <code>agg_highest_two_above_value()</code> function.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
