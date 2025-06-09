@@ -137,6 +137,58 @@ html <- function(text, ...) {
   htmltools::HTML(text, ...)
 }
 
+# latex() -----------------------------------------------------------------------
+#' Interpret input text as LaTeX-formatted text
+#'
+#' @description
+#'
+#' For certain pieces of text (like in column labels or table headings) we may
+#' want to express them as raw LaTeX. In fact, with LaTeX, so much more can be done for formatting.
+#' The `latex()` function will guard the input LaTeX from being escaped.
+#'
+#' @param text *LaTeX text*
+#'
+#'   `scalar<character>` // **required**
+#'
+#'   The text that is understood to be LaTeX text, which is to be preserved in
+#'   the LaTeX output context.
+#'
+#'
+#' @return A character object of class `latex`. It's tagged as an latex fragment
+#'   that is not to be sanitized.
+#'
+#' @section Examples:
+#'
+#' Use the [`exibble`] dataset to create a **gt** table. When adding a title
+#' through [tab_header()], we'll use the `latex()` helper to signify to **gt**
+#' that we're using LaTeX formatting.
+#'
+#' ```r
+#' exibble |>
+#'   dplyr::select(currency, char) |>
+#'   gt() |>
+#'   tab_header(title = latex("\\emph{LaTeX}"))
+#' ```
+#'
+#' \if{html}{\out{
+#' `r man_get_image_tag(file = "man_latex_1.png")`
+#' }}
+#'
+#' @family helper functions
+#' @section Function ID:
+#' 8-2
+#'
+#' @section Function Introduced:
+#' `v1.0.1` (May 10, 2025)
+#'
+#' @export
+latex <- function(text) {
+
+  # Apply the `from_latex` class
+  class(text) <- "from_latex"
+  text
+}
+
 # px() -------------------------------------------------------------------------
 #' Helper for providing a numeric value as pixels value
 #'
@@ -582,8 +634,7 @@ currency <- function(
 #'
 #' ```r
 #' towny |>
-#'   dplyr::arrange(desc(density_2021)) |>
-#'   dplyr::slice_head(n = 10) |>
+#'   dplyr::slice_max(density_2021, n = 10) |>
 #'   dplyr::select(name, population_2021, density_2021, land_area_km2) |>
 #'   gt(rowname_col = "name") |>
 #'   fmt_integer(columns = population_2021) |>
@@ -714,7 +765,7 @@ unit_conversion <- function(from, to) {
   # In the case where units are valid and available in the internal dataset,
   # they may be across categories; such pairings do not allow for a conversion
   # to take place
-  if (nrow(row_conversion) < 1) {
+  if (nrow(row_conversion) == 0L) {
     cli::cli_abort("The conversion specified cannot be performed.")
   }
 
@@ -754,29 +805,29 @@ normalize_temp_keyword <- function(keyword) {
 
   switch(
     keyword,
-    temperature.celsius =,
-    temp.celsius =,
-    celsius =,
-    temperature.C =,
-    temp.C =,
+    temperature.celsius = ,
+    temp.celsius = ,
+    celsius = ,
+    temperature.C = ,
+    temp.C = ,
     C = "C",
-    temperature.fahrenheit =,
-    temp.fahrenheit =,
-    fahrenheit =,
-    temperature.F =,
-    temp.F =,
+    temperature.fahrenheit = ,
+    temp.fahrenheit = ,
+    fahrenheit = ,
+    temperature.F = ,
+    temp.F = ,
     `F` = "F",
-    temperature.kelvin =,
-    temp.kelvin =,
-    kelvin =,
-    temperature.K =,
-    temp.K =,
+    temperature.kelvin = ,
+    temp.kelvin = ,
+    kelvin = ,
+    temperature.K = ,
+    temp.K = ,
     K = "K",
-    temperature.rankine =,
-    temp.rankine =,
-    rankine =,
-    temperature.R =,
-    temp.R =,
+    temperature.rankine = ,
+    temp.rankine = ,
+    rankine = ,
+    temperature.R = ,
+    temp.R = ,
     R = "R"
   )
 }
@@ -1312,7 +1363,7 @@ cells_column_spanners <- function(spanners = everything(), levels = NULL) {
   class(cells) <- c("cells_column_spanners", "location_cells")
 
   # Save what spanner_levels are in scope of the location selection
-  attr(cells,"spanner_levels") <- levels
+  attr(cells, "spanner_levels") <- levels
 
   cells
 }
@@ -1542,7 +1593,11 @@ cells_group <- function(groups = everything()) {
 #'   dplyr::filter(latitude == 20 & tst <= "1000") |>
 #'   dplyr::select(-latitude) |>
 #'   dplyr::filter(!is.na(sza)) |>
-#'   tidyr::spread(key = "tst", value = sza) |>
+#'   tidyr::pivot_wider(
+#'     names_from = "tst",
+#'     values_from = sza,
+#'     names_sort = TRUE
+#'   ) |>
 #'   gt(rowname_col = "month") |>
 #'   sub_missing(missing_text = "") |>
 #'   tab_style(

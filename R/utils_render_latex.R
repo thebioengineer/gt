@@ -88,11 +88,14 @@ latex_body_row <- function(content, type) {
 }
 
 #' @noRd
-latex_heading_row <- function(content) {
+latex_heading_row <- function(content, header_repeat = FALSE) {
+
 
   paste0(
     paste(paste(content, collapse = " & "), "\\\\ \n"),
-    "\\midrule\\addlinespace[2.5pt]\n",
+    "\\midrule",
+    if (header_repeat) {"\\endhead"},
+    "\\addlinespace[2.5pt]\n",
     collapse = ""
   )
 }
@@ -238,7 +241,7 @@ create_table_start_l <- function(data, colwidth_df) {
 
   # If a table width is specified, add an extra column
   # space to fill in enough space to match the width
-  extra_sep <- ''
+  extra_sep <- ""
   if (dt_options_get_value(data = data, option = "table_width") != "auto")
     extra_sep <- "@{\\extracolsep{\\fill}}"
 
@@ -247,8 +250,8 @@ create_table_start_l <- function(data, colwidth_df) {
   if(!dt_options_get_value(data = data, option = "latex_use_longtable")) {
 
     # we need to use the extracolsep here for tabular* regardless of width
-    extra_sep <- '@{\\extracolsep{\\fill}}'
-    table_width <- dt_options_get_value(data = data, 'table_width')
+    extra_sep <- "@{\\extracolsep{\\fill}}"
+    table_width <- dt_options_get_value(data = data, "table_width")
 
     if (endsWith(table_width, "%")) {
 
@@ -384,14 +387,38 @@ create_heading_component_l <- function(data) {
     footnote_subtitle_marks <- ""
   }
 
-  title_row <- latex_group("\\large ", heading$title, footnote_title_marks)
+  title_font_size <- dt_options_get_value(data, "heading_title_font_size")
+  table_font_size <- dt_options_get_value(data, "table_font_size")
+
+  if(identical(title_font_size,"default")){
+    title_font_size <- table_font_size
+  }
+
+  title_row <- latex_group(
+    convert_font_size_l(title_font_size),
+    " ",
+    heading$title,
+    footnote_title_marks,
+    convert_font_size_l(table_font_size)
+    )
 
   if (subtitle_defined) {
+
+    subtitle_font_size <- dt_options_get_value(data, "heading_subtitle_font_size")
+
+    if(identical(subtitle_font_size,"default")){
+      subtitle_font_size <- table_font_size
+    }
 
     subtitle_row <-
       paste0(
         " \\\\ \n",
-        latex_group("\\small ", heading$subtitle, footnote_subtitle_marks)
+        latex_group(
+          convert_font_size_l(subtitle_font_size),
+          " ",
+          heading$subtitle,
+          footnote_subtitle_marks,
+          convert_font_size_l(table_font_size))
       )
 
   } else {
@@ -490,8 +517,10 @@ create_columns_component_l <- function(data, colwidth_df) {
     headings_labels <- prepend_vec(headings_labels, stub_label)
   }
 
+  header_repeat <- dt_options_get_value(data, "latex_header_repeat")
+
   table_col_headings <-
-    paste0(latex_heading_row(content = headings_labels), collapse = "")
+    paste0(latex_heading_row(content = headings_labels, header_repeat = header_repeat), collapse = "")
 
   if (spanner_row_count > 0) {
 
@@ -544,9 +573,9 @@ create_columns_component_l <- function(data, colwidth_df) {
       span_widths <- calculate_multicolumn_width_text_l(begins = firsts, ends = lasts, colwidth_df = colwidth_df)
       tex_widths <-
         ifelse(
-          span_widths == "",
-          "c",
-          paste0(">{\\centering\\arraybackslash}m{", span_widths, "}")
+          nzchar(span_widths),
+          paste0(">{\\centering\\arraybackslash}m{", span_widths, "}"),
+          "c"
         )
 
       multicol <-
@@ -595,8 +624,10 @@ create_columns_component_l <- function(data, colwidth_df) {
     table_col_spanners <- ""
   }
 
+  include_toprule <- dt_options_get_value(data, "latex_toprule")
+
   paste0(
-    "\\toprule\n",
+    if (include_toprule) {"\\toprule\n"},
     paste0(table_col_spanners, collapse = ""),
     table_col_headings
   )
@@ -637,7 +668,7 @@ create_body_component_l <- function(data, colwidth_df) {
         n_rows_in_group <- n_rows_in_group + dim(list_of_summaries$summary_df_data_list[[i]])[1L]
       }
       row_splits_body[[groups_rows_df$row_start[i]]][1] <-
-        sprintf("\\multirow{%d}{%s}{%s}",
+        sprintf("\\multirow[t]{%d}{%s}{%s}",
                 n_rows_in_group,
                 if (colwidth_df$unspec[1L] == 1L) "*" else "=",
                 groups_rows_df$group_label[i])
@@ -1027,8 +1058,11 @@ summary_rows_for_group_l <- function(
 #' @noRd
 create_table_end_l <- function(data) {
 
+  include_bottomrule <- dt_options_get_value(data, "latex_bottomrule")
+
+
   paste0(
-    "\\bottomrule\n",
+    if(include_bottomrule){"\\bottomrule\n"},
     ifelse(dt_options_get_value(data = data, option = "latex_use_longtable"),
            "\\end{longtable}\n",
            "\\end{tabular*}\n"),
@@ -1253,11 +1287,16 @@ convert_font_size_l <- function(x) {
     large = "\\large ",
     `x-large` = "\\Large ",
     `xx-large` = "\\LARGE ",
-    `xxx-large` = "\\huge "
+    `xxx-large` = "\\huge ",
+    `default` = ""
   )
 
-  if (as.character(x) %in% names(size_map))
+
+  if (as.character(x) %in% names(size_map)){
     return(size_map[[x]])
+  }else if(grepl("(pt|%|px|in|cm|emu|em)",x)){
+    return(.apply_style_fontsize_l(list('cell_text' = list('size' = round(parse_font_size_l(x))))))
+  }
 
   NULL
 }
@@ -1384,11 +1423,11 @@ split_row_content <- function(x) {
 
 derive_table_width_statement_l <- function(data) {
 
-  table_width <- dt_options_get_value(data = data, 'table_width')
+  table_width <- dt_options_get_value(data = data, "table_width")
 
   # Bookends are not required if a table width is not specified
   # of if using floating table
-  if (table_width == 'auto' ||
+  if (table_width == "auto" ||
       !dt_options_get_value(data = data, option = "latex_use_longtable")) {
 
     statement <- ''
@@ -1492,6 +1531,7 @@ apply_cell_styles_l <- function(content, style_obj) {
     # Apply changes that can be made to the bracketed environment
     out_text <- paste0(
       "{",
+
       .apply_style_style_l(style_obj),
       .apply_style_weight_l(style_obj),
       # Can generate "\small for example
@@ -1515,11 +1555,11 @@ apply_cell_styles_l <- function(content, style_obj) {
   if (is.null(style_obj[["cell_text"]][["style"]])) return(NULL)
 
   switch(
-    style_obj[['cell_text']][['style']],
-    italic = '\\itshape ',
-    oblique = '\\slshape ',
-    normal = '\\upshape ',
-    ''
+    style_obj[["cell_text"]][["style"]],
+    italic = "\\itshape ",
+    oblique = "\\slshape ",
+    normal = "\\upshape ",
+    ""
   )
 
 }
@@ -1539,17 +1579,17 @@ apply_cell_styles_l <- function(content, style_obj) {
 
 .apply_style_weight_l <- function(style_obj) {
 
-  if (is.null(style_obj[['cell_text']][['weight']])) return('')
+  if (is.null(style_obj[["cell_text"]][["weight"]])) return("")
 
   # TODO:  Figure out how to implement weights expressed as numbers.
-  if (is.numeric(style_obj[['cell_text']][['weight']])) return('')
+  if (is.numeric(style_obj[["cell_text"]][["weight"]])) return("")
 
   switch(
-    style_obj[['cell_text']][['weight']],
-    normal = '\\mdseries ',
-    bold = '\\bfseries ',
-    bolder = '\\bfseries ',  # Not implemented
-    lighter = '\\mdseries ', # lfseries is not fully supported in Latex - caused errors with some fonts
+    style_obj[["cell_text"]][["weight"]],
+    normal = "\\mdseries ",
+    bold = "\\bfseries ",
+    bolder = "\\bfseries ",  # Not implemented
+    lighter = "\\mdseries ", # lfseries is not fully supported in Latex - caused errors with some fonts
     ''
   )
 
@@ -1571,9 +1611,9 @@ apply_cell_styles_l <- function(content, style_obj) {
 
 .apply_style_fontsize_l <- function(style_obj) {
 
-  if (is.null(style_obj[['cell_text']][['size']])) return('')
+  if (is.null(style_obj[["cell_text"]][["size"]])) return("")
 
-  if (is.numeric(style_obj[['cell_text']][['size']])) {
+  if (is.numeric(style_obj[["cell_text"]][["size"]])) {
     # According to the documentation for the cell_text function,
     # numeric values are assumed to be in pixels.  Latex requires
     # points
@@ -1581,26 +1621,26 @@ apply_cell_styles_l <- function(content, style_obj) {
     return(
       paste0(
         "\\fontsize{",
-        style_obj[['cell_text']][['size']] * 0.75,
+        round(style_obj[['cell_text']][['size']] * 0.75),
         "}{",
-        style_obj[['cell_text']][['size']] * 0.75 * 1.25,
+        round(style_obj[['cell_text']][['size']] * 0.75 * 1.25),
         "}\\selectfont "
       )
     )
 
   }
 
-  convert_font_size_l(style_obj[['cell_text']][['size']])
+  convert_font_size_l(style_obj[["cell_text"]][["size"]])
 
 }
 
 .apply_style_color_l <- function(x, style_obj) {
 
-  if (is.null(style_obj[['cell_text']][['color']])) return(x)
+  if (is.null(style_obj[["cell_text"]][["color"]])) return(x)
 
   paste0(
     "\\textcolor[HTML]{",
-    gsub("#", "", style_obj[['cell_text']][['color']], fixed = TRUE),
+    gsub("#", "", style_obj[["cell_text"]][["color"]], fixed = TRUE),
     "}{", x, "}"
   )
 }
@@ -1669,28 +1709,28 @@ create_fontsize_statement_l <- function(data) {
 
   fs_fmt <- "\\fontsize{%3.1fpt}{%3.1fpt}\\selectfont\n"
   if (grepl(pattern = "^[[:digit:]]+(\\%|in|cm|emu|em|pt|px)$", size)) {
-
-    if (endsWith(size, "%")) {
-
-      multiple <- as.numeric(gsub("%", "", size, fixed = TRUE)) / 100
-      fs_statement <- sprintf(fs_fmt, multiple * 12, multiple * 12 * 1.2)
-
-    } else if (endsWith(size, "pt")) {
-
-      pt_size <- as.numeric(sub("pt$", "", size))
-      fs_statement <- sprintf(fs_fmt, pt_size, pt_size * 1.2)
-
-    } else {
-
-      pt_size <- convert_to_px(size) * 0.75
-      fs_statement <- sprintf(fs_fmt, pt_size, pt_size * 1.2)
-
-    }
-
-  } else return("")
+    font_size <- parse_font_size_l(size)
+    ## parse_font_size_l returns font size in p
+    fs_statement <- sprintf(fs_fmt, round(font_size*.75), round(font_size* 1.2 * .75))
+  } else {
+    return("")
+  }
 
   fs_statement
 
+}
+
+parse_font_size_l <- function(x){
+  if (endsWith(x, "%")) {
+
+    size <- (as.numeric(gsub("%", "", x, fixed = TRUE)) / 100) * 16 * (4/3) ## 12pt is default font size, 4/3 to convert to px
+
+  } else {
+
+    size <- convert_to_px(x)
+  }
+
+  size
 }
 
 create_colwidth_df_l <- function(data) {
