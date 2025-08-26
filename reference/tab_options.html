@@ -262,6 +262,9 @@ components, the subcomponents, and the element that can adjusted.</p>
 <span>  quarto.use_bootstrap <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  quarto.disable_processing <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  latex.use_longtable <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  latex.header_repeat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  latex.toprule <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  latex.bottomrule <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  latex.tbl.pos <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -800,6 +803,24 @@ by default).</p></dd>
 <code>table</code> floating environment. Setting this parameter to <code>TRUE</code> will instead
 use the <code>longtable</code> environment which will not float and may span multiple
 pages.</p></dd>
+
+
+<dt id="arg-latex-header-repeat">latex.header_repeat<a class="anchor" aria-label="anchor" href="#arg-latex-header-repeat"></a></dt>
+<dd><ul><li><p>Specify if the header should repeat or not across pages*</p>
+<p>For Long tables, it may be desirable to have the column headers repeat on
+every page. Setting this parameter to <code>TRUE</code> will add a <code>\endhead</code> command
+after the table headers so LaTeX knows where the headers end and will
+repeat them on every page.</p></li>
+</ul></dd>
+
+
+<dt id="arg-latex-toprule-latex-bottomrule">latex.toprule, latex.bottomrule<a class="anchor" aria-label="anchor" href="#arg-latex-toprule-latex-bottomrule"></a></dt>
+<dd><ul><li><p>Specify if an hrule should be put in the table at the top (latex.toprule) or bottom (latex.bottomrule)*</p>
+<p>By default the tables produced using latex code will include top and bottom
+lines in the table via <code>\toprule</code> and <code>\bottomrule</code>. Setting these
+parameters to <code>FALSE</code> will instead not have these commands added, which
+lets the tables be produced without the top and bottom lines.</p></li>
+</ul></dd>
 
 
 <dt id="arg-latex-tbl-pos">latex.tbl.pos<a class="anchor" aria-label="anchor" href="#arg-latex-tbl-pos"></a></dt>
