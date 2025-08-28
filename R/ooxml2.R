@@ -9,84 +9,154 @@ ooxml_pptx <- function() {
   structure(list(), class = "ooxml_pptx")
 }
 
+# ooxml_tbl_cell ----------------------------------------------------------
+
+ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
+  if (inherits(x, "oooxml_table_cell")) {
+    return(x)
+  }
+  UseMethod("ooxml_tbl_cell")
+}
+
+#' @export
+ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
+  content <- lapply(list2(...), ooxml_cell_content, ooxml_type = ooxml_type)
+  ooxml_tag(
+    "w:tc", tag_class = "ooxml_table_cell",
+    properties,
+    !!!content
+  )
+}
+
+#' @export
+ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
+  content <- lapply(list2(...), ooxml_cell_content, ooxml_type = ooxml_type)
+  txBody  <- ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
+    ooxml_tag(tag = "a:bodyPr"),
+    ooxml_tag(tag = "a:lstStyle"),
+    !!!content
+  )
+
+  ooxml_tag("a:tc", tag_class = "ooxml_table_cell",
+    properties,
+    txBody
+  )
+}
+
+# ooxml_tbl_cell_properties --------------------------------------------------------------
+
+ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, v_align = NULL) {
+  UseMethod("ooxml_tbl_cell_properties")
+}
+
+ooxml_tbl_cell_properties_impl <- function(tag) {
+  function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, v_align = NULL) {
+    rlang::check_dots_empty()
+
+    margins <- ooxml_tbl_cell_margins(ooxml_type, margins)
+    borders <- ooxml_cell_borders(ooxml_type, borders)
+    fill    <- ooxml_fill(ooxml_type, fill)
+
+    if (is.null(margins) && is.null(borders) && is.null(fill)) {
+      return(NULL)
+    }
+
+    ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
+      margins,
+      borders,
+      fill
+    )
+  }
+}
+
+#' @export
+ooxml_tbl_cell_properties.ooxml_word <- ooxml_tbl_cell_properties_impl("w:tcPr")
+
+#' @export
+ooxml_tbl_cell_properties.ooxml_pptx <- ooxml_tbl_cell_properties_impl("a:tcPr")
+
+
+# ooxml_cell_content -----------------------------------------------------------------
+
+ooxml_cell_content <- function(ooxml_type, ..., properties) {
+  UseMethod("ooxml_cell_content")
+}
+
+ooxml_cell_content_impl <- function(tag) {
+  function(ooxml_type, ..., properties) {
+    runs <- lapply(list(...), ooxml_run, ooxml_type = ooxml_type)
+
+    ooxml_tag(tag, tag_class = "ooxml_cell_content",
+      properties,
+      !!!runs
+    )
+  }
+}
+
+#' @export
+ooxml_cell_content.ooxml_word <- ooxml_cell_content_impl("w:p")
+
+#' @export
+ooxml_cell_content.ooxml_pptx <- ooxml_cell_content_impl("a:p")
+
+# ooxml_run ---------------------------------------------------------------
+
+ooxml_run <- function(ooxml_type, x, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = c("default", "preserve")) {
+  UseMethod("ooxml_run")
+}
+
+ooxml_run_impl <- function(tag) {
+  function(ooxml_type, x, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = "default") {
+    if (inherits(x, "ooxml_run")) {
+      return(x)
+    }
+
+    ooxml_tag(tag, tag_class = "ooxml_run",
+      ooxml_text(ooxml_type, x, space = space)
+    )
+  }
+}
+
+#' @export
+ooxml_run.ooxml_word <- ooxml_run_impl("w:r")
+
+#' @export
+ooxml_run.ooxml_pptx <- ooxml_run_impl("a:r")
 
 # ooxml_text --------------------------------------------------------------
 
-ooxml_text <- function(type, x, ..., space = c("default", "preserve"), error_call = current_env()) {
+ooxml_text <- function(ooxml_type, x, ..., space = c("default", "preserve"), error_call = current_env()) {
   UseMethod("ooxml_text")
 }
 
 ooxml_text_impl <- function(tag) {
-  function(type, x, ..., space = c("default", "preserve"), error_call = current_env()) {
+  function(ooxml_type, x, ..., space = c("default", "preserve"), error_call = current_env()) {
     if (inherits(x, "ooxml_text")) {
       return(x)
     }
 
     space_attr <- ooxml_space_attr(space, error_call = error_call)
-    ooxml_tag(
-      tag, tag_class = "ooxml_text",
+    ooxml_tag(tag, tag_class = "ooxml_text",
       !!!space_attr,
       htmltools::HTML(format(x))
     )
   }
 }
 
+#' @export
 ooxml_text.ooxml_word <- ooxml_text_impl("w:t")
+
+#' @export
 ooxml_text.ooxml_pptx <- ooxml_text_impl("a:t")
-
-# ooxml_run ---------------------------------------------------------------
-
-ooxml_run <- function(type, x, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = c("default", "preserve")) {
-  UseMethod("ooxml_run")
-}
-
-ooxml_run_impl <- function(tag) {
-  function(type, x, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = "default") {
-    if (inherits(x, "ooxml_run")) {
-      return(x)
-    }
-
-    ooxml_tag(tag, tag_class = "ooxml_run",
-      ooxml_text(type, x, space = space)
-    )
-  }
-}
-
-ooxml_run.ooxml_word <- ooxml_run_impl("w:r")
-ooxml_run.ooxml_pptx <- ooxml_run_impl("a:r")
-
-# ooxml_cell_content -----------------------------------------------------------------
-
-ooxml_cell_content <- function(type, x, ..., alignment = "right") {
-  UseMethod("ooxml_cell_content")
-}
-
-ooxml_cell_content_impl <- function(tag) {
-  function(type, x, ..., alignment = "right") {
-    if (inherits(x, "ooxml_cell_content")) {
-      return(x)
-    }
-
-    runs <- lapply(x, ooxml_run, type = type)
-
-    ooxml_tag(
-      tag, tag_class = "ooxml_cell_content",
-      ooxml_pPr(type, alignment = alignment),
-      !!!runs
-    )
-  }
-}
-ooxml_cell_content.ooxml_word <- ooxml_cell_content_impl("w:p")
-ooxml_cell_content.ooxml_pptx <- ooxml_cell_content_impl("a:p")
 
 # ooxml_pPr ---------------------------------------------------------------
 
-ooxml_pPr <- function(type, alignment = NULL) {
+ooxml_pPr <- function(ooxml_type, alignment = NULL) {
   UseMethod("ooxml_rPr")
 }
 
 ooxml_pPr_impl <- function(tag) {
-  function(type, alignment = NULL) {
+  function(ooxml_type, alignment = NULL) {
     if (is.null(alignment)) {
       return(NULL)
     }
@@ -98,68 +168,99 @@ ooxml_pPr_impl <- function(tag) {
   }
 }
 
+#' @export
 ooxml_pPr.ooxml_word <- ooxml_pPr_impl("w:pPr")
+
+#' @export
 ooxml_pPr.ooxml_pptx <- ooxml_pPr_impl("a:pPr")
 
 
+# ooxml_cell_borders ------------------------------------------------------
+
+ooxml_cell_borders <- function(ooxml_type, border = NULL) {
+  UseMethod("ooxml_cell_borders")
+}
+
+ooxml_cell_borders_impl <- function(tag) {
+  function(ooxml_type, border = NULL) {
+    if (is.null(border)) {
+      return(NULL)
+    }
+
+    xml_border <- lapply(c("top", "bottom", "left", "right"), function(location) {
+      if (is.null(border[[location]])) {
+        return(NULL)
+      }
+
+      x <- border[[location]]
+      rlang::exec(ooxml_cell_border, ooxml_type = ooxml_type, location = location, !!!x)
+    })
+    ooxml_tag(tag, tag_class = "ooxml_cell_borders", !!!xml_border)
+  }
+}
+
+#' @export
+ooxml_cell_borders.ooxml_word <- ooxml_cell_borders_impl("w:tcBorders")
+
+#' @export
+ooxml_cell_borders.ooxml_pptx <- ooxml_cell_borders_impl("a:tcBdr")
+
 # ooxml_cell_border -------------------------------------------------------
 
-ooxml_cell_border <- function(type, ..., location, color = "black", size = NULL, style = "solid") {
-  if (is.null(style)) {
-    return(NULL)
-  }
-
+ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   UseMethod("ooxml_cell_border")
 }
 
-ooxml_cell_border.ooxml_word <- function(type, ..., location, color = "black", size = NULL, style = "solid") {
+#' @export
+ooxml_cell_border.ooxml_word <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   rlang::check_dots_empty()
 
   location <- arg_match_names(location, c("top" = "w:top", "left" = "w:start", "bottom" = "w:bottom", "right" = "w:end"))
   color    <- as_hex_code(color)
   size     <- check_between(size, min = .25, max = 12, default = 4)
-  style    <- arg_match_names(style, c("solid" = "single", "dashed" = "dashed", "dotted" = "dotted", "hidden" = "none", "double" = "double"))
+  type    <- arg_match_names(type, c("solid" = "single", "dashed" = "dashed", "dotted" = "dotted", "hidden" = "none", "double" = "double"))
 
   ooxml_tag(location, tag_class = "ooxml_cell_border",
     `w:color` = color,
     `w:size`  = size * 8, # size is in 1/8 points
-    `w:val`   = style
+    `w:val`   = type
   )
 }
 
-ooxml_cell_border.ooxml_pptx <- function(type, ..., location, color = "black", size = NULL, style = "solid") {
+#' @export
+ooxml_cell_border.ooxml_pptx <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   rlang::check_dots_empty()
 
   location <- arg_match_names(location, c("top"="a:lnT","left"="a:lnL","bottom"="a:lnB","right"="a:lnR"))
   size     <- check_between(size, min = 0, max = 10, default = .5)
-  style    <- convert_border_style_pptx(style)
+  style    <- convert_border_style_pptx(type)
 
-  if (is.null(style$compound)) {
+  if (is.null(style[["compound"]])) {
     return(NULL)
   }
 
-  dash <- if(!is.null(style$dash_style)) {
-    ooxml_tag("a:prstDash", `val` = style$dash_style)
+  dash <- if(!is.null(style[["dash_style"]])) {
+    ooxml_tag("a:prstDash", `val` = style[["dash_style"]])
   }
 
   ooxml_tag(location, tag_class = "ooxml_cell_border",
     `w` = size*12700,
     `cap` = "flat",
-    `cmpd` = style$compound,
+    `cmpd` = style[["compound"]],
     `algn` = "ctr",
 
     dash,
-    ooxml_fill(type, color = color)
+    ooxml_fill(ooxml_type, color = color)
   )
 
 }
 
 border_style_pptx <- list(
-  "solid"  = c(compound = "single", dash_style = NULL),
-  "dashed" = c(compound = "single", dash_style = "dash"),
-  "dotted" = c(compound = "single", dash_style = "dot"),
-  "hidden" = c(compound = NULL,     dash_style = NULL),
-  "double" = c(compound = "dbl",    dash_style = NULL)
+  "solid"  = list(compound = "single", dash_style = NULL),
+  "dashed" = list(compound = "single", dash_style = "dash"),
+  "dotted" = list(compound = "single", dash_style = "dot"),
+  "hidden" = list(compound = NULL,     dash_style = NULL),
+  "double" = list(compound = "dbl",    dash_style = NULL)
 )
 
 convert_border_style_pptx <- function(x, error_call = caller_env()){
@@ -172,80 +273,29 @@ convert_border_style_pptx <- function(x, error_call = caller_env()){
   }
 }
 
-# ooxml_tbl_cell ----------------------------------------------------------
-
-ooxml_tbl_cell <- function(type, x, ...) {
-  if (inherits(x, "oooxml_table_cell")) {
-    return(x)
-  }
-  UseMethod("ooxml_tbl_cell")
-}
-
-ooxml_tbl_cell.ooxml_word <- function(type, x, ...) {
-  rlang::check_dots_empty()
-  content <- lapply(x, ooxml_cell_content, type = type)
-  ooxml_tag(
-    "w:tc", tag_class = "ooxml_table_cell",
-    ooxml_tcPr(type, ...),
-    !!!content
-  )
-}
-
-ooxml_tbl_cell.ooxml_pptx <- function(type, x, ...) {
-  content <- lapply(x, ooxml_cell_content, type = type)
-  txBody  <- ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
-    ooxml_tag(tag = "a:bodyPr"),
-    ooxml_tag(tag = "a:lstStyle"),
-    !!!content
-  )
-
-  ooxml_tag("a:tc", tag_class = "ooxml_table_cell",
-    ooxml_tcPr(type, ...),
-    txBody
-  )
-}
-
-# ooxml_tcPr --------------------------------------------------------------
-
-ooxml_tcPr <- function(type, x, ..., background = NULL, borders = NULL) {
-  UseMethod("ooxml_tcPr")
-}
-
-ooxml_tcPr_impl <- function(tag) {
-  function(type, x, ..., background=NULL, borders = NULL) {
-    rlang::check_dots_empty()
-
-    ooxml_tag(tag,
-      borders, # TODO: ooxml_borders() ?
-      ooxml_fill(type, color = background)
-    )
-  }
-}
-ooxml_tcPr.ooxml_word <- ooxml_tcPr_impl("w:tcPr")
-ooxml_tcPr.ooxml_pptx <- ooxml_tcPr_impl("a:tcPr")
-
-
 # ooxml_tbl_row -----------------------------------------------------------
 
-ooxml_tbl_row <- function(type, color, ...) {
+ooxml_tbl_row <- function(ooxml_type, color, ...) {
   UseMethod("ooxml_tbl_row")
 }
 
-ooxml_tbl_row.ooxml_word <- function(type, x, ...) {
-  content <- lapply(x, ooxml_tbl_cell, type = type)
+#' @export
+ooxml_tbl_row.ooxml_word <- function(ooxml_type, x, ...) {
+  content <- lapply(x, ooxml_tbl_cell, ooxml_type = ooxml_type)
 
   ooxml_tag("a:tr", tag_class = "ooxml_table_row",
-    ooxml_trPr(type, is_header = is_header),
+    ooxml_trPr(ooxml_type, is_header = is_header),
     !!!content
   )
 }
 
-ooxml_tbl_row.ooxml_pptx <- function(type, x, ..., height = 0) {
-  content <- lapply(x, ooxml_tbl_cell, type = type)
+#' @export
+ooxml_tbl_row.ooxml_pptx <- function(ooxml_type, x, ..., height = 0) {
+  content <- lapply(x, ooxml_tbl_cell, ooxml_type = ooxml_type)
 
   ooxml_tag("a:tr", tag_class = "ooxml_table_row",
     h = height,
-    ooxml_trPr(type, is_header = is_header),
+    ooxml_trPr(ooxml_type, is_header = is_header),
     !!!content
   )
 }
@@ -253,11 +303,12 @@ ooxml_tbl_row.ooxml_pptx <- function(type, x, ..., height = 0) {
 
 # ooxml_trHeight ----------------------------------------------------------
 
-ooxml_trHeight <- function(type, value, ...) {
+ooxml_trHeight <- function(ooxml_type, value, ...) {
   UseMethod("ooxml_trHeight")
 }
 
-ooxml_trHeight.ooxml_word <- function(type, value, ..., error_call = current_env()) {
+#' @export
+ooxml_trHeight.ooxml_word <- function(ooxml_type, value, ..., error_call = current_env()) {
   rlang::check_dots_empty()
 
   error_bullets <- c(
@@ -296,51 +347,57 @@ ooxml_trHeight.ooxml_word <- function(type, value, ..., error_call = current_env
   )
 }
 
-ooxml_trHeight.ooxml_pptx <- function(type, value, ..., error_call = current_env()) {
+#' @export
+ooxml_trHeight.ooxml_pptx <- function(ooxml_type, value, ..., error_call = current_env()) {
   NULL
 }
 
 # ooxml_trPr --------------------------------------------------------------
 
-ooxml_trPr <- function(type, ...) {
+ooxml_trPr <- function(ooxml_type, ...) {
   UseMethod("ooxml_trPr")
 }
 
-ooxml_trPr.ooxml_word <- function(type, ..., is_header = FALSE, hidden = FALSE, height = "auto") {
+#' @export
+ooxml_trPr.ooxml_word <- function(ooxml_type, ..., is_header = FALSE, hidden = FALSE, height = "auto") {
   rlang::check_dots_empty()
   ooxml_tag("w:trPr",
-    if (is_header) ooxml_tbl_header(type),
-    if (hidden) ooxml_cantSplit(type),
-    ooxml_trHeight(type, value = height)
+    if (is_header) ooxml_tbl_header(ooxml_type),
+    if (hidden) ooxml_cantSplit(ooxml_type),
+    ooxml_trHeight(ooxml_type, value = height)
   )
 }
 
-ooxml_trPr.ooxml_pptx <- function(type, ...) {
+#' @export
+ooxml_trPr.ooxml_pptx <- function(ooxml_type, ...) {
   NULL
 }
 
 
 # ooxml_tbl_header --------------------------------------------------------
 
-ooxml_tbl_header <- function(type) {
+ooxml_tbl_header <- function(ooxml_type) {
   UseMethod("ooxml_tbl_header")
 }
 
-ooxml_tcPr.ooxml_word <- function(type) {
+#' @export
+ooxml_tcPr.ooxml_word <- function(ooxml_type) {
   ooxml_tag("w:tblHeader")
 }
-ooxml_tcPr.ooxml_pptx <- function(type) {
+#' @export
+ooxml_tcPr.ooxml_pptx <- function(ooxml_type) {
   ooxml_tag("a:tblHeader")
 }
 
 
 # ooxml_tblPr -------------------------------------------------------------
 
-ooxml_tblPr <- function(type, ...) {
+ooxml_tblPr <- function(ooxml_type, ...) {
   UseMethod("ooxml_tblPr")
 }
 
-ooxml_tblPr.ooxml_word <- function(type, ..., layout = c("autofit", "fixed"), justify = c("center", "start","end"), width="100%", look = c("First Row"), tableStyle=NULL) {
+#' @export
+ooxml_tblPr.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed"), justify = c("center", "start","end"), width="100%", look = c("First Row"), tableStyle=NULL) {
   rlang::check_dots_empty()
 
   if (!rlang::is_character(width, n = 1)) {
@@ -371,7 +428,8 @@ ooxml_tblPr.ooxml_word <- function(type, ..., layout = c("autofit", "fixed"), ju
   )
 }
 
-ooxml_tblPr.ooxml_pptx <- function(type, ..., look = c("First Column","Banded Rows"), tableStyle = NA) {
+#' @export
+ooxml_tblPr.ooxml_pptx <- function(ooxml_type, ..., look = c("First Column","Banded Rows"), tableStyle = NA) {
 
   ooxml_tag("a:tblPr",
     "a:firstColumn" = as.numeric("first column" %in% look),
@@ -388,24 +446,27 @@ ooxml_tblPr.ooxml_pptx <- function(type, ..., look = c("First Column","Banded Ro
 
 # ooxml_tblGrid -----------------------------------------------------------
 
-ooxml_tblGrid <- function(type, ...) {
+ooxml_tblGrid <- function(ooxml_type, ...) {
   UseMethod("ooxml_tblGrid")
 }
 
 ooxml_tblGrid_impl <- function(tag){
-  function(type, ...) {
-    gridCols <- lapply(list2(...), ooxml_gridCol, type = type)
+  function(ooxml_type, ...) {
+    gridCols <- lapply(list2(...), ooxml_gridCol, ooxml_type = ooxml_type)
     ooxml_tag(tag, !!!gridCols)
   }
 }
 
+#' @export
 ooxml_tblGrid.ooxml_word <- ooxml_tblGrid_impl("w:tblGrid")
+
+#' @export
 ooxml_tblGrid.ooxml_pptx <- ooxml_tblGrid_impl("a:tblGrid")
 
 
 # ooxml_gridCol -----------------------------------------------------------
 
-ooxml_gridCol <- function(type, width = NA_integer_) {
+ooxml_gridCol <- function(ooxml_type, width = NA_integer_) {
   if (!rlang::is_integerish(width, n = 1)){
     cli::cli_abort("{.arg width} should be a length one integer.")
   }
@@ -413,14 +474,16 @@ ooxml_gridCol <- function(type, width = NA_integer_) {
   UseMethod("ooxml_gridCol")
 }
 
-ooxml_gridCol.ooxml_word <- function(type, width = NA_integer_) {
+#' @export
+ooxml_gridCol.ooxml_word <- function(ooxml_type, width = NA_integer_) {
   gridWidth <- if (!is.na(width)) {
     list("w:w" = width)
   }
   ooxml_tag("w:gridCol", !!!gridWidth)
 }
 
-ooxml_gridCol.ooxml_pptx <- function(type, width = NA_integer_) {
+#' @export
+ooxml_gridCol.ooxml_pptx <- function(ooxml_type, width = NA_integer_) {
   gridWidth <- if (!is.na(width)) {
     list("w" = width)
   }
@@ -429,39 +492,100 @@ ooxml_gridCol.ooxml_pptx <- function(type, width = NA_integer_) {
 
 # ooxml_fill --------------------------------------------------------------
 
-ooxml_fill <- function(type, color) {
+ooxml_fill <- function(ooxml_type, color = NULL) {
+  if (is.null(color)) {
+    return(NULL)
+  }
   UseMethod("ooxml_fill")
 }
 
-ooxml_fill.ooxml_word <- function(type, color) {
+#' @export
+ooxml_fill.ooxml_word <- function(ooxml_type, color = NULL) {
   color <- as_hex_code(color)
 
-  ooxml_tag("w:shd",
+  ooxml_tag("w:shd", tag_class = "ooxml_fill",
     `w:val`   = "clear",
     `w:color` = "auto",
     `w:fill`  = color
   )
 }
 
-ooxml_fill.ooxml_pptx <- function(type, color) {
+#' @export
+ooxml_fill.ooxml_pptx <- function(ooxml_type, color) {
   color <- as_hex_code(color)
 
-  ooxml_tag("a:solidFill",
+  ooxml_tag("a:solidFill", tag_class = "ooxml_fill",
     ooxml_tag("a:srgbClr", color)
   )
 }
 
+# ooxml_tbl_cell_margins --------------------------------------------------
+
+ooxml_tbl_cell_margins <- function(ooxml_type, margins = NULL) {
+  UseMethod("ooxml_tbl_cell_margins")
+}
+
+#' @export
+ooxml_tbl_cell_margins.ooxml_word <- function(ooxml_type, margins = NULL) {
+  if (is.null(margins)) {
+    return(NULL)
+  }
+
+  xml_margins <- lapply(c("top", "bottom", "left", "right"), function(location) {
+    if (is.null(margins[[location]])) {
+      return(NULL)
+    }
+
+    x <- margins[[location]]
+    dir <- switch(location,
+      left   = "start",
+      right  = "end",
+      top    = "top",
+      bottom = "bottom"
+    )
+    ooxml_tag(paste0("w:", dir), tag_class = "ooxml_tbl_cell_margin",
+      "w:w"    = x[["width"]],
+      "w:type" = x[["type"]]
+    )
+  })
+
+  # in word margins are expressed with a <w:tcMar> node
+  ooxml_tag("w:tcMar", !!!xml_margins)
+}
+
+#' @export
+ooxml_tbl_cell_margins.ooxml_pptx <- function(ooxml_type, margins = NULL) {
+  if (is.null(margins)) {
+    return(NULL)
+  }
+
+  attrs_margins <- lapply(c("top", "bottom", "left", "right"), function(location) {
+    if (is.null(margins[[location]])) {
+      return(NULL)
+    }
+    margins[[location]]$width # TODO: should there be a multiplier here ?
+  })
+
+  names(attrs_margins) <- c("marT", "marB", "marL", "marR")
+  attrs_margins <- attrs_margins[!sapply(attrs_margins, is.null)]
+
+  # in pptx, margins are attributes, so we use a spliced list
+  rlang::splice(attrs_margins)
+}
+
 # ooxml_cantSplit ---------------------------------------------------------
 
-ooxml_cantSplit <- function(type) {
+ooxml_cantSplit <- function(ooxml_type) {
   UseMethod("ooxml_cantSplit")
 }
 
-ooxml_cantSplit.ooxml_word <- function(type) {
+#' @export
+ooxml_cantSplit.ooxml_word <- function(ooxml_type) {
   ooxml_tag("w:cantSplit")
 }
 
-ooxml_cantSplit.ooxml_pptx <- function(type) {
+#' @export
+ooxml_cantSplit.ooxml_pptx <- function(ooxml_type) {
   NULL
 }
 
@@ -516,4 +640,15 @@ check_between <- function(x = NULL, min, max, default, error_arg = caller_arg(x)
   x
 }
 
+check_inherits <- function(x, class, accept_null = TRUE, error_arg = caller_arg(x), error_call = caller_env()) {
+  if (is.null(x) && accept_null) {
+    return(NULL)
+  }
 
+  if (!inherits(x, class)) {
+    cli::cli_abort(call = error_call,
+      "{.arg {error_arg}} must be a {.cls {class}}, not {.obj_type_friendly {x}}."
+    )
+  }
+  x
+}
