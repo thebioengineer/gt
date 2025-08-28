@@ -207,33 +207,33 @@ ooxml_cell_borders.ooxml_pptx <- ooxml_cell_borders_impl("a:tcBdr")
 
 # ooxml_cell_border -------------------------------------------------------
 
-ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size = NULL, style = "solid") {
+ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   UseMethod("ooxml_cell_border")
 }
 
 #' @export
-ooxml_cell_border.ooxml_word <- function(ooxml_type, ..., location, color = "black", size = NULL, style = "solid") {
+ooxml_cell_border.ooxml_word <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   rlang::check_dots_empty()
 
   location <- arg_match_names(location, c("top" = "w:top", "left" = "w:start", "bottom" = "w:bottom", "right" = "w:end"))
   color    <- as_hex_code(color)
   size     <- check_between(size, min = .25, max = 12, default = 4)
-  style    <- arg_match_names(style, c("solid" = "single", "dashed" = "dashed", "dotted" = "dotted", "hidden" = "none", "double" = "double"))
+  type    <- arg_match_names(type, c("solid" = "single", "dashed" = "dashed", "dotted" = "dotted", "hidden" = "none", "double" = "double"))
 
   ooxml_tag(location, tag_class = "ooxml_cell_border",
     `w:color` = color,
     `w:size`  = size * 8, # size is in 1/8 points
-    `w:val`   = style
+    `w:val`   = type
   )
 }
 
 #' @export
-ooxml_cell_border.ooxml_pptx <- function(ooxml_type, ..., location, color = "black", size = NULL, style = "solid") {
+ooxml_cell_border.ooxml_pptx <- function(ooxml_type, ..., location, color = "black", size = NULL, type = "solid") {
   rlang::check_dots_empty()
 
   location <- arg_match_names(location, c("top"="a:lnT","left"="a:lnL","bottom"="a:lnB","right"="a:lnR"))
   size     <- check_between(size, min = 0, max = 10, default = .5)
-  style    <- convert_border_style_pptx(style)
+  style    <- convert_border_style_pptx(type)
 
   if (is.null(style[["compound"]])) {
     return(NULL)
