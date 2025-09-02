@@ -69,12 +69,11 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
 
 # ooxml_cell_content -----------------------------------------------------------------
 
-ooxml_cell_content <- function(ooxml_type, ..., properties) {
+ooxml_cell_content <- function(ooxml_type, ...) {
   tag <- switch_ooxml_type(ooxml_type, word = "w:p", pptx = "a:p")
   runs <- lapply(list(...), ooxml_run, ooxml_type = ooxml_type)
 
   ooxml_tag(tag, tag_class = "ooxml_cell_content",
-    properties,
     !!!runs
   )
 }
