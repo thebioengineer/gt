@@ -45,7 +45,7 @@ ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
 
 # ooxml_tbl_cell_properties --------------------------------------------------------------
 
-ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, v_align = NULL) {
+ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, col_span = NULL, v_align = NULL) {
   rlang::check_dots_empty()
 
   tag <- switch_ooxml_type(ooxml_type, word = "w:tcPr", pptx = "a:tcPr")
@@ -55,13 +55,15 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   fill    <- ooxml_fill(ooxml_type, fill)
   v_merge <- ooxml_vMerge(ooxml_type, row_span)
   v_align <- ooxml_vAlign(ooxml_type, v_align)
+  gridSpan <- ooxml_gridSpan(ooxml_type, col_span)
 
-  ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties", null_if_empty = TRUE,
+  ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
     margins,
     borders,
     fill,
     v_merge,
-    v_align
+    v_align,
+    gridSpan
   )
 }
 
@@ -544,15 +546,36 @@ ooxml_vAlign.ooxml_pptx <- function(ooxml_type, align = c("top", "center", "bott
   )
 }
 
-# ooxml_tag ---------------------------------------------------------------
 
-ooxml_tag <- function(tag, ..., tag_class = tag, null_if_empty = FALSE) {
-  varArgs <- list2(...)
-  varArgs <- varArgs[!sapply(varArgs, is.null)]
-  if (null_if_empty && length(varArgs) == 0L) {
+# ooxml_gridSpan ----------------------------------------------------------
+
+ooxml_gridSpan <- function(ooxml_type, col_span = NULL) {
+  if (is.null(col_span)) {
     return(NULL)
   }
 
+  UseMethod("ooxml_gridSpan")
+}
+
+#' @export
+ooxml_gridSpan.ooxml_word <- function(ooxml_type, col_span = NULL) {
+  ooxml_tag("w:gridSpan",
+    "w:val" = as.integer(col_span)
+  )
+}
+
+#' @export
+ooxml_gridSpan.ooxml_pptx <- function(ooxml_type, col_span = NULL) {
+  rlang::splice(
+    list("gridSpan" = as.integer(col_span))
+  )
+}
+
+# ooxml_tag ---------------------------------------------------------------
+
+ooxml_tag <- function(tag, ..., tag_class = tag) {
+  varArgs <- list2(...)
+  varArgs <- varArgs[!sapply(varArgs, is.null)]
   xml_tag <- htmltools::tag(`_tag_name` = tag, varArgs = varArgs)
   class(xml_tag) <- c(tag_class, "ooxml_tag", class(xml_tag))
   xml_tag
