@@ -69,27 +69,44 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
 
 # ooxml_cell_content -----------------------------------------------------------------
 
-ooxml_cell_content <- function(ooxml_type, ...) {
+ooxml_cell_content <- function(ooxml_type, ..., properties) {
   tag <- switch_ooxml_type(ooxml_type, word = "w:p", pptx = "a:p")
   runs <- lapply(list(...), ooxml_run, ooxml_type = ooxml_type)
 
   ooxml_tag(tag, tag_class = "ooxml_cell_content",
+    properties,
     !!!runs
   )
 }
 
 # ooxml_run ---------------------------------------------------------------
 
-ooxml_run <- function(ooxml_type, x, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = c("default", "preserve")) {
-  tag <- switch_ooxml_type(ooxml_type, word = "w:r", pptx = "a:r")
+ooxml_run <- function(ooxml_type, x, ..., properties = NULL) {
   if (inherits(x, "ooxml_run")) {
     return(x)
   }
+  rlang::check_dots_empty()
+  tag <- switch_ooxml_type(ooxml_type, word = "w:r", pptx = "a:r")
 
   ooxml_tag(tag, tag_class = "ooxml_run",
-    ooxml_text(ooxml_type, x, space = space)
+    ooxml_text(ooxml_type, x, space = space),
+    check_inherits(properties, "ooxml_run_properties", accept_null = TRUE)
   )
 }
+
+
+# ooxml_run_properties ----------------------------------------------------
+
+ooxml_run_properties <- function(ooxml_type, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = c("default", "preserve")) {
+  font <- ooxml_font(ooxml_type, font)
+
+  tag <- switch_ooxml_type(ooxml_type, word = "w:rPr", pptx = "r:rPr")
+  ooxml_tag(tag,
+    font
+  )
+
+}
+
 
 # ooxml_text --------------------------------------------------------------
 
@@ -569,6 +586,27 @@ ooxml_gridSpan.ooxml_pptx <- function(ooxml_type, col_span = NULL) {
     list("gridSpan" = as.integer(col_span))
   )
 }
+
+
+# ooxml_font --------------------------------------------------------------
+
+ooxml_font <- function(ooxml_type, font = NULL) {
+  if (is.null(font)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_font")
+}
+
+#' @export
+ooxml_font.ooxml_word <- function(ooxml_type, font = NULL) {
+  ooxml_tag("w:rFonts", "w:ascii" = font, "w:hAnsi" = font)
+}
+
+#' @export
+ooxml_font.ooxml_pptx <- function(ooxml_type, font = NULL) {
+  ooxml_tag("a:latin", typeface = font)
+}
+
 
 # ooxml_tag ---------------------------------------------------------------
 
