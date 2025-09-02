@@ -1,3 +1,6 @@
+#' @importFrom grDevices col2rgb rgb
+NULL
+
 
 # ooxml types --------------------------------------------------------------
 
@@ -12,9 +15,6 @@ ooxml_pptx <- function() {
 # ooxml_tbl_cell ----------------------------------------------------------
 
 ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
-  if (inherits(x, "oooxml_table_cell")) {
-    return(x)
-  }
   UseMethod("ooxml_tbl_cell")
 }
 
@@ -275,13 +275,13 @@ convert_border_style_pptx <- function(x, error_call = caller_env()){
 
 # ooxml_tbl_row -----------------------------------------------------------
 
-ooxml_tbl_row <- function(ooxml_type, color, ...) {
+ooxml_tbl_row <- function(ooxml_type, ..., is_header = FALSE) {
   UseMethod("ooxml_tbl_row")
 }
 
 #' @export
-ooxml_tbl_row.ooxml_word <- function(ooxml_type, x, ...) {
-  content <- lapply(x, ooxml_tbl_cell, ooxml_type = ooxml_type)
+ooxml_tbl_row.ooxml_word <- function(ooxml_type, ..., is_header = FALSE) {
+  content <- lapply(list2(...), ooxml_tbl_cell, ooxml_type = ooxml_type)
 
   ooxml_tag("a:tr", tag_class = "ooxml_table_row",
     ooxml_trPr(ooxml_type, is_header = is_header),
@@ -290,8 +290,8 @@ ooxml_tbl_row.ooxml_word <- function(ooxml_type, x, ...) {
 }
 
 #' @export
-ooxml_tbl_row.ooxml_pptx <- function(ooxml_type, x, ..., height = 0) {
-  content <- lapply(x, ooxml_tbl_cell, ooxml_type = ooxml_type)
+ooxml_tbl_row.ooxml_pptx <- function(ooxml_type, x, ..., is_header = FALSE, height = 0) {
+  content <- lapply(list2(...), ooxml_tbl_cell, ooxml_type = ooxml_type)
 
   ooxml_tag("a:tr", tag_class = "ooxml_table_row",
     h = height,
@@ -311,7 +311,7 @@ ooxml_trHeight <- function(ooxml_type, value, ...) {
 ooxml_trHeight.ooxml_word <- function(ooxml_type, value, ..., error_call = current_env()) {
   rlang::check_dots_empty()
 
-  error_bullets <- c(
+  bullets <- c(
     "Invalid value for table row height: {.val {value}}.",
     i = "{.arg {value}} must be a positive numeric value, or one of {.val auto} or {.val atLeast}."
   )
@@ -381,11 +381,12 @@ ooxml_tbl_header <- function(ooxml_type) {
 }
 
 #' @export
-ooxml_tcPr.ooxml_word <- function(ooxml_type) {
+ooxml_tbl_header.ooxml_word <- function(ooxml_type) {
   ooxml_tag("w:tblHeader")
 }
+
 #' @export
-ooxml_tcPr.ooxml_pptx <- function(ooxml_type) {
+ooxml_tbl_header.ooxml_pptx <- function(ooxml_type) {
   ooxml_tag("a:tblHeader")
 }
 
