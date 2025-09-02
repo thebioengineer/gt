@@ -53,17 +53,20 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   margins <- ooxml_tbl_cell_margins(ooxml_type, margins)
   borders <- ooxml_cell_borders(ooxml_type, borders)
   fill    <- ooxml_fill(ooxml_type, fill)
+  v_merge <- ooxml_vMerge(ooxml_type, row_span)
+  v_align <- ooxml_vAlign(ooxml_type, v_align)
 
-  if (is.null(margins) && is.null(borders) && is.null(fill)) {
-    return(NULL)
-  }
-
-  ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
+  out <- ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
     margins,
     borders,
-    fill
+    fill,
+    v_merge,
+    v_align
   )
 
+  if (length(out$children) > 0L) {
+    out
+  }
 }
 
 # ooxml_cell_content -----------------------------------------------------------------
@@ -503,11 +506,54 @@ ooxml_cantSplit.ooxml_pptx <- function(ooxml_type) {
   NULL
 }
 
+# ooxml_vMerge  ---------------------------------------------------------------
+
+ooxml_vMerge <- function(ooxml_type, val = NULL) {
+  if (is.null(val)) {
+    return(NULL)
+  }
+
+  tag <- switch_ooxml_type(ooxml_type,
+    word = "w:vMerge",
+    pptx = cli::cli_abort("Vertical merge is not supported in pptx.")
+  )
+
+  ooxml_tag(tag,
+    "w:val" = rlang::arg_match(val, values = c("restart", "continue"))
+  )
+}
+
+
+# ooxml_vAlign ------------------------------------------------------------
+
+ooxml_vAlign <- function(ooxml_type, align = NULL) {
+  if (is.null(align)) {
+    return(NULL)
+  }
+
+  UseMethod("ooxml_vAlign")
+}
+
+#' @export
+ooxml_vAlign.ooxml_word <- function(ooxml_type, align = NULL) {
+  ooxml_tag("w:vAlign",
+    "w:val" = rlang::arg_match(align, values = c("top", "center", "bottom"))
+  )
+}
+
+#' @export
+ooxml_vAlign.ooxml_pptx <- function(ooxml_type, align = c("top", "center", "bottom")) {
+  ooxml_tag("a:anchor",
+    arg_match_names(align, values = c("top" = "t", "center" = "ctr", "bottom" = "b"))
+  )
+}
 
 # ooxml_tag ---------------------------------------------------------------
 
 ooxml_tag <- function(tag, ..., tag_class = tag) {
-  xml_tag <- htmltools::tag(`_tag_name` = tag, varArgs = list2(...))
+  varArgs <- list2(...)
+  varArgs <- varArgs[!sapply(varArgs, is.null)]
+  xml_tag <- htmltools::tag(`_tag_name` = tag, varArgs = varArgs)
   class(xml_tag) <- c(tag_class, "ooxml_tag", class(xml_tag))
   xml_tag
 }
