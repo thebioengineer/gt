@@ -56,17 +56,13 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   v_merge <- ooxml_vMerge(ooxml_type, row_span)
   v_align <- ooxml_vAlign(ooxml_type, v_align)
 
-  out <- ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
+  ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties", null_if_empty = TRUE,
     margins,
     borders,
     fill,
     v_merge,
     v_align
   )
-
-  if (length(out$children) > 0L) {
-    out
-  }
 }
 
 # ooxml_cell_content -----------------------------------------------------------------
@@ -550,9 +546,13 @@ ooxml_vAlign.ooxml_pptx <- function(ooxml_type, align = c("top", "center", "bott
 
 # ooxml_tag ---------------------------------------------------------------
 
-ooxml_tag <- function(tag, ..., tag_class = tag) {
+ooxml_tag <- function(tag, ..., tag_class = tag, null_if_empty = FALSE) {
   varArgs <- list2(...)
   varArgs <- varArgs[!sapply(varArgs, is.null)]
+  if (null_if_empty && length(varArgs) == 0L) {
+    return(NULL)
+  }
+
   xml_tag <- htmltools::tag(`_tag_name` = tag, varArgs = varArgs)
   class(xml_tag) <- c(tag_class, "ooxml_tag", class(xml_tag))
   xml_tag
