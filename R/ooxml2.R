@@ -23,7 +23,7 @@ ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
   content <- lapply(list2(...), ooxml_cell_content, ooxml_type = ooxml_type)
   ooxml_tag(
     "w:tc", tag_class = "ooxml_table_cell",
-    properties,
+    check_inherits(properties, "ooxml_tbl_cell_properties", accept_null = TRUE),
     !!!content
   )
 }
@@ -38,7 +38,7 @@ ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
   )
 
   ooxml_tag("a:tc", tag_class = "ooxml_table_cell",
-    properties,
+    check_inherits(properties, "ooxml_tbl_cell_properties", accept_null = TRUE),
     txBody
   )
 }
