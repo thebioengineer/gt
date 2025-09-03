@@ -20,7 +20,7 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
 
 #' @export
 ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
-  content <- lapply(list2(...), ooxml_cell_content, ooxml_type = ooxml_type)
+  content <- lapply(list2(...), ooxml_paragraph, ooxml_type = ooxml_type)
   ooxml_tag(
     "w:tc", tag_class = "ooxml_table_cell",
     check_inherits(properties, "ooxml_tbl_cell_properties", accept_null = TRUE),
@@ -30,7 +30,7 @@ ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
 
 #' @export
 ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
-  content <- lapply(list2(...), ooxml_cell_content, ooxml_type = ooxml_type)
+  content <- lapply(list2(...), ooxml_paragraph, ooxml_type = ooxml_type)
   txBody  <- ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
     ooxml_tag(tag = "a:bodyPr"),
     ooxml_tag(tag = "a:lstStyle"),
@@ -50,11 +50,11 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
 
   tag <- switch_ooxml_type(ooxml_type, word = "w:tcPr", pptx = "a:tcPr")
 
-  margins <- ooxml_tbl_cell_margins(ooxml_type, margins)
-  borders <- ooxml_cell_borders(ooxml_type, borders)
-  fill    <- ooxml_fill(ooxml_type, fill)
-  v_merge <- ooxml_vMerge(ooxml_type, row_span)
-  v_align <- ooxml_vAlign(ooxml_type, v_align)
+  margins  <- ooxml_tbl_cell_margins(ooxml_type, margins)
+  borders  <- ooxml_cell_borders(ooxml_type, borders)
+  fill     <- ooxml_fill(ooxml_type, fill)
+  v_merge  <- ooxml_vMerge(ooxml_type, row_span)
+  v_align  <- ooxml_vAlign(ooxml_type, v_align)
   gridSpan <- ooxml_gridSpan(ooxml_type, col_span)
 
   ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
@@ -67,16 +67,13 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   )
 }
 
-# ooxml_cell_content -----------------------------------------------------------------
+# ooxml_paragraph -----------------------------------------------------------------
 
-ooxml_cell_content <- function(ooxml_type, ..., properties) {
+ooxml_paragraph <- function(ooxml_type, ..., properties = NULL) {
   tag <- switch_ooxml_type(ooxml_type, word = "w:p", pptx = "a:p")
-  runs <- lapply(list(...), ooxml_run, ooxml_type = ooxml_type)
+  runs <- lapply(list2(...), ooxml_run, ooxml_type = ooxml_type)
 
-  ooxml_tag(tag, tag_class = "ooxml_cell_content",
-    properties,
-    !!!runs
-  )
+  ooxml_tag(tag, tag_class = "ooxml_paragraph", !!!runs)
 }
 
 # ooxml_run ---------------------------------------------------------------
@@ -89,24 +86,23 @@ ooxml_run <- function(ooxml_type, x, ..., properties = NULL) {
   tag <- switch_ooxml_type(ooxml_type, word = "w:r", pptx = "a:r")
 
   ooxml_tag(tag, tag_class = "ooxml_run",
-    ooxml_text(ooxml_type, x, space = space),
+    ooxml_text(ooxml_type, x),
     check_inherits(properties, "ooxml_run_properties", accept_null = TRUE)
   )
 }
 
-
 # ooxml_run_properties ----------------------------------------------------
 
-ooxml_run_properties <- function(ooxml_type, ..., font = NULL, style = NULL, size = NULL, color = NULL, background = NULL, space = c("default", "preserve")) {
-  font <- ooxml_font(ooxml_type, font)
-
+ooxml_run_properties <- function(ooxml_type, ..., font = NULL, style = NULL, size = NULL, color = NULL, weight = NULL) {
   tag <- switch_ooxml_type(ooxml_type, word = "w:rPr", pptx = "r:rPr")
-  ooxml_tag(tag,
-    font
+  ooxml_tag(tag, tag_class = "ooxml_run_properties",
+    ooxml_font(ooxml_type, font),
+    ooxml_size(ooxml_type, size),
+    ooxml_color(ooxml_type, color),
+    ooxml_style(ooxml_type, style),
+    ooxml_weight(ooxml_type, weight)
   )
-
 }
-
 
 # ooxml_text --------------------------------------------------------------
 
@@ -121,20 +117,6 @@ ooxml_text <- function(ooxml_type, x, ..., space = c("default", "preserve")) {
     "xml:space" = rlang::arg_match(space),
     htmltools::HTML(format(x))
   )
-}
-
-# ooxml_pPr ---------------------------------------------------------------
-
-ooxml_pPr <- function(ooxml_type, alignment = NULL) {
-  if (is.null(alignment)) {
-    return(NULL)
-  }
-  tag <- switch_ooxml_type(ooxml_type, word = "w:pPr", pptx = "a:pPr")
-
-  choices <- c(left="l", right = "r", centered = "ctr", justified = "just", distributed="dist")
-  alignment <- rlang::arg_match(alignment, names(choices))
-
-  ooxml_tag(tag, algn = choices[[alignment]])
 }
 
 # ooxml_cell_borders ------------------------------------------------------
@@ -608,6 +590,97 @@ ooxml_font.ooxml_pptx <- function(ooxml_type, font = NULL) {
 }
 
 
+# ooxml_size --------------------------------------------------------------
+
+ooxml_size <- function(ooxml_type, size = NULL) {
+  if (is.null(size)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_size")
+}
+
+#' @export
+ooxml_size.ooxml_word <- function(ooxml_type, size) {
+  ooxml_tag("w:sz", "w:val" = check_scalar_integer(size) * 2)
+}
+
+#' @export
+ooxml_size.ooxml_pptx <- function(ooxml_type, size) {
+  rlang::splice(list("sz" = check_scalar_integer(size) * 100))
+}
+
+# ooxml_color --------------------------------------------------------------
+
+ooxml_color <- function(ooxml_type, color = NULL) {
+  if (is.null(color)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_color")
+}
+
+#' @export
+ooxml_color.ooxml_word <- function(ooxml_type, color) {
+  ooxml_tag("w:color", "w:val" = as_hex_code(color))
+}
+
+#' @export
+ooxml_color.ooxml_pptx <- function(ooxml_type, color) {
+  ooxml_tag("a:solidFill",
+    ooxml_tag("a:srgbClr", val = as_hex_code(color))
+  )
+}
+
+# ooxml_style --------------------------------------------------------------
+
+ooxml_style <- function(ooxml_type, style = NULL) {
+  if (is.null(style)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_style")
+}
+
+#' @export
+ooxml_style.ooxml_word <- function(ooxml_type, style = NULL) {
+  if (identical(style, "italic")) {
+    ooxml_tag("w:i")
+  }
+}
+
+#' @export
+ooxml_style.ooxml_pptx <- function(ooxml_type, style = NULL) {
+  out <- list()
+  if (identical(style, "italic")) {
+    out <- c(out, list(i = "1"))
+  }
+  rlang::splice(out)
+}
+
+# ooxml_weight --------------------------------------------------------------
+
+ooxml_weight <- function(ooxml_type, weight = NULL) {
+  if (is.null(weight)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_weight")
+}
+
+#' @export
+ooxml_weight.ooxml_word <- function(ooxml_type, weight = NULL) {
+  if (identical(style, "bold")) {
+    ooxml_tag("w:b")
+  }
+}
+
+#' @export
+ooxml_weight.ooxml_pptx <- function(ooxml_type, weight = NULL) {
+  out <- list()
+  if (identical(style, "bold")) {
+    out <- c(out, list(b = "1"))
+  }
+  rlang::splice(out)
+}
+
+
 # ooxml_tag ---------------------------------------------------------------
 
 ooxml_tag <- function(tag, ..., tag_class = tag) {
@@ -666,6 +739,16 @@ check_inherits <- function(x, class, accept_null = TRUE, error_arg = caller_arg(
   x
 }
 
+check_scalar_integer <- function(x, error_arg = caller_arg(x), error_call = caller_env()) {
+  if (!rlang::is_integerish(x, n = 1L)) {
+    cli::cli_abort(call = error_call,
+      "{.arg {error_arg}} must be a single integer."
+    )
+  }
+  as.integer(x)
+}
+
+
 switch_ooxml_type <- function(ooxml_type, word, pptx, error_call = caller_env()) {
   switch(class(ooxml_type),
     ooxml_word = word,
@@ -673,5 +756,4 @@ switch_ooxml_type <- function(ooxml_type, word, pptx, error_call = caller_env())
     default    = cli::cli_abort("Unknown ooxml type {.cls {class(ooxml_type)}}")
   )
 }
-
 
