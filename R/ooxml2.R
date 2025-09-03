@@ -110,15 +110,15 @@ ooxml_run_properties <- function(ooxml_type, ..., font = NULL, style = NULL, siz
 
 # ooxml_text --------------------------------------------------------------
 
-ooxml_text <- function(ooxml_type, x, ..., space = c("default", "preserve"), error_call = current_env()) {
+ooxml_text <- function(ooxml_type, x, ..., space = c("default", "preserve")) {
   if (inherits(x, "ooxml_text")) {
     return(x)
   }
+  rlang::check_dots_empty()
   tag <- switch_ooxml_type(ooxml_type, word = "w:t", pptx = "a:t")
 
-  space_attr <- ooxml_space_attr(space, error_call = error_call)
   ooxml_tag(tag, tag_class = "ooxml_text",
-    !!!space_attr,
+    "xml:space" = rlang::arg_match(space),
     htmltools::HTML(format(x))
   )
 }
@@ -619,13 +619,6 @@ ooxml_tag <- function(tag, ..., tag_class = tag) {
 }
 
 # tools -------------------------------------------------------------------
-
-ooxml_space_attr <- function(space = c("default", "preserve"), error_call = caller_env()) {
-  space <- rlang::arg_match(space, error_call = error_call)
-  if (space == "preserve") {
-    list(`xml:space` = "preserve")
-  }
-}
 
 as_hex_code <- function(x) {
   tryCatch({
