@@ -317,12 +317,12 @@ ooxml_tbl_header <- function(ooxml_type) {
 
 # ooxml_tblPr -------------------------------------------------------------
 
-ooxml_tblPr <- function(ooxml_type, ...) {
-  UseMethod("ooxml_tblPr")
+ooxml_tbl_properties <- function(ooxml_type, ...) {
+  UseMethod("ooxml_tbl_properties")
 }
 
 #' @export
-ooxml_tblPr.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed"), justify = c("center", "start","end"), width="100%", look = c("First Row"), tableStyle=NULL) {
+ooxml_tbl_properties.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width="100%", look = c("First Row"), tableStyle=NULL) {
   rlang::check_dots_empty()
 
   if (!rlang::is_character(width, n = 1)) {
@@ -338,7 +338,7 @@ ooxml_tblPr.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed
     width <- gsub("%$", "", width)
   }
 
-  ooxml_tag("w:tblPr",
+  ooxml_tag("w:tblPr", tag_class = "ooxml_tbl_properties",
     ooxml_tag("w:tblLayout", "w:type" = rlang::arg_match(layout)),
     ooxml_tag("w:jc", "w:val" = rlang::arg_match(justify)),
     ooxml_tag("w:tblW", "w:type" = w_type, "w:w" = width),
@@ -354,9 +354,9 @@ ooxml_tblPr.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed
 }
 
 #' @export
-ooxml_tblPr.ooxml_pptx <- function(ooxml_type, ..., look = c("First Column","Banded Rows"), tableStyle = NA) {
+ooxml_tbl_properties.ooxml_pptx <- function(ooxml_type, ..., justify = c("center", "start", "end"), look = c("First Column","Banded Rows"), tableStyle = NULL) {
 
-  ooxml_tag("a:tblPr",
+  ooxml_tag("a:tblPr", tag_class = "ooxml_tbl_properties",
     "a:firstColumn" = as.numeric("first column" %in% look),
     "a:firstRow"    = as.numeric("first row" %in% look),
     "a:lastCol"     = as.numeric("last column" %in% look),
@@ -364,7 +364,10 @@ ooxml_tblPr.ooxml_pptx <- function(ooxml_type, ..., look = c("First Column","Ban
     "a:bandCol"     = as.numeric("banded columns" %in% look),
     "a:bandRow"     = as.numeric("banded rows" %in% look),
 
-    ooxml_tag("a:tableStyleId", tableStyle)
+    ooxml_tag("a:tblAlign", val = arg_match_names(justify,
+      values = c("center" = "ctr", "start" = "l", end = "r"))
+    ),
+    if (!is.null(tableStyle)) ooxml_tag("a:tableStyleId", tableStyle)
   )
 }
 
