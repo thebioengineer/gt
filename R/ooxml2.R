@@ -429,38 +429,47 @@ ooxml_tbl_property_width.ooxml_pptx <- function(ooxml_type, width = NULL) {
   NULL
 }
 
-# ooxml_tblGrid -----------------------------------------------------------
+# ooxml_tbl_grid -----------------------------------------------------------
 
-ooxml_tblGrid <- function(ooxml_type, ...) {
-  tag <- switch_ooxml_type(ooxml_type, word = "w:tblGrid", pptx = "a:tblGrid")
-  gridCols <- lapply(list2(...), ooxml_gridCol, ooxml_type = ooxml_type)
-  ooxml_tag(tag, !!!gridCols)
+ooxml_tbl_grid <- function(ooxml_type, widths) {
+  UseMethod("ooxml_tbl_grid")
+}
+
+#' @export
+ooxml_tbl_grid.ooxml_word <- function(ooxml_type, widths) {
+  if (all(sapply(widths, is.null))) {
+    return(NULL)
+  }
+  gridCols <- lapply(widths, ooxml_gridCol, ooxml_type = ooxml_type)
+  ooxml_tag("w:tblGrid", !!!gridCols)
+}
+
+#' @export
+ooxml_tbl_grid.ooxml_pptx <- function(ooxml_type, widths) {
+  gridCols <- lapply(widths, ooxml_gridCol, ooxml_type = ooxml_type)
+  ooxml_tag("a:tblGrid", !!!gridCols)
 }
 
 # ooxml_gridCol -----------------------------------------------------------
 
-ooxml_gridCol <- function(ooxml_type, width = NA_integer_) {
-  if (!rlang::is_integerish(width, n = 1)){
-    cli::cli_abort("{.arg width} should be a length one integer.")
-  }
-
+ooxml_gridCol <- function(ooxml_type, width = NULL) {
   UseMethod("ooxml_gridCol")
 }
 
 #' @export
-ooxml_gridCol.ooxml_word <- function(ooxml_type, width = NA_integer_) {
-  gridWidth <- if (!is.na(width)) {
-    list("w:w" = width)
+ooxml_gridCol.ooxml_word <- function(ooxml_type, width = NULL) {
+  if (is.null(width)) {
+    return(NULL)
   }
-  ooxml_tag("w:gridCol", !!!gridWidth)
+  ooxml_tag("w:gridCol", "w:w" = width)
 }
 
 #' @export
-ooxml_gridCol.ooxml_pptx <- function(ooxml_type, width = NA_integer_) {
-  gridWidth <- if (!is.na(width)) {
-    list("w" = width)
+ooxml_gridCol.ooxml_pptx <- function(ooxml_type, width = NULL) {
+  if (is.null(width)) {
+    return(NULL)
   }
-  ooxml_tag("a:gridCol", !!!gridWidth)
+  ooxml_tag("a:gridCol", "w" = width)
 }
 
 # ooxml_fill --------------------------------------------------------------
