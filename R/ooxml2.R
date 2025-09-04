@@ -322,26 +322,19 @@ ooxml_tbl_properties <- function(ooxml_type, ...) {
 }
 
 #' @export
-ooxml_tbl_properties.ooxml_word <- function(ooxml_type, ..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width="100%", look = c("First Row"), tableStyle=NULL) {
+ooxml_tbl_properties.ooxml_word <- function(ooxml_type, ..., justify = c("center", "start", "end"), margins = NULL, width = NULL, look = c("First Row"), tableStyle = NULL, layout = c("autofit", "fixed")) {
   rlang::check_dots_empty()
 
-  if (!rlang::is_character(width, n = 1)) {
-    cli::cli_abort("{.arg width} must be a scalar character value.")
-  }
   if (!rlang::is_character(look)) {
     cli::cli_abort("{.arg look} must be a character vector.")
   }
-
-  w_type <- "dxa"
-  if(grepl("%$", width)){
-    w_type <- "pct"
-    width <- gsub("%$", "", width)
-  }
+  look <- tolower(look)
 
   ooxml_tag("w:tblPr", tag_class = "ooxml_tbl_properties",
+    ooxml_tbl_property_cell_margins(ooxml_type, margins),
     ooxml_tag("w:tblLayout", "w:type" = rlang::arg_match(layout)),
     ooxml_tag("w:jc", "w:val" = rlang::arg_match(justify)),
-    ooxml_tag("w:tblW", "w:type" = w_type, "w:w" = width),
+    ooxml_tbl_property_width(ooxml_type, width),
     ooxml_tag("w:tblLook",
       "w:firstColumn" = as.numeric("first column" %in% look),
       "w:firstRow"    = as.numeric("first row" %in% look),
@@ -354,7 +347,12 @@ ooxml_tbl_properties.ooxml_word <- function(ooxml_type, ..., layout = c("autofit
 }
 
 #' @export
-ooxml_tbl_properties.ooxml_pptx <- function(ooxml_type, ..., justify = c("center", "start", "end"), look = c("First Column","Banded Rows"), tableStyle = NULL) {
+ooxml_tbl_properties.ooxml_pptx <- function(ooxml_type, ..., justify = c("center", "start", "end"), margins = NULL, width = NULL, look = c("First Row"), tableStyle = NULL) {
+
+  if (!rlang::is_character(look)) {
+    cli::cli_abort("{.arg look} must be a character vector.")
+  }
+  look <- tolower(look)
 
   ooxml_tag("a:tblPr", tag_class = "ooxml_tbl_properties",
     "a:firstColumn" = as.numeric("first column" %in% look),
@@ -367,10 +365,69 @@ ooxml_tbl_properties.ooxml_pptx <- function(ooxml_type, ..., justify = c("center
     ooxml_tag("a:tblAlign", val = arg_match_names(justify,
       values = c("center" = "ctr", "start" = "l", end = "r"))
     ),
+    ooxml_tbl_property_cell_margins(ooxml_type, margins),
     if (!is.null(tableStyle)) ooxml_tag("a:tableStyleId", tableStyle)
   )
 }
 
+
+# ooxml_tbl_property_cell_margins -----------------------------------------
+
+ooxml_tbl_property_cell_margins <- function(ooxml_type, margins) {
+  if (is.null(margins)) {
+    return(NULL)
+  }
+  UseMethod("ooxml_tbl_property_cell_margins")
+}
+
+#' @export
+ooxml_tbl_property_cell_margins.ooxml_word <- function(ooxml_type, margins) {
+  ooxml_tag("w:tblCellMar", tag_class = "ooxml_tbl_property_cell_margins",
+    if (!is.null(margins[["top"]]))    ooxml_tag("w:top"   , "w:type" = "dxa", "w:w" = margins[["top"]]),
+    if (!is.null(margins[["bottom"]])) ooxml_tag("w:bottom", "w:type" = "dxa", "w:w" = margins[["top"]]),
+    if (!is.null(margins[["right"]]))  ooxml_tag("w:right" , "w:type" = "dxa", "w:w" = margins[["right"]]),
+    if (!is.null(margins[["left"]]))   ooxml_tag("w:left"  , "w:type" = "dxa", "w:w" = margins[["left"]])
+  )
+}
+
+#' @export
+ooxml_tbl_property_cell_margins.ooxml_pptx <- function(ooxml_type, margins) {
+  ooxml_tag("a:cellMar", tag_class = "ooxml_tbl_property_cell_margins",
+    if (!is.null(margins[["top"]]))    ooxml_tag("a:top"   , "mar" = margins[["top"]]),
+    if (!is.null(margins[["bottom"]])) ooxml_tag("a:bottom", "mar" = margins[["top"]]),
+    if (!is.null(margins[["right"]]))  ooxml_tag("a:right" , "mar" = margins[["right"]]),
+    if (!is.null(margins[["left"]]))   ooxml_tag("a:left"  , "mar" = margins[["left"]])
+  )
+}
+
+
+# ooxml_tbl_property_width ------------------------------------------------
+
+ooxml_tbl_property_width <- function(ooxml_type, width = NULL) {
+  UseMethod("ooxml_tbl_property_width")
+}
+
+#' @export
+ooxml_tbl_property_width.ooxml_word <- function(ooxml_type, width = NULL) {
+  if (is.null(width)) {
+    return(ooxml_tag("w:tblW", "w:w" = "0", "w:type" = "auto"))
+  }
+
+  if (!rlang::is_character(width, n = 1)) {
+    cli::cli_abort("{.arg width} must be a scalar character value.")
+  }
+  w_type <- "dxa"
+  if(grepl("%$", width)){
+    w_type <- "pct"
+    width <- gsub("%$", "", width)
+  }
+  ooxml_tag("w:tblW", "w:w" = width, "w:type" = w_type)
+}
+
+#' @export
+ooxml_tbl_property_width.ooxml_pptx <- function(ooxml_type, width = NULL) {
+  NULL
+}
 
 # ooxml_tblGrid -----------------------------------------------------------
 
