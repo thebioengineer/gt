@@ -249,7 +249,7 @@ ooxml_tbl_row.ooxml_word <- function(ooxml_type, ..., is_header = FALSE) {
   content <- ooxml_list(ooxml_type, "ooxml_tbl_cell", ooxml_tbl_cell, ...)
 
   ooxml_tag("w:tr", tag_class = "ooxml_tbl_row",
-    ooxml_trPr(ooxml_type, is_header = is_header),
+    ooxml_tbl_row_properties(ooxml_type, is_header = is_header),
     !!!content
   )
 }
@@ -260,7 +260,7 @@ ooxml_tbl_row.ooxml_pptx <- function(ooxml_type, x, ..., is_header = FALSE, heig
 
   ooxml_tag("a:tr", tag_class = "ooxml_tbl_row",
     h = height,
-    ooxml_trPr(ooxml_type, is_header = is_header),
+    ooxml_tbl_row_properties(ooxml_type, is_header = is_header),
     !!!content
   )
 }
@@ -317,16 +317,16 @@ ooxml_trHeight.ooxml_pptx <- function(ooxml_type, value, ..., error_call = curre
   NULL
 }
 
-# ooxml_trPr --------------------------------------------------------------
+# ooxml_tbl_row_properties --------------------------------------------------------------
 
-ooxml_trPr <- function(ooxml_type, ...) {
-  UseMethod("ooxml_trPr")
+ooxml_tbl_row_properties <- function(ooxml_type, ...) {
+  UseMethod("ooxml_tbl_row_properties")
 }
 
 #' @export
-ooxml_trPr.ooxml_word <- function(ooxml_type, ..., is_header = FALSE, hidden = FALSE, height = "auto") {
+ooxml_tbl_row_properties.ooxml_word <- function(ooxml_type, ..., is_header = FALSE, hidden = FALSE, height = "auto") {
   rlang::check_dots_empty()
-  ooxml_tag("w:trPr",
+  ooxml_tag("w:trPr", tag_class = "ooxml_tbl_row_properties",
     if (is_header) ooxml_tbl_header(ooxml_type),
     if (hidden) ooxml_cantSplit(ooxml_type),
     ooxml_trHeight(ooxml_type, value = height)
@@ -334,7 +334,7 @@ ooxml_trPr.ooxml_word <- function(ooxml_type, ..., is_header = FALSE, hidden = F
 }
 
 #' @export
-ooxml_trPr.ooxml_pptx <- function(ooxml_type, ...) {
+ooxml_tbl_row_properties.ooxml_pptx <- function(ooxml_type, ...) {
   NULL
 }
 
