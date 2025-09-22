@@ -19,7 +19,7 @@ as_ooxml_tbl <- function(
   tbl_grid <- create_table_grid_ooxml(ooxml_type, data = data)
 
   tbl_spanner_rows <- create_spanner_rows_ooxml(ooxml_type, data = data)
-  tbl_table_rows <- create_table_rows_ooxml(ooxml_type, data = data)
+  tbl_table_rows   <- create_table_rows_ooxml(ooxml_type, data = data)
 
   ooxml_tbl(ooxml_type,
     properties = tbl_properties,
@@ -239,19 +239,6 @@ create_table_rows_ooxml <- function(ooxml_type, data) {
     n_cols <- n_data_cols
   }
 
-  # Define function to get a character vector of formatted cell
-  # data (this includes the stub, if it is present)
-  output_df_row_as_vec <- function(i) {
-
-    default_vals <- all_default_vals[i, ]
-
-    if (stub_available) {
-      default_vals <- c(all_stub_vals[i], default_vals)
-    }
-
-    default_vals
-  }
-
   if (anyNA(groups_rows_df$group_label)) {
     # Replace an NA group with an empty string
     groups_rows_df$group_label[is.na(groups_rows_df$group_label)] <- ""
@@ -260,107 +247,161 @@ create_table_rows_ooxml <- function(ooxml_type, data) {
       gsub("^NA", "\u2014", groups_rows_df$group_label)
   }
 
-  create_group_heading_row_ooxml <- function(i) {
-    row_group_border_top_color    <- dt_options_get_value(data = data, option = "row_group_border_top_color")
-    row_group_border_bottom_color <- dt_options_get_value(data = data, option = "row_group_border_bottom_color")
-    row_group_border_left_color   <- dt_options_get_value(data = data, option = "row_group_border_left_color")
-    row_group_border_right_color  <- dt_options_get_value(data = data, option = "row_group_border_right_color")
-
-    group_row   <- which(groups_rows_df$row_start %in% i)
-    group_label <- groups_rows_df[group_row, "group_label"][[1]]
-
-    cell_style <- vctrs::vec_slice(styles_tbl,
-      styles_tbl$locname == "row_groups" & styles_tbl$rownum == (i - 0.1)
-    )
-    cell_style <- cell_style$styles[1][[1]]
-
-    properties <- ooxml_tbl_properties(ooxml_type, hidden = FALSE)
-
-    ooxml_tbl_row(ooxml_type,
-      properties = properties,
-      ooxml_tbl_cell(ooxml_type,
-        ooxml_paragraph(ooxml_type,
-          ooxml_run(ooxml_type,
-            ooxml_text(ooxml_type, group_label,
-              space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
-            ),
-            properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
-          )
-        ),
-        properties = ooxml_tbl_cell_properties(ooxml_type,
-          borders  = borders,
-          fill     = cell_style[["cell_fill"]][["color"]],
-          v_align  = cell_style[["cell_text"]][["v_align"]],
-          col_span = colspans[i],
-          margins  = list(top = list(width = 25))
-        )
-      )
-    )
-  }
-
-  create_row_ooxml <- function(i) {
-    table_body_hlines_color   <- dt_options_get_value(data = data, option = "table_body_hlines_color")
-    table_body_vlines_color   <- dt_options_get_value(data = data, option = "table_body_vlines_color")
-    table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
-    table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
-
-    row_idx <- i
-    row_vec <- output_df_row_as_vec(i)
-
-    cells <- lapply(seq_along(row_vec), \(y) {
-      style_col_idx <- ifelse(stub_available, y - 1, y)
-
-      cell_style <- vctrs::vec_slice(styles_tbl,
-        styles_tbl$locname %in% c("data","stub") &
-        styles_tbl$rownum == i &
-        styles_tbl$colnum == style_col_idx
-      )
-      cell_style <- cell_style$styles[1][[1]]
-
-      ooxml_tbl_cell(ooxml_type,
-        ooxml_paragraph(ooxml_type,
-          ooxml_run(ooxml_type,
-            ooxml_text(ooxml_type, row_vec[y],
-              space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
-            ),
-            properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
-          )
-        ),
-        properties = ooxml_tbl_cell_properties(ooxml_type,
-          borders  = list(
-            top    = list(color = table_body_hlines_color),
-            bottom = list(color = table_body_hlines_color),
-            left   = list(color = table_body_vlines_color),
-            right  = list(color = table_body_vlines_color)
-          ),
-          fill     = cell_style[["cell_fill"]][["color"]],
-          v_align  = cell_style[["cell_text"]][["v_align"]],
-          margins  = list(
-            top = list(width = 25)
-          )
-        )
-      )
-    })
-
-    ooxml_tbl_row(ooxml_type, !!!cells)
-  }
-
-
   body_rows <- list()
   for (i in seq_len(n_rows)) {
-
-    # group heading row
-    if (!is.null(groups_rows_df) && i %in% groups_rows_df$row_start) {
-      body_rows <- append(body_rows, list(create_group_heading_row_ooxml(i)))
-    }
-
-    # row
-    body_rows <- append(body_rows, list(create_row_ooxml(i)))
-
+    body_rows <- list3(!!!body_rows,
+      create_group_heading_row_ooxml(ooxml_type, data, i),
+      create_summary_section_row_ooxml(ooxml_type, data, i, "top"),
+      create_body_row_ooxml(ooxml_type, data, i),
+      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom")
+    )
   }
 
   body_rows
 }
 
+create_group_heading_row_ooxml <- function(ooxml_type, data, i) {
+  groups_rows_df <- dt_groups_rows_get(data = data)
+  if (is.null(groups_rows_df) || !i %in% groups_rows_df$row_start) {
+    return(NULL)
+  }
+  styles_tbl <- dt_styles_get(data = data)
 
+  row_group_border_top_color    <- dt_options_get_value(data = data, option = "row_group_border_top_color")
+  row_group_border_bottom_color <- dt_options_get_value(data = data, option = "row_group_border_bottom_color")
+  row_group_border_left_color   <- dt_options_get_value(data = data, option = "row_group_border_left_color")
+  row_group_border_right_color  <- dt_options_get_value(data = data, option = "row_group_border_right_color")
+
+  group_row   <- which(groups_rows_df$row_start %in% i)
+  group_label <- groups_rows_df[group_row, "group_label"][[1]]
+
+  cell_style <- vctrs::vec_slice(styles_tbl,
+    styles_tbl$locname == "row_groups" & styles_tbl$rownum == (i - 0.1)
+  )
+  cell_style <- cell_style$styles[1][[1]]
+
+  ooxml_tbl_row(ooxml_type,
+    properties = ooxml_tbl_properties(ooxml_type, hidden = FALSE),
+    ooxml_tbl_cell(ooxml_type,
+      ooxml_paragraph(ooxml_type,
+        ooxml_run(ooxml_type,
+          ooxml_text(ooxml_type, group_label,
+            space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
+          ),
+          properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
+        )
+      ),
+      properties = ooxml_tbl_cell_properties(ooxml_type,
+        borders  = borders,
+        fill     = cell_style[["cell_fill"]][["color"]],
+        v_align  = cell_style[["cell_text"]][["v_align"]],
+        col_span = colspans[i],
+        margins  = list(top = list(width = 25))
+      )
+    )
+  )
+}
+
+create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top", "bottom")) {
+  summaries_present <- dt_summary_exists(data = data)
+  groups_rows_df <- dt_groups_rows_get(data = data)
+
+  if (!summaries_present || nrow(groups_rows_df) == 0) {
+    return(NULL)
+  }
+
+  group_info <- groups_rows_df[i >= groups_rows_df$row_start & i <= groups_rows_df$row_end, ]
+  group_summary_row_side <- unique(group_info[, "summary_row_side"])[[1]]
+
+  if (group_summary_row_side != rlang::arg_match(side)) {
+    return(NULL)
+  }
+
+  group_row_add_row_loc <- group_info[,ifelse(group_summary_row_side == "top", "row_start", "row_end")][[1]]
+
+  if (i != group_row_add_row_loc) {
+    return(NULL)
+  }
+
+  summary_styles <- vctrs::vec_slice(styles_tbl,
+    styles_tbl$locname %in% c("summary_cells") &
+    styles_tbl$grpname %in% group_info[["group_id"]]
+  )
+  summary_styles$rownum <- ceiling(summary_styles$rownum * 100 - i * 100)
+
+  # summary_section <- summary_rows_xml(
+  #   list_of_summaries = list_of_summaries,
+  #   boxh = boxh,
+  #   group_id = group_info[["group_id"]],
+  #   locname = "summary_cells",
+  #   col_alignment = col_alignment,
+  #   table_body_hlines_color = table_body_hlines_color,
+  #   table_body_vlines_color = table_body_vlines_color,
+  #   styles = summary_styles,
+  #   split = split,
+  #   keep_with_next = keep_with_next
+  # )
+  # summary_section
+
+  NULL
+}
+
+create_body_row_ooxml <- function(ooxml_type, data, i) {
+  body <- dt_body_get(data = data)
+  styles_tbl <- dt_styles_get(data = data)
+  stub_components <- dt_stub_components(data = data)
+  summaries_present <- dt_summary_exists(data = data)
+  stub_available <- dt_stub_components_has_rowname(stub_components) || summaries_present
+
+  table_body_hlines_color   <- dt_options_get_value(data = data, option = "table_body_hlines_color")
+  table_body_vlines_color   <- dt_options_get_value(data = data, option = "table_body_vlines_color")
+  table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
+  table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
+
+  row_cell <- function(cell_style, text) {
+    ooxml_tbl_cell(ooxml_type,
+      ooxml_paragraph(ooxml_type,
+        ooxml_run(ooxml_type,
+          ooxml_text(ooxml_type, text,
+            space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
+          ),
+          properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
+        )
+      ),
+      properties = ooxml_tbl_cell_properties(ooxml_type,
+        borders  = list(
+          top    = list(color = table_body_hlines_color),
+          bottom = list(color = table_body_hlines_color),
+          left   = list(color = table_body_vlines_color),
+          right  = list(color = table_body_vlines_color)
+        ),
+        fill     = cell_style[["cell_fill"]][["color"]],
+        v_align  = cell_style[["cell_text"]][["v_align"]],
+        margins  = list(
+          top = list(width = 25)
+        )
+      )
+    )
+  }
+
+  stub_cell <- if (stub_available) {
+    cell_style <- vctrs::vec_slice(styles_tbl, styles_tbl$locname == "stub" & styles_tbl$rownum == i)
+    row_cell(
+      cell_style$styles[1][[1]],
+      text = body[, dt_boxhead_get_var_stub(data = data)])
+  }
+
+  row_vec <- unname(as.matrix(body[i, dt_boxhead_get_vars_default(data = data)]))
+
+  data_cells <- lapply(seq_along(row_vec), \(j) {
+    cell_style <- vctrs::vec_slice(styles_tbl,
+      styles_tbl$locname %in% "data" & styles_tbl$rownum == i & styles_tbl$colnum == j
+    )
+    cell_style <- cell_style$styles[1][[1]]
+
+    row_cell(cell_style, text = row_vec[j])
+  })
+
+  ooxml_tbl_row(ooxml_type, stub_cell, !!!data_cells)
+}
 

@@ -785,6 +785,12 @@ switch_ooxml_type <- function(ooxml_type, word, pptx, error_call = caller_env())
   )
 }
 
+list3 <- function(...) {
+  dots <- list2(...)
+  dots <- dots[!sapply(dots, is.null)]
+  dots
+}
+
 ooxml_list <- function(ooxml_type, tag_class, tag_fun, ...) {
   dots <- list2(...)
   dots <- dots[!sapply(dots, is.null)]
