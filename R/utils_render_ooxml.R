@@ -16,8 +16,7 @@ as_ooxml_tbl <- function(
   #
   # things are different in word where we can have w:tblLayoutType="autofit" and then
   # not have a <w:tblGrid> node
-  tbl_grid <- create_table_grid_ooxml(ooxml_type, data = data)
-
+  tbl_grid         <- create_table_grid_ooxml(ooxml_type, data = data)
   tbl_spanner_rows <- create_spanner_rows_ooxml(ooxml_type, data = data)
   tbl_table_rows   <- create_table_rows_ooxml(ooxml_type, data = data)
 
@@ -43,7 +42,6 @@ create_table_properties_ooxml <- function(ooxml_type, data , align = c("center",
   )
 }
 
-
 # table grid --------------------------------------------------------------
 
 create_table_grid_ooxml <- function(ooxml_type, data) {
@@ -54,10 +52,8 @@ create_table_grid_ooxml <- function(ooxml_type, data) {
   widths <- dplyr::arrange(widths, dplyr::desc(type))$column_width
 
   # widths may be NULL, pct(), px() ...
-
   ooxml_tblGrid(ooxml_type, !!!widths)
 }
-
 
 # spanner rows ------------------------------------------------------------
 
@@ -346,62 +342,90 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
   NULL
 }
 
+
+# body row ----------------------------------------------------------------
+
 create_body_row_ooxml <- function(ooxml_type, data, i) {
+  vars <- dt_boxhead_get_vars_default(data = data)
+  data_cells <- lapply(seq_along(vars), \(j) {
+    create_body_row_data_cell_ooxml(ooxml_type, data, i = i, j = j)
+  })
+
+  ooxml_tbl_row(ooxml_type,
+    create_body_row_stub_cell_ooxml(ooxml_type, data, i),
+    !!!data_cells
+  )
+}
+
+## stub cell ---------------------------------------------------------------
+
+create_body_row_stub_cell_ooxml <- function(ooxml_type, data, i) {
+  stub_components   <- dt_stub_components(data = data)
+  summaries_present <- dt_summary_exists(data = data)
+  stub_available    <- dt_stub_components_has_rowname(stub_components) || summaries_present
+
+  if (stub_available) {
+    body <- dt_body_get(data = data)
+    styles_tbl <- dt_styles_get(data = data)
+
+    cell_style <- vctrs::vec_slice(styles_tbl,
+      styles_tbl$locname == "stub" & styles_tbl$rownum == i
+    )
+    cell_style <- cell_style$styles[1][[1]]
+    text <- as.character(body[i, dt_boxhead_get_var_stub(data = data)])
+
+    create_body_row_cell_ooxml(ooxml_type, data, cell_style = cell_style, text = text)
+  }
+}
+
+## data cell ---------------------------------------------------------------
+
+create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j) {
   body <- dt_body_get(data = data)
   styles_tbl <- dt_styles_get(data = data)
-  stub_components <- dt_stub_components(data = data)
-  summaries_present <- dt_summary_exists(data = data)
-  stub_available <- dt_stub_components_has_rowname(stub_components) || summaries_present
 
+  var <- dt_boxhead_get_vars_default(data = data)[j]
+
+  cell_style <- vctrs::vec_slice(styles_tbl,
+    styles_tbl$locname %in% "data" & styles_tbl$rownum == i & styles_tbl$colnum == j
+  )
+  cell_style <- cell_style$styles[1][[1]]
+
+  text <- as.character(body[i, j])
+  create_body_row_cell_ooxml(ooxml_type, data, cell_style = cell_style, text = text)
+}
+
+
+create_body_row_cell_ooxml <- function(ooxml_type, data, cell_style, text) {
   table_body_hlines_color   <- dt_options_get_value(data = data, option = "table_body_hlines_color")
   table_body_vlines_color   <- dt_options_get_value(data = data, option = "table_body_vlines_color")
   table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
   table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
 
-  row_cell <- function(cell_style, text) {
-    ooxml_tbl_cell(ooxml_type,
-      ooxml_paragraph(ooxml_type,
-        ooxml_run(ooxml_type,
-          ooxml_text(ooxml_type, text,
-            space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
-          ),
-          properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
-        )
-      ),
-      properties = ooxml_tbl_cell_properties(ooxml_type,
-        borders  = list(
-          top    = list(color = table_body_hlines_color),
-          bottom = list(color = table_body_hlines_color),
-          left   = list(color = table_body_vlines_color),
-          right  = list(color = table_body_vlines_color)
+  ooxml_tbl_cell(ooxml_type,
+    ooxml_paragraph(ooxml_type,
+      ooxml_run(ooxml_type,
+        ooxml_text(ooxml_type, text,
+          space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
         ),
-        fill     = cell_style[["cell_fill"]][["color"]],
-        v_align  = cell_style[["cell_text"]][["v_align"]],
-        margins  = list(
-          top = list(width = 25)
-        )
+        properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
+      )
+    ),
+    properties = ooxml_tbl_cell_properties(ooxml_type,
+      borders  = list(
+        top    = list(color = table_body_hlines_color),
+        bottom = list(color = table_body_hlines_color),
+        left   = list(color = table_body_vlines_color),
+        right  = list(color = table_body_vlines_color)
+      ),
+      fill     = cell_style[["cell_fill"]][["color"]],
+      v_align  = cell_style[["cell_text"]][["v_align"]],
+      margins  = list(
+        top = list(width = 25)
       )
     )
-  }
-
-  stub_cell <- if (stub_available) {
-    cell_style <- vctrs::vec_slice(styles_tbl, styles_tbl$locname == "stub" & styles_tbl$rownum == i)
-    row_cell(
-      cell_style$styles[1][[1]],
-      text = body[, dt_boxhead_get_var_stub(data = data)])
-  }
-
-  row_vec <- unname(as.matrix(body[i, dt_boxhead_get_vars_default(data = data)]))
-
-  data_cells <- lapply(seq_along(row_vec), \(j) {
-    cell_style <- vctrs::vec_slice(styles_tbl,
-      styles_tbl$locname %in% "data" & styles_tbl$rownum == i & styles_tbl$colnum == j
-    )
-    cell_style <- cell_style$styles[1][[1]]
-
-    row_cell(cell_style, text = row_vec[j])
-  })
-
-  ooxml_tbl_row(ooxml_type, stub_cell, !!!data_cells)
+  )
 }
+
+
 
