@@ -1,7 +1,6 @@
 #' @importFrom grDevices col2rgb rgb
 NULL
 
-
 # ooxml types --------------------------------------------------------------
 
 ooxml_word <- function() {
@@ -52,7 +51,13 @@ ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
 
 #' @export
 ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
-  content <- lapply(list2(...), ooxml_paragraph, ooxml_type = ooxml_type)
+  content <- lapply(list2(...), \(x) {
+    if (!inherits(x, "ooxml_paragraph")) {
+      x <- ooxml_paragraph(ooxml_type, x)
+    }
+    x
+  })
+
   txBody  <- ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
     ooxml_tag(tag = "a:bodyPr"),
     ooxml_tag(tag = "a:lstStyle"),
