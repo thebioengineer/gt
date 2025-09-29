@@ -51,7 +51,7 @@ ooxml_tbl_cell.ooxml_word <- function(ooxml_type, ..., properties = NULL) {
 
 #' @export
 ooxml_tbl_cell.ooxml_pptx <- function(ooxml_type, ..., properties = NULL) {
-  content <- ooxml_list(ooxml_type, "ooxml_paragraph", ...)
+  content <- ooxml_list(ooxml_type, "ooxml_paragraph", ooxml_paragraph, ...)
 
   txBody  <- ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
     ooxml_tag(tag = "a:bodyPr"),
@@ -256,7 +256,7 @@ ooxml_tbl_row.ooxml_word <- function(ooxml_type, ..., is_header = FALSE) {
 
 #' @export
 ooxml_tbl_row.ooxml_pptx <- function(ooxml_type, x, ..., is_header = FALSE, height = 0) {
-  content <- lapply(list2(...), ooxml_tbl_cell, ooxml_type = ooxml_type)
+  content <- ooxml_list(ooxml_type, "ooxml_tbl_cell", ooxml_tbl_cell, ...)
 
   ooxml_tag("a:tr", tag_class = "ooxml_tbl_row",
     h = height,
