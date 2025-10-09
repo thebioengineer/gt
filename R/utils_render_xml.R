@@ -1369,18 +1369,16 @@ create_heading_component_xml <- function(
   header_title_style <-
     styles_tbl[styles_tbl$locname == "title", ]$styles[1][[1]]
 
+  browser()
+
   # Obtain the number of visible columns in the built table
   n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
 
   # Determine whether the stub is available
   stub_available <- dt_stub_components_has_rowname(stub_components)
 
-  # If a stub is present then the effective number of columns increases by 1
-  if (stub_available) {
-    n_cols <- n_data_cols + 1
-  } else {
-    n_cols <- n_data_cols
-  }
+  # Get effective number of columns
+  n_cols_total <- get_effective_number_of_columns(data = data)
 
   # Get table options
   table_font_color <- dt_options_get_value(data, option = "table_font_color")
@@ -1534,6 +1532,11 @@ create_columns_component_xml <- function(
   stub_available <- dt_stub_df_exists(data = data)
   spanners_present <- dt_spanners_exists(data = data)
 
+  n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
+  # Get effective number of columns
+  n_cols_total <- get_effective_number_of_columns(data = data)
+
+
   # Get the column alignments for all visible columns
   col_alignment <- vctrs::vec_slice(boxh$column_align, boxh$type == "default")
 
@@ -1565,15 +1568,25 @@ create_columns_component_xml <- function(
   column_labels_border_bottom_color <- dt_options_get_value(data = data, option = "column_labels_border_bottom_color")
   column_labels_vlines_color <- dt_options_get_value(data = data, option = "column_labels_vlines_color")
 
-  # If `stub_available` == TRUE, then replace with a set stubhead
+  browser()
+
+  # If columns are present in the stub, then replace with a set stubhead
   # label or nothing
-  if (isTRUE(stub_available) && length(stubh$label) > 0L) {
+  if (length(stub_layout) > 0 && length(stubh$label) > 0) {
+    # Check if we have multiple labels for multi-column stub
+    stub_vars <- dt_boxhead_get_var_stub(data = data)
+    has_multi_column_stub <- length(stub_vars) > 1 && !any(is.na(stub_vars))
 
-    headings_labels <- prepend_vec(headings_labels, stubh$label)
-    headings_vars <- prepend_vec(headings_vars, "::stub")
-
-  } else if (isTRUE(stub_available)) {
-
+    if (has_multi_column_stub && length(stubh$label) > 1) {
+      # Multiple labels for multi-column stub - add each label individually
+      headings_labels <- c(stubh$label, headings_labels)
+      headings_vars <- c(paste0("::stub", seq_along(stubh$label)), headings_vars)
+    } else {
+      # Single label (may span multiple columns) - use current behavior
+      headings_labels <- prepend_vec(headings_labels, stubh$label)
+      headings_vars <- prepend_vec(headings_vars, "::stub")
+    }
+  } else if (length(stub_layout) > 0) {
     headings_labels <- prepend_vec(headings_labels, "")
     headings_vars <- prepend_vec(headings_vars, "::stub")
   }
