@@ -1,5 +1,7 @@
 # gt (development version)
 
+* Update latex Unicode conversions to be optional (default to TRUE) as well as make them work in-line (@thebioengineer, #2037, #2041)
+
 # gt 1.1.0
 
 ## New features
@@ -35,6 +37,8 @@
 * Fixed a length recycling issue when using gt with Quarto (#1985). (@olivroy, #1986)
 
 * The `metro` and `films` datasets have been updated. (#2026, #2027)
+
+* Add option to control the order of footnotes (@shannonhaughton, #2023)
 
 # gt 1.0.0
 
