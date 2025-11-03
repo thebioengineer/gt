@@ -90,6 +90,7 @@
 <url><loc>https://gt.rstudio.com/reference/fmt_markdown.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/fmt_missing.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/fmt_number.html</loc></url>
+<url><loc>https://gt.rstudio.com/reference/fmt_number_si.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/fmt_partsper.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/fmt_passthrough.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/fmt_percent.html</loc></url>
@@ -147,6 +148,7 @@
 <url><loc>https://gt.rstudio.com/reference/opt_all_caps.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/opt_css.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/opt_footnote_marks.html</loc></url>
+<url><loc>https://gt.rstudio.com/reference/opt_footnote_order.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/opt_footnote_spec.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/opt_horizontal_padding.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/opt_interactive.html</loc></url>
@@ -185,6 +187,7 @@
 <url><loc>https://gt.rstudio.com/reference/sub_small_vals.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/sub_values.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/sub_zero.html</loc></url>
+<url><loc>https://gt.rstudio.com/reference/summary_columns.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/summary_rows.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/system_fonts.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/sza.html</loc></url>
@@ -219,6 +222,7 @@
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_integer.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_markdown.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_number.html</loc></url>
+<url><loc>https://gt.rstudio.com/reference/vec_fmt_number_si.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_partsper.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_percent.html</loc></url>
 <url><loc>https://gt.rstudio.com/reference/vec_fmt_roman.html</loc></url>
