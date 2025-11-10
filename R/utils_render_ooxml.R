@@ -10,15 +10,15 @@ as_ooxml_tbl <- function(
   # Perform input object validation
   stop_if_not_gt_tbl(data = data)
 
-  tbl_properties <- create_table_properties_ooxml(ooxml_type, data = data, align = align)
+  tbl_properties <- create_table_properties_ooxml(ooxml_type, data = data, align = align, split = split)
 
   # <a:tblGrid> is not optional in pptx, so create_table_grid must set it
   #
   # things are different in word where we can have w:tblLayoutType="autofit" and then
   # not have a <w:tblGrid> node
   tbl_grid         <- create_table_grid_ooxml(ooxml_type, data = data)
-  tbl_spanner_rows <- create_spanner_rows_ooxml(ooxml_type, data = data)
-  tbl_table_rows   <- create_table_rows_ooxml(ooxml_type, data = data)
+  tbl_spanner_rows <- create_spanner_rows_ooxml(ooxml_type, data = data, split = split)
+  tbl_table_rows   <- create_table_rows_ooxml(ooxml_type, data = data, split = split)
 
   ooxml_tbl(ooxml_type,
     properties = tbl_properties,
@@ -31,7 +31,7 @@ as_ooxml_tbl <- function(
 
 # table properties --------------------------------------------------------
 
-create_table_properties_ooxml <- function(ooxml_type, data , align = c("center", "start", "end"), look = c("first row")) {
+create_table_properties_ooxml <- function(ooxml_type, data, align = c("center", "start", "end"), look = c("first row")) {
   # TODO: set layout as autofit when dt_boxhead_get()$column_width
   #       are all NULL and figure out equivalent in pptx
   ooxml_tbl_properties(ooxml_type,
@@ -57,7 +57,7 @@ create_table_grid_ooxml <- function(ooxml_type, data) {
 
 # spanner rows ------------------------------------------------------------
 
-create_spanner_rows_ooxml <- function(ooxml_type, data) {
+create_spanner_rows_ooxml <- function(ooxml_type, data, split = FALSE) {
   if (dt_options_get_value(data = data, option = "column_labels_hidden")) {
     return(NULL)
   }
@@ -67,13 +67,13 @@ create_spanner_rows_ooxml <- function(ooxml_type, data) {
 
   spanner_rows <- lapply(seq_len(spanner_row_count),
     create_spanner_row_ooxml,
-    ooxml_type = ooxml_type, data = data
+    ooxml_type = ooxml_type, data = data, split = split
   )
 
   spanner_rows
 }
 
-create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx) {
+create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FALSE) {
   styles_tbl <- dt_styles_get(data = data)
   column_labels_vlines_color        <- dt_options_get_value(data = data, option = "column_labels_vlines_color")
   column_labels_border_top_color    <- dt_options_get_value(data = data, option = "column_labels_border_top_color")
@@ -95,22 +95,20 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx) {
 
   stub_cell <- create_spanner_row_stub_cell_ooxml(ooxml_type, data, i = span_row_idx)
 
-  cells <- lapply(seq_along(spanner_row_values), \(i) {
-    if (is.na(spanner_row_ids[i])) {
-      borders <- list(
-        left  = if (i == 1L) { list(color = column_labels_vlines_color) },
-        right = if (i == length(spanner_row_values)) { list(color = column_labels_vlines_color) },
-        top   = if (span_row_idx == 1) { list(color = column_labels_border_top_color) }
-      )
-      return (ooxml_tbl_cell(ooxml_type,
-        properties = ooxml_tbl_cell_properties(ooxml_type,
-          borders  = borders
-        )
-      ))
-    }
+  col_alignment <- get_col_alignment(data)
 
+  cells <- lapply(seq_along(spanner_row_values), \(i) {
     if (colspans[i] == 0) {
       return (NULL)
+    }
+
+    if (is.na(spanner_row_ids[i])) {
+      cell <- create_spanner_row_empty_cell_ooxml(ooxml_type, data,
+        span_row_idx = span_row_idx,
+        span_column_idx = i,
+        n = length(spanner_row_values)
+      )
+      return(cell)
     }
 
     cell_style <- vctrs::vec_slice(styles_tbl,
@@ -121,34 +119,67 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx) {
     borders <- list(
       left = if (i == 1) { list(color = column_labels_vlines_color) },
       right = if (i == (length(spanner_row_values) + 1 - colspans[i] )) { list(color = column_labels_vlines_color) },
-      bottom = list(size = 8, color = column_labels_border_bottom_color),
-      top = if (span_row_idx == 1) { list(size = 8, color = column_labels_border_top_color) }
+      bottom = list(size = 2, color = column_labels_border_bottom_color),
+      top = if (span_row_idx == 1) { list(size = 2, color = column_labels_border_top_color) }
     )
 
-    ooxml_tbl_cell(ooxml_type,
-      ooxml_paragraph(ooxml_type,
-        ooxml_run(ooxml_type,
+    cell_properties <- ooxml_tbl_cell_properties(ooxml_type,
+      borders  = borders,
+      fill     = cell_style[["cell_fill"]][["color"]],
+      v_align  = cell_style[["cell_text"]][["v_align"]],
+      col_span = colspans[i]
+    )
+
+    align <- cell_style[["cell_text"]][["align"]]
+    if (is.null(align)) {
+      if (span_row_idx == nrow(spanners)) {
+        align <- col_alignment[i]
+      } else {
+        align <- "center"
+      }
+    }
+    paragraph_properties <- ooxml_paragraph_properties(ooxml_type,
+      align = align, cell_style = cell_style
+    )
+
+    ooxml_tbl_cell(ooxml_type, properties = cell_properties,
+      ooxml_paragraph(ooxml_type, properties = paragraph_properties,
+        ooxml_run(ooxml_type, properties = ooxml_run_properties(ooxml_type, cell_style = cell_style),
           ooxml_text(ooxml_type,
             spanner_row_values[i],
             space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
-          ),
-          properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
+          )
         )
-      ),
-      properties = ooxml_tbl_cell_properties(ooxml_type,
-        borders  = borders,
-        fill     = cell_style[["cell_fill"]][["color"]],
-        v_align  = cell_style[["cell_text"]][["v_align"]],
-        col_span = colspans[i]
       )
     )
 
   })
 
-  ooxml_tbl_row(ooxml_type, stub_cell, !!!cells, is_header = TRUE)
+  ooxml_tbl_row(ooxml_type, split = split, is_header = TRUE,
+    stub_cell, !!!cells
+  )
 }
 
-## spanner stub cell ------------------------------------------------------------
+create_spanner_row_empty_cell_ooxml <- function(ooxml_type, data, span_row_idx = 1, span_column_idx = 1, n) {
+  column_labels_vlines_color        <- dt_options_get_value(data = data, option = "column_labels_vlines_color")
+  column_labels_border_top_color    <- dt_options_get_value(data = data, option = "column_labels_border_top_color")
+  column_labels_border_bottom_color <- dt_options_get_value(data = data, option = "column_labels_border_bottom_color")
+
+  borders <- list(
+    left  = if (span_column_idx == 1L) { list(color = column_labels_vlines_color) },
+    right = if (span_column_idx == n)  { list(color = column_labels_vlines_color) },
+    top   = if (span_row_idx == 1)     { list(color = column_labels_border_top_color) }
+  )
+
+  ooxml_tbl_cell(ooxml_type,
+    properties = ooxml_tbl_cell_properties(ooxml_type, borders  = borders),
+    ooxml_paragraph(ooxml_type, properties = ooxml_paragraph_properties(ooxml_type, align = "center"),
+      ooxml_run(ooxml_type, properties = ooxml_run_properties(ooxml_type),
+        ooxml_text(ooxml_type, "", space = "default")
+      )
+    )
+  )
+}
 
 create_spanner_row_stub_cell_ooxml <- function(ooxml_type, data, i = 1) {
   if (!dt_stub_df_exists(data = data)) {
@@ -208,16 +239,16 @@ create_spanner_row_stub_cell_ooxml <- function(ooxml_type, data, i = 1) {
 
 # table rows ---------------------------------------------------------------
 
-create_table_rows_ooxml <- function(ooxml_type, data) {
+create_table_rows_ooxml <- function(ooxml_type, data, split = FALSE) {
   body <- dt_body_get(data = data)
 
   out <- list()
   for (i in seq_len(nrow(body))) {
     rows <- list3(
-      create_group_heading_row_ooxml(ooxml_type, data, i),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "top"),
-      create_body_row_ooxml(ooxml_type, data, i),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom")
+      create_group_heading_row_ooxml(ooxml_type, data, i, split = split),
+      create_summary_section_row_ooxml(ooxml_type, data, i, "top", split = split),
+      create_body_row_ooxml(ooxml_type, data, i, split = split),
+      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom", split = split)
     )
     out <- append(out, rows)
   }
@@ -225,7 +256,7 @@ create_table_rows_ooxml <- function(ooxml_type, data) {
   out
 }
 
-create_group_heading_row_ooxml <- function(ooxml_type, data, i) {
+create_group_heading_row_ooxml <- function(ooxml_type, data, i, split = FALSE) {
   groups_rows_df <- dt_groups_rows_get(data = data)
   if (is.null(groups_rows_df) || !i %in% groups_rows_df$row_start) {
     return(NULL)
@@ -245,8 +276,7 @@ create_group_heading_row_ooxml <- function(ooxml_type, data, i) {
   )
   cell_style <- cell_style$styles[1][[1]]
 
-  ooxml_tbl_row(ooxml_type,
-    properties = ooxml_tbl_properties(ooxml_type, hidden = FALSE),
+  ooxml_tbl_row(ooxml_type, split = split,
     ooxml_tbl_cell(ooxml_type,
       ooxml_paragraph(ooxml_type,
         ooxml_run(ooxml_type,
@@ -261,12 +291,17 @@ create_group_heading_row_ooxml <- function(ooxml_type, data, i) {
         fill     = cell_style[["cell_fill"]][["color"]],
         v_align  = cell_style[["cell_text"]][["v_align"]],
         col_span = NULL, # TODO: = colspans[i],
-        margins  = list(top = list(width = 25))
+        margins  = list(
+          top = list(width = 25)
+          # TODO: mark with cell_margin() as in the old xml variant
+          #       also should this come from somewhere or just be abritrary 25 as here
+        )
       )
     )
   )
 }
 
+# TODO
 create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top", "bottom")) {
   styles_tbl <- dt_styles_get(data = data)
   summaries_present <- dt_summary_exists(data = data)
@@ -313,21 +348,19 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
 }
 
 
-# body row ----------------------------------------------------------------
+## body row ----------------------------------------------------------------
 
-create_body_row_ooxml <- function(ooxml_type, data, i) {
+create_body_row_ooxml <- function(ooxml_type, data, i, split = FALSE) {
   vars <- dt_boxhead_get_vars_default(data = data)
   data_cells <- lapply(seq_along(vars), \(j) {
     create_body_row_data_cell_ooxml(ooxml_type, data, i = i, j = j)
   })
 
-  ooxml_tbl_row(ooxml_type,
+  ooxml_tbl_row(ooxml_type, split = split,
     create_body_row_stub_cell_ooxml(ooxml_type, data, i),
     !!!data_cells
   )
 }
-
-## stub cell ---------------------------------------------------------------
 
 create_body_row_stub_cell_ooxml <- function(ooxml_type, data, i) {
   stub_components   <- dt_stub_components(data = data)
@@ -348,8 +381,6 @@ create_body_row_stub_cell_ooxml <- function(ooxml_type, data, i) {
   }
 }
 
-## data cell ---------------------------------------------------------------
-
 create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j) {
   body <- dt_body_get(data = data)
   styles_tbl <- dt_styles_get(data = data)
@@ -361,24 +392,29 @@ create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j) {
   )
   cell_style <- cell_style$styles[1][[1]]
 
+  boxh  <- dt_boxhead_get(data = data)
+
   text <- as.character(body[i, j])
-  create_body_row_cell_ooxml(ooxml_type, data, cell_style = cell_style, text = text)
+  create_body_row_cell_ooxml(ooxml_type, data, text,
+    cell_style = cell_style,
+    align = cell_style[["cell_text"]][["align"]] %||% vctrs::vec_slice(boxh$column_align, boxh$type == "default")[j]
+  )
 }
 
 
-create_body_row_cell_ooxml <- function(ooxml_type, data, cell_style, text) {
-  table_body_hlines_color   <- dt_options_get_value(data = data, option = "table_body_hlines_color")
-  table_body_vlines_color   <- dt_options_get_value(data = data, option = "table_body_vlines_color")
+create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align = cell_style[["cell_text"]][["align"]]) {
+  table_body_hlines_color   <- dt_options_get_value(data, option = "table_body_hlines_color")
+  table_body_vlines_color   <- dt_options_get_value(data, option = "table_body_vlines_color")
   table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
   table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
 
+  paragraph_properties <- ooxml_paragraph_properties(ooxml_type, cell_style = cell_style)
   ooxml_tbl_cell(ooxml_type,
-    ooxml_paragraph(ooxml_type,
-      ooxml_run(ooxml_type,
+    ooxml_paragraph(ooxml_type, properties = paragraph_properties,
+      ooxml_run(ooxml_type, properties = ooxml_run_properties(ooxml_type, cell_style = cell_style),
         ooxml_text(ooxml_type, text,
           space = cell_style[["cell_text"]][["whitespace"]] %||% "default"
-        ),
-        properties = ooxml_run_properties(ooxml_type, cell_style = cell_style)
+        )
       )
     ),
     properties = ooxml_tbl_cell_properties(ooxml_type,
@@ -390,12 +426,16 @@ create_body_row_cell_ooxml <- function(ooxml_type, data, cell_style, text) {
       ),
       fill     = cell_style[["cell_fill"]][["color"]],
       v_align  = cell_style[["cell_text"]][["v_align"]],
-      margins  = list(
-        top = list(width = 25)
-      )
+      margins  = NULL # TODO: is there something in cell_style for it ?
     )
   )
 }
 
+# tools ------------------------------------------------------------------------
+
+get_col_alignment <- function(data) {
+  boxh <- dt_boxhead_get(data = data)
+  vctrs::vec_slice(boxh$column_align, boxh$type == "default")
+}
 
 

@@ -98,15 +98,15 @@ ooxml_tbl_grid <- function(ooxml_type, ...) {
 
 # tbl_row -----------------------------------------------------------
 
-ooxml_tbl_row <- function(ooxml_type, ..., is_header = FALSE, hidden = FALSE, height = 10) {
+ooxml_tbl_row <- function(ooxml_type, ..., is_header = FALSE, split = FALSE, height = 10) {
   content <- ooxml_list(ooxml_type, "ooxml_tbl_cell", ooxml_tbl_cell, ...)
 
   switch_ooxml(ooxml_type,
     word = {
       properties <- ooxml_tag("w:trPr", tag_class = "ooxml_tbl_row_properties",
+        if (!split)    ooxml_tag("w:cantSplit"),
         if (is_header) ooxml_tag("w:tblHeader"),
-        if (hidden)    ooxml_tag("w:cantSplit"),
-        ooxml_tbl_row_height(ooxml_type, value = height)
+        # ooxml_tbl_row_height(ooxml_type, value = height)
       )
       ooxml_tag("w:tr", tag_class = "ooxml_tbl_row",
         properties,
@@ -212,8 +212,8 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
 
   tag <- switch_ooxml_tag(ooxml_type, "tcPr")
   ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
-    margins,
     borders,
+    margins,
     fill,
     v_merge,
     v_align,
@@ -227,7 +227,34 @@ ooxml_paragraph <- function(ooxml_type, ..., properties = NULL) {
   runs <- ooxml_list(ooxml_type, "ooxml_run", ooxml_run, ...)
 
   tag <- switch_ooxml_tag(ooxml_type, "p")
-  ooxml_tag(tag, tag_class = "ooxml_paragraph", !!!runs)
+  ooxml_tag(tag, tag_class = "ooxml_paragraph",
+    check_inherits(properties, "ooxml_paragraph_properties", accept_null = TRUE),
+    !!!runs
+  )
+}
+
+# ooxml_paragraph_properties ---------------------------------------------------
+
+ooxml_paragraph_properties <- function(ooxml_type,
+  ...,
+  align = cell_style[["cell_text"]][["align"]] %||% "left",
+  cell_style = NULL
+) {
+  rlang::check_dots_empty()
+
+  switch_ooxml(ooxml_type,
+    word = ooxml_tag("w:pPr", tag_class = "ooxml_paragraph_properties",
+      ooxml_tag("w:spacing", "w:before" = "0", "w:after" = "60"),
+      ooxml_tag("w:keepNext"),
+      ooxml_tag("w:jc", "w:val" = arg_match_names(align, values = c(left = "start", right = "end", center = "center")))
+    ),
+    pptx = ooxml_tag("a:pPr", tag_class = "ooxml_paragraph_properties",
+      "algn" = arg_match_names(align, values = c(left = "l", right = "r", center = "ctr")),
+
+      ooxml_tag("a:spcBef", ooxml_tag("a:spcPts", val = "0")),
+      ooxml_tag("a:spcAft", ooxml_tag("a:spcPts", val = "300")),
+    )
+  )
 }
 
 # ooxml_run ---------------------------------------------------------------
@@ -237,8 +264,8 @@ ooxml_run <- function(ooxml_type, x, ..., properties = NULL) {
 
   tag <- switch_ooxml_tag(ooxml_type, "r")
   ooxml_tag(tag, tag_class = "ooxml_run",
-    ooxml_text(ooxml_type, x),
-    check_inherits(properties, "ooxml_run_properties", accept_null = TRUE)
+    check_inherits(properties, "ooxml_run_properties", accept_null = TRUE),
+    ooxml_text(ooxml_type, x)
   )
 }
 
@@ -246,12 +273,12 @@ ooxml_run <- function(ooxml_type, x, ..., properties = NULL) {
 
 ooxml_run_properties <- function(ooxml_type,
   ...,
-  font   = cell_style[["cell_text"]][["font"]],
+  font   = cell_style[["cell_text"]][["font"]] %||% "Calibri",
   style  = cell_style[["cell_text"]][["style"]],
-  size   = cell_style[["cell_text"]][["size"]] %||% 5,
+  size   = cell_style[["cell_text"]][["size"]] %||% 10,
   color  = cell_style[["cell_text"]][["color"]],
   weight = NULL,
-  cell_style
+  cell_style = NULL
 ){
   rlang::check_dots_empty()
 
@@ -275,7 +302,7 @@ ooxml_text <- function(ooxml_type, x, ..., space = c("default", "preserve")) {
 
   tag <- switch_ooxml_tag(ooxml_type, "t")
   ooxml_tag(tag, tag_class = "ooxml_text",
-    ooxml_space_attr(space),
+    "xml:space" = rlang::arg_match(space),
     htmltools::HTML(format(x))
   )
 }
@@ -309,19 +336,21 @@ ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size =
     word = {
       tag      <- arg_match_names(location, c("top" = "w:top", "left" = "w:start", "bottom" = "w:bottom", "right" = "w:end"))
       color    <- as_hex_code(color)
-      size     <- check_between(size, min = .25, max = 12, default = 4)
+      size     <- check_between(size, min = .25, max = 12, null_ok = TRUE)
       type     <- arg_match_names(type, c("solid" = "single", "dashed" = "dashed", "dotted" = "dotted", "hidden" = "none", "double" = "double"))
 
       ooxml_tag(tag, tag_class = "ooxml_cell_border",
+        `w:val`   = type,
+        `w:space` = 0,
         `w:color` = color,
-        `w:size`  = size * 8, # size is in 1/8 points
-        `w:val`   = type
+        `w:sz`    = if (!is.null(size)) size * 8
       )
     },
     pptx = {
-      tag <- arg_match_names(location, c("top"="a:lnT","left"="a:lnL","bottom"="a:lnB","right"="a:lnR"))
-      size     <- check_between(size, min = 0, max = 10, default = .5)
-      style    <- convert_border_style_pptx(type)
+      tag   <- arg_match_names(location, c("top"="a:lnT","left"="a:lnL","bottom"="a:lnB","right"="a:lnR"))
+      # TODO: is null ok as in the word version ?
+      size  <- check_between(size, min = 0, max = 10, default = .5)
+      style <- convert_border_style_pptx(type)
 
       if (is.null(style[["compound"]])) {
         return(NULL)
@@ -580,8 +609,11 @@ arg_match_names <- function(arg, values = NULL, error_arg = caller_arg(arg), err
   values[[arg]]
 }
 
-check_between <- function(x = NULL, min, max, default, error_arg = caller_arg(x), error_call = caller_env()){
-  if (is.null(x)){
+check_between <- function(x = NULL, min, max, default, null_ok = FALSE, error_arg = caller_arg(x), error_call = caller_env()){
+  if (is.null(x)) {
+    if (isTRUE(null_ok)) {
+      return(NULL)
+    }
     x <- default
   }
   if (!is.numeric(x) || length(x) != 1 || x < min || x > max) {
@@ -626,7 +658,8 @@ switch_ooxml <- function(
 
 switch_ooxml_tag <- function(ooxml_type = c("word", "pptx"), tag, word = tag, pptx = tag, error_call = caller_env()) {
   suffix <- switch_ooxml(ooxml_type, word = word, pptx = pptx, error_call = error_call)
-  paste0("w:", suffix)
+  prefix <- switch(ooxml_type, word = "w", pptx = "a")
+  paste0(prefix, ":", suffix)
 }
 
 list3 <- function(...) {
@@ -644,13 +677,6 @@ ooxml_list <- function(ooxml_type, tag_class, tag_fun, ...) {
     }
     x
   })
-}
-
-ooxml_space_attr <- function(space = c("default", "preserve")) {
-  space <- rlang::arg_match(space)
-  if (identical(space, "preserve")) {
-    splice3("xml:space" = "preserve")
-  }
 }
 
 splice3 <- function(...) {
