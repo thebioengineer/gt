@@ -20,8 +20,7 @@ as_word_ooxml <- function(
       align = align,
       split = split,
       keep_with_next = keep_with_next,
-      embedded_heading = embedded_heading,
-      autonum = autonum
+      embedded_heading = embedded_heading
   ))
   if (!embedded_heading) {
     heading <- create_table_caption_contents_ooxml("word", data,
@@ -42,8 +41,7 @@ as_ooxml_tbl <- function(ooxml_type, data,
     align = "center",
     split = FALSE,
     keep_with_next = TRUE,
-    embedded_heading = FALSE,
-    autonum = TRUE
+    embedded_heading = FALSE
 ) {
 
   # Perform input object validation
@@ -64,7 +62,7 @@ as_ooxml_tbl <- function(ooxml_type, data,
     create_heading_row(ooxml_type, data = data,
       split = split,
       keep_with_next = keep_with_next,
-      autonum = autonum
+      autonum = FALSE
     )
   }
 
@@ -118,7 +116,7 @@ create_heading_row <- function(ooxml_type, data, split = FALSE, keep_with_next =
     autonum = autonum, keep_with_next = keep_with_next
   )
 
-  ooxml_tbl_row(ooxml_type, split = split,
+  ooxml_tbl_row(ooxml_type, split = split, is_header = TRUE,
     ooxml_tbl_cell(ooxml_type, !!!paragraphs,
       properties = ooxml_tbl_cell_properties(ooxml_type,
         borders  = list(
