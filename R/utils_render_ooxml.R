@@ -16,26 +16,26 @@ as_word_ooxml <- function(
   data <- build_data(data, context = "ooxml/word")
 
   embedded_heading <- identical(caption_location, "embed")
-  xml <- as_ooxml_tbl("word", data,
+  xml <- tagList(as_ooxml_tbl("word", data,
       align = align,
       split = split,
       keep_with_next = keep_with_next,
       embedded_heading = embedded_heading,
       autonum = autonum
-  )
+  ))
   if (!embedded_heading) {
     heading <- create_table_caption_contents_ooxml("word", data,
       autonum = autonum,
       keep_with_next = if(caption_location == "bottom") FALSE else keep_with_next
     )
     if (identical(caption_location, "top")) {
-      xml <- htmltools::tagList(!!!heading, xml)
+      xml <- htmltools::tagList(!!!heading, !!!xml)
     } else {
-      xml <- htmltools::tagList(xml, !!!heading)
+      xml <- htmltools::tagList(!!!xml, !!!heading)
     }
   }
 
-  paste(as.character(xml), collapse = "")
+  sapply(xml, as.character)
 }
 
 as_ooxml_tbl <- function(ooxml_type, data,
