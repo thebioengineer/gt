@@ -521,7 +521,7 @@ ooxml_table_autonum <- function(ooxml_type, font = "Calibri", size = 12) {
         ooxml_tag("w:rFonts", "w:ascii" = font, "w:hAnsi" = font),
         ooxml_tag("w:sz", "w:val" = size)
       ),
-      ooxml_tag("w:t", "xml:space" = "preserve", "Table")
+      ooxml_tag("w:t", "xml:space" = "preserve", "Table ")
     ),
     ooxml_tag("w:r", ooxml_tag("w:fldChar", "w:fldCharType" = "begin", "w:dirty" = "true")),
     ooxml_tag("w:r",
