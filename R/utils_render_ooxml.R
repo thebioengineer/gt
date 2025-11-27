@@ -34,6 +34,7 @@ as_word_ooxml <- function(
     }
   }
 
+  xml <- xml[!sapply(xml, is.null)]
   sapply(xml, as.character)
 }
 
