@@ -881,3 +881,181 @@ test_that("tables with multi-level spans can be added to a word doc", {
     )
   )
 })
+
+test_that("tables with summaries can be added to a word doc", {
+  check_suggests()
+  skip("summaries not implemented yet")
+
+  ## simple table
+  gt_exibble_min <-
+    exibble |>
+    dplyr::select(-c(fctr, date, time, datetime)) |>
+    gt(rowname_col = "row", groupname_col = "group") |>
+    summary_rows(
+      groups = everything(),
+      columns = num,
+      fns = list(
+        avg = ~mean(., na.rm = TRUE),
+        total = ~sum(., na.rm = TRUE),
+        s.d. = ~sd(., na.rm = TRUE)
+      ),
+      fmt = list(~ fmt_number(.))
+    )
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(
+      gt_exibble_min,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  ## "" at beginning for stubheader
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c("", "num", "char", "currency")
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
+    list(
+      "grp_a",
+      c("row_1", "1.111e-01", "apricot", "49.950"),
+      c("row_2", "2.222e+00", "banana", "17.950"),
+      c("row_3", "3.333e+01", "coconut", "1.390"),
+      c("row_4", "4.444e+02", "durian", "65100.000"),
+      c("avg", "120.02", "—", "—"),
+      c("total", "480.06", "—", "—"),
+      c("s.d.", "216.79", "—", "—"),
+      "grp_b",
+      c("row_5", "5.550e+03", "NA", "1325.810"),
+      c("row_6", "NA", "fig", "13.255"),
+      c("row_7", "7.770e+05", "grapefruit", "NA"),
+      c("row_8", "8.880e+06", "honeydew", "0.440"),
+      c("avg", "3,220,850.00", "—", "—"),
+      c("total", "9,662,550.00", "—", "—"),
+      c("s.d.", "4,916,123.25", "—", "—")
+    )
+  )
+
+  ## Now place the summary on the top
+
+  ## simple table
+  gt_exibble_min_top <-
+    exibble |>
+    dplyr::select(-c(fctr, date, time, datetime)) |>
+    gt(rowname_col = "row", groupname_col = "group") |>
+    summary_rows(
+      groups = everything(),
+      columns = num,
+      fns = list(
+        avg = ~mean(., na.rm = TRUE),
+        total = ~sum(., na.rm = TRUE),
+        s.d. = ~sd(., na.rm = TRUE)
+      ),
+      fmt = list(~ fmt_number(.)),
+      side = "top"
+    )
+
+  ## Add table to empty word document
+  word_doc_top <-
+    officer::read_docx() |>
+    body_add_gt(
+      gt_exibble_min_top,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file_top <- tempfile(fileext = ".docx")
+  print(word_doc_top,target = temp_word_file_top)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file_top)
+  }
+
+  ## Programmatic Review
+  docx_top <- officer::read_docx(temp_word_file_top)
+
+  ## get docx table contents
+  docx_contents_top <-
+    docx_top$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header_top <-
+    docx_contents_top[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents_top <-
+    docx_contents_top[1] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header_top)
+
+  ## "" at beginning for stub header
+  expect_equal(
+    docx_table_body_header_top |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c( "", "num", "char", "currency")
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents_top, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    list(
+      "grp_a",
+      c("avg", "120.02", "—", "—"),
+      c("total", "480.06", "—", "—"),
+      c("s.d.", "216.79", "—", "—"),
+      c("row_1", "1.111e-01", "apricot", "49.950"),
+      c("row_2", "2.222e+00", "banana", "17.950"),
+      c("row_3", "3.333e+01", "coconut", "1.390"),
+      c("row_4", "4.444e+02", "durian", "65100.000"),
+      "grp_b",
+      c("avg", "3,220,850.00", "—", "—"),
+      c("total", "9,662,550.00", "—", "—"),
+      c("s.d.", "4,916,123.25", "—", "—"),
+      c("row_5", "5.550e+03", "NA", "1325.810"),
+      c("row_6", "NA", "fig", "13.255"),
+      c("row_7", "7.770e+05", "grapefruit", "NA"),
+      c("row_8", "8.880e+06", "honeydew", "0.440")
+    )
+  )
+})
+
