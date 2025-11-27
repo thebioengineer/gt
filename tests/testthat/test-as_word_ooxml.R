@@ -2538,3 +2538,62 @@ test_that("markdown with urls work", {
     "https://www.google.com"
   )
 })
+
+test_that("markdown with img refs work",{
+  skip("gtsave() not using ooxml yet")
+
+  skip_on_ci()
+  check_suggests()
+
+  ref_png <- system.file("graphics", "test_image.png", package = "gt")
+  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
+
+  temp_png <- file.path(tempdir(),"test_image.png")
+  temp_svg <- file.path(tempdir(),"test_image.svg")
+
+  file.copy(ref_png, temp_png)
+  file.copy(ref_svg, temp_svg)
+
+  markdown_gt <- dplyr::tribble(
+    ~md,
+    paste0(" ![test image from gt package](",temp_png,")"),
+    paste0(" ![test image from gt package2](",temp_svg,")")
+    ) |>
+    gt() |>
+    fmt_markdown(columns = everything())
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(markdown_gt, filename = temp_docx)
+
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_docx)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table hyperlinks
+  docx_table_image <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//a:blip")
+
+  ## hyperlinks are preserved and updated to be rId
+  expect_length(docx_table_image, 2)
+  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
+
+  # first should be a png
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
+    "media/testimage.png"
+  )
+
+  # second should be an svg
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
+    "media/testimage.svg"
+  )
+})
