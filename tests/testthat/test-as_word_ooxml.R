@@ -2049,7 +2049,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -2176,4 +2176,77 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
   )
 })
 
+test_that("tables preserves spaces in text & can be added to a word doc", {
+  skip_on_ci()
+  check_suggests()
+  skip("TODO: fix preserve")
 
+  ## simple table
+  gt_exibble <-
+    exibble[1, 1] |>
+    dplyr::mutate(
+      `5 Spaces Before` = "     Preserve",
+      `5 Spaces After` = "Preserve     ",
+      `5 Spaces Before - preserve` = "     Preserve",
+      `5 Spaces After - preserve` = "Preserve     ") |>
+    gt() |>
+    tab_style(
+      style = cell_text(whitespace = "pre"),
+      locations = cells_body(columns = contains("preserve"))
+    )
+
+  ## Add table to empty word document
+  word_doc_normal <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_exibble, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc_normal,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
+    ),
+    list(
+      c(
+        "num",
+        "5 Spaces Before",
+        "5 Spaces After",
+        "5 Spaces Before - preserve",
+        "5 Spaces After - preserve"
+      ),
+      c("0.1111", " Preserve", "Preserve ", "     Preserve", "Preserve     ")
+    )
+  )
+
+  ## text "space" is set to preserve only for last 2 body cols
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_attr((xml2::xml_find_all(x, ".//w:t")),"space")
+    ),
+    list(
+      c("default", "default", "default", "default", "default"),
+      c("default", "default", "default", "preserve","preserve")
+    )
+  )
+})
