@@ -2346,3 +2346,146 @@ test_that("tables respects column and cell alignment and can be added to a word 
       list("start", "end", "end", "end"))
   )
 })
+
+
+test_that("markdown in the tables works out",{
+
+  skip_on_ci()
+  check_suggests()
+  skip("gtsave() not using ooxml yet")
+
+  text_1a <- "
+### This is Markdown.
+
+Markdown's syntax is comprised entirely of
+punctuation characters, which punctuation
+characters have been carefully chosen so as
+to look like what they mean... assuming
+you've ever used email.
+
+
+this is a line break test
+
+"
+
+  text_1b <- "
+Info on **Markdown** _syntax_ can `be found` at [a website](https://daringfireball.net/projects/markdown/).
+"
+
+  text_2a <- "
+- `countrypops`
+- `sza`
+    - indented col
+
+
+1. newval
+2. another val
+3. will this work
+"
+
+  text_2b <- "
+There's a quick reference [here](https://commonmark.org/help/).
+"
+
+  markdown_gt <- dplyr::tribble(
+    ~Markdown, ~md,
+    text_1a,   text_2a,
+    text_1b,   text_2b
+  ) |>
+    gt() |>
+    fmt_markdown(columns = everything()) |>
+    tab_footnote(
+      "This is text",
+      locations = cells_column_labels(columns = md)
+    )
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(markdown_gt, filename = temp_docx)
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) {xml2::xml_find_all(x, ".//w:tc") |>
+        lapply(function(x) {xml2::xml_text(xml2::xml_find_all(x,".//w:p"))})
+      }
+    ),
+    list(
+      list("Markdown", "md1"),
+      list(c("This is Markdown.",
+             "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
+             "this is a line break test"),
+           c("- countrypops",
+             "- sza",
+             "  -   indented col",
+             "1.    newval",
+             "2.    another val",
+             "3.    will this work")
+           ),
+      list(
+        "Info on Markdown syntax can be found at a website.",
+        "There's a quick reference here."),
+      list(
+        "1This is text"))
+  )
+
+  ## check styling in first row first column (Header)
+  styling_cell_text <-
+    (
+      docx_table_body_contents[[2]] |>
+      xml2::xml_find_all(".//w:tc")
+    )[[1]] |>
+    xml2::xml_find_all(".//w:rPr")
+
+  expect_equal(
+    as.character(styling_cell_text),
+    c(
+      "<w:rPr>\n  <w:sz w:val=\"28\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    )
+  )
+
+  ## check styling in second row first column (bold, italics, code, and website url styling)
+  styling_cell_text <-
+    (
+      docx_table_body_contents[[3]] |>
+      xml2::xml_find_all(".//w:tc")
+    )[[1]] |>
+    xml2::xml_find_all(".//w:rPr")
+
+  expect_equal(
+    as.character(styling_cell_text),
+    c(
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:i/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rStyle w:val=\"Macro Text\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rStyle w:val=\"Hyperlink\"/>\n  <w:color w:val=\"0563C1\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
+      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    )
+  )
+})
