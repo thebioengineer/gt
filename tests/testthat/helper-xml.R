@@ -50,7 +50,6 @@ body_add_gt <- function(
   value <- build_data(data = value, context = "word")
 
   ## Create and add table caption if it is to come before the table
-  # TODO: replace with ooxml code
   if (caption_location %in% c("top")) {
     header_xml <-
       as_word_tbl_header_caption(
@@ -70,7 +69,7 @@ body_add_gt <- function(
 
   ## Create and add the table to the docxr. If the
   tbl_xml <-
-    as_ooxml_tbl("word",
+    as_word_tbl_body(
       data = value,
       align = align,
       split = split,
@@ -87,7 +86,6 @@ body_add_gt <- function(
   if (caption_location %in% c("bottom")) {
 
     ## set keep_with_next to false here to prevent it trying to keep with non-table content
-    # TODO: replace with ooxml code
     header_xml <-
       as_word_tbl_header_caption(
         data = value,
