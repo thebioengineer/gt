@@ -13,7 +13,7 @@ as_word_ooxml <- function(
   caption_location <- rlang::arg_match(caption_location)
 
   # Build all table data objects through a common pipeline
-  data <- build_data(data, context = "word")
+  data <- build_data(data, context = "ooxml/word")
 
   embedded_heading <- identical(caption_location, "embed")
   xml <- as_ooxml_tbl("word", data,
