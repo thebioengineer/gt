@@ -461,7 +461,7 @@
             <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
             <w:sz w:val="24"/>
           </w:rPr>
-          <w:t xml:space="preserve">Table</w:t>
+          <w:t xml:space="preserve">Table </w:t>
         </w:r>
         <w:r>
           <w:fldChar w:fldCharType="begin" w:dirty="true"/>

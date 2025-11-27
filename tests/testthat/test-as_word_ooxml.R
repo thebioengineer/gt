@@ -1,5 +1,9 @@
 skip_on_cran()
 
+check_suggests <- function() {
+  skip_if_not_installed("officer")
+}
+
 test_that("word ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
@@ -10,7 +14,7 @@ test_that("word ooxml can be generated from gt object", {
   expect_equal(length(xml), 1)
   expect_equal(xml_name(xml), "tbl")
   expect_equal(length(xml_find_all(xml, "//w:keepNext")), 18)
-  # TODO: explore xml more precisely than with a snapshot
+
   expect_xml_snapshot(xml)
   expect_equal(
     xml_attr(xml_find_all(xml, "(//w:tr)[1]//w:pPr/w:jc"), "val"),
@@ -22,7 +26,6 @@ test_that("word ooxml can be generated from gt object", {
   )
 
   ## basic table with title
-  # expect_snapshot_ooxml_word(gt_tbl_1)
   gt_tbl_1 <-
     exibble_min |>
     gt() |>
@@ -51,7 +54,6 @@ test_that("word ooxml can be generated from gt object", {
   # expect_snapshot_ooxml_word(gt_tbl_1, caption_location = "bottom")
 
   ## basic table with title embedded on the top of table
-  # expect_snapshot_ooxml_word(gt_tbl_1, caption_location = "embed")
   xml_embed <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, caption_location = "embed"))
   expect_equal(length(xml_embed), 1)
   expect_equal(xml_name(xml_embed), c("tbl"))
@@ -68,7 +70,6 @@ test_that("word ooxml can be generated from gt object", {
   )
 
   ## basic table with split enabled
-  ## expect_snapshot_ooxml_word(gt_tbl_1, split = TRUE)
   xml_split <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, split = FALSE))
   expect_equal(
     purrr::map_lgl(xml_find_all(xml_split, "//w:trPr"), \(x) {
@@ -80,7 +81,6 @@ test_that("word ooxml can be generated from gt object", {
 
 
   ## basic table with autonum disabled
-  ## # expect_snapshot_ooxml_word(gt_tbl_1, autonum = FALSE)
   xml_autonum_false <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, autonum = FALSE))
   expect_equal(xml_name(xml_autonum_false), c("p", "p", "tbl"))
   expect_xml_snapshot(xml_autonum_false[[1]])
@@ -90,7 +90,6 @@ test_that("word ooxml can be generated from gt object", {
   expect_equal(length(xml_find_all(xml_autonum_false, "//w:keepNext")), 20)
 
   ## basic table with keep_with_next disabled
-  ## # expect_snapshot_ooxml_word(gt_tbl_1, keep_with_next = FALSE)
   xml_keep_next_false <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, keep_with_next = FALSE))
   expect_equal(length(xml_find_all(xml_keep_next_false, "//w:keepNext")), 0)
 })
@@ -398,4 +397,96 @@ test_that("multicolumn stub are supported", {
   expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "continue")
   expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
 
+})
+
+test_that("tables can be added to a word doc", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_header(
+      title = "table title",
+      subtitle = "table subtitle"
+    )
+
+  ## Add table to empty word document
+  word_doc <- officer::read_docx() |>
+    ooxml_body_add_gt(
+      gt_exibble_min,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table caption
+  docx_table_caption_text <- xml2::xml_text(docx_contents[1:2])
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[3] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[3] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  expect_equal(
+    docx_table_caption_text,
+    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+  )
+
+  expect_equal(
+    xml2::xml_text(xml2::xml_find_all(docx_table_body_header, ".//w:p")),
+    c(
+      "num", "char", "fctr", "date", "time",
+      "datetime", "currency", "row", "group"
+    )
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
+    ),
+    list(
+      c(
+        "0.1111",
+        "apricot",
+        "one",
+        "2015-01-15",
+        "13:35",
+        "2018-01-01 02:22",
+        "49.95",
+        "row_1",
+        "grp_a"
+      ),
+      c(
+        "2.2220",
+        "banana",
+        "two",
+        "2015-02-15",
+        "14:40",
+        "2018-02-02 14:33",
+        "17.95",
+        "row_2",
+        "grp_a"
+      )
+    )
+  )
 })
