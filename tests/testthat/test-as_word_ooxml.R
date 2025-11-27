@@ -1397,4 +1397,74 @@ test_that("tables with source notes can be added to a word doc", {
   )
 })
 
+test_that("long tables can be added to a word doc", {
+  check_suggests()
+
+  ## simple table
+  gt_letters <-
+    dplyr::tibble(
+      upper_case = c(LETTERS,LETTERS),
+      lower_case = c(letters,letters)
+    ) |>
+    gt() |>
+    tab_header(title = "LETTERS")
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_letters, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table caption
+  docx_table_caption_text <-
+    docx_contents[1] |>
+    xml2::xml_text()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[2] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[2] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  expect_equal(
+    docx_table_caption_text,
+    c("Table  SEQ Table \\* ARABIC 1: LETTERS")
+  )
+
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c("upper_case", "lower_case")
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    lapply(c(1:26,1:26), function(i) c(LETTERS[i], letters[i]))
+  )
+})
 
