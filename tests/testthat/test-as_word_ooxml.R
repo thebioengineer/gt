@@ -2250,3 +2250,99 @@ test_that("tables preserves spaces in text & can be added to a word doc", {
     )
   )
 })
+
+test_that("tables respects column and cell alignment and can be added to a word doc", {
+
+  skip_on_ci()
+  check_suggests()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1:2, 1:4] |>
+    `colnames<-`(c(
+      "wide column number 1",
+      "wide column number 2",
+      "wide column number 3",
+      "tcn4" #thin column number 4
+    )) |>
+    gt() |>
+    cols_align(
+      "right", columns = `wide column number 1`
+    ) |>
+    cols_align(
+      "left", columns = c(`wide column number 2`, `wide column number 3`)
+    ) |>
+    tab_style(
+      style = cell_text(align = "right"),
+      locations = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
+    ) |>
+    tab_style(
+      style = cell_text(align = "left"),
+      locations = cells_body(columns = c(`wide column number 1`), rows = 2)
+    ) |>
+    tab_style(
+      cell_text(align = "right"),
+      locations = cells_column_labels(columns = c(tcn4))
+    )
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_exibble, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table contents
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr")
+
+  ## text is preserved
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
+    ),
+    list(
+      c(
+        "wide column number 1",
+        "wide column number 2",
+        "wide column number 3",
+        "tcn4"
+      ),
+      c("0.1111", "apricot", "one","2015-01-15"),
+      c("2.2220", "banana", "two","2015-02-15")
+    )
+  )
+
+  ## text "space" is set to preserve only for last 2 body cols
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      FUN = function(x)
+        x |>
+        xml2::xml_find_all(".//w:pPr") |>
+        lapply(FUN = function(y) xml2::xml_attr(xml2::xml_find_all(y,".//w:jc"),"val"))
+    ),
+    list(
+      ## styling only on 1st and 4th column of header (stub and 3rd column) is right aligned
+      list("end", "start", "start", "end"),
+
+      ## styling as applied or as default from gt
+      list("end", "start", "start", "end"),
+      list("start", "end", "end", "end"))
+  )
+})
