@@ -2685,3 +2685,48 @@ test_that("table with image refs work - local only",{
       tolerance = .0000001 ## check out to 6 decimals for the ratio
     )
 })
+
+test_that("table with image refs work - https",{
+
+  skip_on_ci()
+  check_suggests()
+  skip("gtsave() not using ooxml yet")
+
+  https_image_gt <-
+    dplyr::tribble(
+      ~https_image,
+      "https://gt.rstudio.com/reference/figures/logo.svg"
+    ) |>
+    gt() |>
+    fmt_image(columns = everything(), sep = ",", height = "2in")
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(https_image_gt, filename = temp_docx)
+
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_docx)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table hyperlinks
+  docx_table_image <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//a:blip")
+
+  ## hyperlinks are preserved and updated to be rId
+  expect_length(docx_table_image, 1)
+  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
+
+  # first should be the logo.svg with some random numbers ahead of it
+  expect_length(
+    obj <- docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
+    1
+  )
+  expect_match(obj, "^media/.+?logo[.]svg$")
+})
