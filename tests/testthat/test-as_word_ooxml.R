@@ -1303,3 +1303,98 @@ test_that("tables with footnotes can be added to a word doc", {
     )
   )
 })
+
+test_that("tables with source notes can be added to a word doc", {
+  check_suggests()
+  skip("source notes not yet implemented")
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_source_note(source_note = "this is a source note example")
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc, target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c(
+      "num",
+      "char",
+      "fctr",
+      "date",
+      "time",
+      "datetime",
+      "currency",
+      "row",
+      "group"
+    )
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    list(
+      c(
+        "0.1111",
+        "apricot",
+        "one",
+        "2015-01-15",
+        "13:35",
+        "2018-01-01 02:22",
+        "49.95",
+        "row_1",
+        "grp_a"
+      ),
+      c(
+        "2.2220",
+        "banana",
+        "two",
+        "2015-02-15",
+        "14:40",
+        "2018-02-02 14:33",
+        "17.95",
+        "row_2",
+        "grp_a"
+      ),
+      c("this is a source note example")
+    )
+  )
+})
+
+
