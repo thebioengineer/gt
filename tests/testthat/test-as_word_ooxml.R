@@ -1468,3 +1468,375 @@ test_that("long tables can be added to a word doc", {
   )
 })
 
+test_that("long tables with spans can be added to a word doc", {
+  check_suggests()
+
+  ## simple table
+  gt_letters <-
+    dplyr::tibble(
+      upper_case = c(LETTERS,LETTERS),
+      lower_case = c(letters,letters)
+    ) |>
+    gt() |>
+    tab_header(title = "LETTERS") |>
+    tab_spanner(
+      "LETTERS",
+      columns = 1:2
+    )
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_letters, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table caption
+  docx_table_caption_text <-
+    docx_contents[1] |>
+    xml2::xml_text()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[2] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[2] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  expect_equal(
+    docx_table_caption_text,
+    c("Table  SEQ Table \\* ARABIC 1: LETTERS")
+  )
+
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c("LETTERS", "upper_case", "lower_case")
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    lapply(c(1:26,1:26), function(i) c(LETTERS[i], letters[i]))
+  )
+})
+
+test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
+
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:4, ] |>
+    gt(rowname_col = "char") |>
+    tab_row_group("My Row Group 1", c(1:2)) |>
+    tab_row_group("My Row Group 2", c(3:4)) |>
+    tab_style(
+      style = cell_fill(color = "orange"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "green",
+        font = "Biome"
+      ),
+      locations = cells_stub()
+    ) |>
+    tab_style(
+      style = cell_text(size = 25, v_align = "middle"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "blue",
+        stretch = "extra-expanded"
+      ),
+      locations = cells_row_groups()
+    ) |>
+    tab_style(
+      style = cell_text(color = "teal"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "green"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "pink"),
+      locations = cells_stubhead()
+    )
+
+  if (!testthat::is_testing() && interactive()) {
+    print(gt_exibble_min)
+  }
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  ## header
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c("", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+  expect_equal(
+    lapply(
+      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
+    ),
+    list(c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00"))
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
+    ),
+    list(c("008080", "008080", "008080", "008080", "008080", "008080", "008080", "008080"))
+  )
+
+  ## cell background styling
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      function(x) {
+        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
+          y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
+        })
+      }
+    ),
+    list(
+      list(character()),
+      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
+      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
+      list(character()),
+      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500"),
+      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500")
+    )
+  )
+
+  ## cell text styling
+  expect_equal(
+    lapply(
+      docx_table_body_contents,
+      function(x) {
+        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
+          y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
+        })
+      }
+    ),
+    list(
+      list("0000FF"),
+      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
+      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
+      list("0000FF"),
+      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character()),
+      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character())
+    )
+  )
+
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    list(
+      "My Row Group 2",
+      c(
+        "coconut",
+        "33.3300",
+        "three",
+        "2015-03-15",
+        "15:45",
+        "2018-03-03 03:44",
+        "1.39",
+        "row_3",
+        "grp_a"
+      ),
+      c(
+        "durian",
+        "444.4000",
+        "four",
+        "2015-04-15",
+        "16:50",
+        "2018-04-04 15:55",
+        "65100.00",
+        "row_4",
+        "grp_a"
+      ),
+      "My Row Group 1",
+      c(
+        "apricot",
+        "0.1111",
+        "one",
+        "2015-01-15",
+        "13:35",
+        "2018-01-01 02:22",
+        "49.95",
+        "row_1",
+        "grp_a"
+      ),
+      c(
+        "banana",
+        "2.2220",
+        "two",
+        "2015-02-15",
+        "14:40",
+        "2018-02-02 14:33",
+        "17.95",
+        "row_2",
+        "grp_a"
+      )
+    )
+  )
+})
+
+test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
+
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:4, ] |>
+    gt(rowname_col = "char") |>
+    tab_row_group("My Row Group 1", c(1:2)) |>
+    tab_row_group("My Row Group 2", c(3:4)) |>
+    tab_spanner("My Span Label", columns = 1:5) |>
+    tab_spanner("My Span Label top", columns = 2:4, level = 2) |>
+    tab_style(
+      style = cell_text(color = "purple"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "green"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "orange"),
+      locations = cells_column_spanners("My Span Label")
+    ) |>
+    tab_style(
+      style = cell_fill(color = "red"),
+      locations = cells_column_spanners("My Span Label top")
+    ) |>
+    tab_style(
+      style = cell_fill(color = "pink"),
+      locations = cells_stubhead()
+    )
+
+  if (!testthat::is_testing() && interactive()) {
+    print(gt_exibble_min)
+  }
+
+  ## Add table to empty word document
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc,target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  ## header
+  expect_equal(
+    docx_table_body_header |> xml2::xml_find_all(".//w:p") |> xml2::xml_text(),
+    c("", "", "My Span Label top", "", "", "", "", "",
+      "", "My Span Label", "", "", "", "",
+      "", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    lapply(docx_table_body_header, function(x) {
+      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
+        y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
+      })}),
+    list(
+      list("FFC0CB", character(0L), "FF0000", character(0L), character(0L), character(0L), character(0L), character(0L)),
+      list(character(0L), "FFA500", character(0L), character(0L), character(0L), character(0L)),
+      list(character(0L), "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00")
+      )
+  )
+
+  expect_equal(
+    lapply(docx_table_body_header, function(x) {
+      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
+        y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
+      })}),
+    list(
+      list(character(0L), character(0L), character(0L), character(0L),character(0L), character(0L), character(0L), character(0L)),
+      list(character(0L), character(0L), character(0L), character(0L),character(0L), character(0L)),
+      list(character(0L), "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0")
+      )
+  )
+})
+
