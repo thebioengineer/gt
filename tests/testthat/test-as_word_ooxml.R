@@ -2597,3 +2597,91 @@ test_that("markdown with img refs work",{
     "media/testimage.svg"
   )
 })
+
+test_that("table with image refs work - local only",{
+
+  skip_on_ci()
+  check_suggests()
+
+  skip("gtsave() not using ooxml yet")
+
+  ref_png <- system.file("graphics", "test_image.png", package = "gt")
+  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
+  ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
+
+  temp_png <- file.path(tempdir(),"test_image.png")
+  temp_svg <- file.path(tempdir(),"test_image.svg")
+  temp_wide_svg <- file.path(tempdir(),"gt_parts_of_a_table.svg")
+
+  file.copy(ref_png, temp_png)
+  file.copy(ref_svg, temp_svg)
+  file.copy(ref_wide_svg, temp_wide_svg)
+
+  image_gt <- dplyr::tribble(
+    ~md,
+    paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
+    temp_svg, # single image, square
+    ref_wide_svg # a wide image is respected
+  ) |>
+    gt() |>
+    fmt_image(columns = everything(), sep = ",", height = "2in")
+
+  temp_docx <- tempfile(fileext = ".docx")
+
+  gtsave(image_gt, filename = temp_docx)
+
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_docx)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_docx)
+
+  ## get docx contents
+  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+
+  ## extract table hyperlinks
+  docx_table_image <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//a:blip")
+
+  ## hyperlinks are preserved and updated to be rId
+  expect_length(docx_table_image, 4)
+
+  # Expect match has all = TRUE as a default
+  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
+
+  # first should be a png
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
+    "media/testimage.png"
+  )
+
+  # second should be an svg of testimage
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
+    "media/testimage.svg"
+  )
+
+  # third should also be an svg of testimage
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[3], "embed")],
+    "media/testimage.svg"
+  )
+
+  # foruth should be an svg of gtpartsofatable
+  expect_equal(
+    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[4], "embed")],
+    "media/gtpartsofatable.svg"
+  )
+
+  ## Check that the image h/w ratios are preserved
+  docx$doc_obj$get() |>
+    xml2::xml_find_all(".//wp:extent") |>
+    xml2::xml_attrs() |>
+    sapply(function(x) {as.numeric(x[["cy"]])/as.numeric(x[["cx"]])}) |>
+    expect_equal(
+      c(1,1,1,0.627451),
+      tolerance = .0000001 ## check out to 6 decimals for the ratio
+    )
+})
