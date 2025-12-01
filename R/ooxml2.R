@@ -784,7 +784,7 @@ process_ooxml__text <- function(ooxml_type, nodes, whitespace = c("default", "pr
     attr    <- xml_attr(txt, "space")
 
     # If it's already set to preserve, respect preservation
-    if (attr != "preserve") {
+    if (!identical(attr, "preserve")) {
       ## options for white space: normal, nowrap, pre, pre-wrap, pre-line, break-spaces
       ## normal drops all newlines and collapse spaces
       ## general behavior based on: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
