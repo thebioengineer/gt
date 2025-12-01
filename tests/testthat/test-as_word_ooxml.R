@@ -2054,7 +2054,7 @@ test_that("footnotes styling gets applied to footer marks", {
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
   check_suggests()
-  skip("summaries noy yet implemented")
+  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -2234,7 +2234,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 test_that("tables preserves spaces in text & can be added to a word doc", {
   skip_on_ci()
   check_suggests()
-  skip("TODO: fix preserve")
 
   ## simple table
   gt_exibble <-
