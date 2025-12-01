@@ -765,7 +765,6 @@ test_that("tables with spans can be added to a word doc", {
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1328,13 +1327,23 @@ test_that("tables with footnotes can be added to a word doc", {
 
 test_that("tables with source notes can be added to a word doc", {
   check_suggests()
-  skip("source notes not yet implemented")
 
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
     gt() |>
     tab_source_note(source_note = "this is a source note example")
+
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
+    "this is a source note example"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:gridSpan"), "val"),
+    "9"
+  )
 
   ## Add table to empty word document
   word_doc <-
