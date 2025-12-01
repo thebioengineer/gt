@@ -830,7 +830,7 @@ process_ooxml__run <- function(ooxml_type, nodes,
 
 process_ooxml__run_word <- function(nodes, font, size, color, style, weight, stretch) {
 
-  nodes_run <- xml_find_all(nodes, "//w:r")
+  nodes_run <- xml_find_all(nodes, ".//w:r")
   for (run in nodes_run) {
     run_image <- xml_find_first(run, ".//w:drawing")
     run_style <- xml_find_first(run, ".//w:rPr")
