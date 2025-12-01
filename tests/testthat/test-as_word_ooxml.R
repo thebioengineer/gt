@@ -765,7 +765,6 @@ test_that("tables with spans can be added to a word doc", {
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1328,13 +1327,23 @@ test_that("tables with footnotes can be added to a word doc", {
 
 test_that("tables with source notes can be added to a word doc", {
   check_suggests()
-  skip("source notes not yet implemented")
 
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
     gt() |>
     tab_source_note(source_note = "this is a source note example")
+
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
+    "this is a source note example"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:gridSpan"), "val"),
+    "9"
+  )
 
   ## Add table to empty word document
   word_doc <-
@@ -1765,7 +1774,6 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
-
   check_suggests()
 
   ## simple table
@@ -1796,6 +1804,9 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
       style = cell_fill(color = "pink"),
       locations = cells_stubhead()
     )
+
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
 
   if (!testthat::is_testing() && interactive()) {
     print(gt_exibble_min)
@@ -1864,7 +1875,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
 
 test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
   check_suggests()
-  skip("source notes and footnotes not yet implemented")
 
   ## simple table
   gt_exibble_min <-
@@ -1948,7 +1958,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 
 test_that("footnotes styling gets applied to footer marks", {
   check_suggests()
-  skip("footnotes not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -1957,6 +1966,30 @@ test_that("footnotes styling gets applied to footer marks", {
     tab_footnote("My Footnote") |>
     tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
     opt_footnote_spec(spec_ftr = "(b)")
+
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+
+  # first note
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()-1]//w:t")),
+    "My Footnote"
+  )
+  expect_equal(length(xml_find_all(xml, ".//w:tr[last()-1]//w:b")), 0)
+
+  # second note
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
+    c("(1)", "My Footnote 2")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:vertAlign"), "val"),
+    "baseline"
+  )
+  expect_equal(
+    length(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:b")),
+    1
+  )
 
   if (!testthat::is_testing() && interactive()) {
     print(gt_exibble_min)
@@ -2015,13 +2048,13 @@ test_that("footnotes styling gets applied to footer marks", {
 
   expect_equal(
     style_bold,
-    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
   )
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
   check_suggests()
-  skip("summaries noy yet implemented")
+  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -2201,7 +2234,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 test_that("tables preserves spaces in text & can be added to a word doc", {
   skip_on_ci()
   check_suggests()
-  skip("TODO: fix preserve")
 
   ## simple table
   gt_exibble <-

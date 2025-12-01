@@ -768,7 +768,7 @@ process_cell_content_ooxml <- function(
   )
 
   processed <- process_ooxml__text(ooxml_type, nodes = processed,
-    whitespace = whitespace
+    whitespace = cell_style[["cell_text"]][["whitespace"]] %||% whitespace
   )
 
   # TODO
@@ -778,9 +778,7 @@ process_cell_content_ooxml <- function(
   processed
 }
 
-process_ooxml__text <- function(ooxml_type, nodes, whitespace = c("default", "preserve")) {
-  whitespace <- rlang::arg_match(whitespace)
-
+process_ooxml__text <- function(ooxml_type, nodes, whitespace = "default") {
   nodes_text <- xml_find_all(nodes, switch_ooxml(ooxml_type, word = "//w:t", pptx = "//a:t"))
   for (txt in nodes_text) {
     content <- xml_text(txt)
@@ -793,12 +791,12 @@ process_ooxml__text <- function(ooxml_type, nodes, whitespace = c("default", "pr
       ## general behavior based on: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
 
       ## collapse white spaces unless preserving it
-      if (!isTRUE(attr %in% c( "pre", "pre-wrap", "break-spaces"))) {
+      if (!isTRUE(whitespace %in% c( "pre", "pre-wrap", "break-spaces"))) {
         content <- gsub("\\s+|\\t+", " ", content)
         xml_text(txt) <- content
       }
 
-      spacing <- if (isTRUE(attr %in% c( "pre", "pre-wrap", "pre-line","break-spaces"))) {
+      spacing <- if (isTRUE(whitespace %in% c( "pre", "pre-wrap", "pre-line","break-spaces"))) {
         "preserve"
       } else {
         "default"
@@ -830,7 +828,7 @@ process_ooxml__run <- function(ooxml_type, nodes,
 
 process_ooxml__run_word <- function(nodes, font, size, color, style, weight, stretch) {
 
-  nodes_run <- xml_find_all(nodes, "//w:r")
+  nodes_run <- xml_find_all(nodes, ".//w:r")
   for (run in nodes_run) {
     run_image <- xml_find_first(run, ".//w:drawing")
     run_style <- xml_find_first(run, ".//w:rPr")

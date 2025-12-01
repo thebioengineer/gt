@@ -54,10 +54,11 @@ as_ooxml_tbl <- function(ooxml_type, data,
   #
   # things are different in word where we can have w:tblLayoutType="autofit" and then
   # not have a <w:tblGrid> node
-  tbl_grid          <- create_table_grid_ooxml(ooxml_type, data = data)
-  tbl_spanner_rows  <- create_spanner_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
-  tbl_table_rows    <- create_table_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
-  tbl_footnote_rows <- create_footnote_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
+  tbl_grid            <- create_table_grid_ooxml(ooxml_type, data = data)
+  tbl_spanner_rows    <- create_spanner_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
+  tbl_table_rows      <- create_table_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
+  tbl_footnote_rows   <- create_footnote_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
+  tbl_sourcenote_rows <- create_sourcenote_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
 
   tbl_heading_row  <- if (embedded_heading) {
     create_heading_row(ooxml_type, data = data,
@@ -73,7 +74,8 @@ as_ooxml_tbl <- function(ooxml_type, data,
     tbl_heading_row,
     !!!tbl_spanner_rows,
     !!!tbl_table_rows,
-    !!!tbl_footnote_rows
+    !!!tbl_footnote_rows,
+    !!!tbl_sourcenote_rows
   )
 }
 
@@ -264,7 +266,7 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
         data = data, mark = footnote_ids[i], location = "ftr"
       )
 
-      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml), .where = 1)
+      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml, create_ns = TRUE), .where = 1)
     }
 
     content <- process_cell_content_ooxml(ooxml_type, footnote_xml,
@@ -286,6 +288,48 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
   tagList(!!!footnote_rows)
 
 }
+
+
+# source notes ------------------------------------------------------------
+
+create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_with_next = keep_with_next) {
+  source_notes <- dt_source_notes_get(data = data)
+
+  if (is.null(source_notes)) {
+    return(NULL)
+  }
+
+  n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
+  n_stub_cols <- length(dt_boxhead_get_var_by_type(data, type = "stub"))
+  n_cols <- n_data_cols + n_stub_cols
+
+  cell_style <- dt_styles_get(data = data)
+  cell_style <- cell_style[cell_style$locname == "source_notes", "styles", drop = TRUE]
+  cell_style <- cell_style[1][[1]]
+
+  source_note_rows <- lapply(source_notes, function(note) {
+    source_note_xml <- parse_to_xml(note)
+
+    content <- process_cell_content_ooxml(ooxml_type, source_note_xml,
+      cell_style = cell_style,
+      keep_with_next = keep_with_next
+    )
+
+    ooxml_tbl_row(ooxml_type, split = split,
+      ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+        properties = ooxml_tbl_cell_properties(ooxml_type,
+          fill     = cell_style[["cell_fill"]][["color"]],
+          v_align  = cell_style[["cell_text"]][["v_align"]],
+          col_span = n_cols
+        )
+      )
+    )
+  })
+
+  tagList(!!!source_note_rows)
+}
+
+
 
 # table grid --------------------------------------------------------------
 
