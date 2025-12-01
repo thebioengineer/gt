@@ -989,6 +989,8 @@ process_text <- function(text, context = "html") {
 
     return(text)
 
+  } else if (grepl("^ooxml/", context)) {
+    return(process_text_ooxml(text, ooxml_type = sub("^ooxml/", "", context)))
   } else if (context == "grid") {
     # Skip any formatting (unless wrapped in from_md)
     if (inherits(text, "from_markdown")) {
@@ -2243,13 +2245,6 @@ resolve_border_side <- function(side) {
   )
 }
 
-#' Expand a path using fs::path_expand
-#'
-#' @noRd
-path_expand <- function(file) {
-  fs::path_expand(file)
-}
-
 # TODO: the `get_file_ext()` function overlaps greatly with `gtsave_file_ext()`;
 #       both are not vectorized
 
@@ -2277,6 +2272,27 @@ validate_marks <- function(marks, call = rlang::caller_env()) {
   }
   if (!is.character(marks)) {
     cli::cli_abort("The value for `marks` must be a character vector.", call = call)
+  }
+}
+
+validate_footnote_order <- function(order, call = rlang::caller_env()) {
+
+  order_keywords <- c("marks_first", "marks_last", "preserve_order")
+
+
+  if (length(order) <= 1) {
+    # make sure not length 0.
+    check_string(order, allow_empty = FALSE, allow_null = FALSE, call = call)
+    # only check keywords for length 1
+
+    rlang::arg_match0(
+      order,
+      order_keywords,
+      error_call = call
+    )
+  }
+  if (!is.character(order) | length(order)>1) {
+    cli::cli_abort("The value for `order` must be a character string. Acceptable values include: {.val {order_keywords}}", call = call)
   }
 }
 
@@ -2506,3 +2522,39 @@ data_get_image_tag <- function(file, dir = "images") {
 }
 
 #nocov end
+
+#' Function to iterate over the gt_tbls in a gt_group and apply a function
+#' @param data gt_group obj
+#' @param arg_list list of function arguments and function name from match.call in parent function
+#' @param call caller env
+#' @importFrom rlang caller_env
+#' @noRd
+apply_to_grp <- function(data, arg_list, call = caller_env()){
+  func <- as.character(arg_list[[1]])
+  args <- arg_list[-1]
+  # check function is a valid gt exported function
+  if(!(func %in% getNamespaceExports("gt"))){
+    cli::cli_abort("{.val {func}} is not an exported gt function")
+  }
+
+  for (i in seq_len(nrow(data$gt_tbls))) {
+    # pull out gt_tbl, apply function, reinsert into group
+    gt_tbl <- grp_pull(data, i)
+    # replace data arg with current gt_tbl
+    args[[1]] <- gt_tbl
+
+    #make it clear which table if an error occurs
+    gt_tbl <- tryCatch({
+      do.call(func, args, envir = call)
+    },
+    error = function(e) {
+      cli::cli_abort("Failure in Table {i}", parent = e)
+    })
+
+    data <- grp_replace(data, gt_tbl, .which = i)
+  }
+
+  data
+}
+
+

@@ -34,6 +34,10 @@ build_data <- function(data, context) {
     data <- adjust_gt_tbl_empty(data = data)
   }
 
+  # Build summary columns before building the body
+  # (summary columns modify the underlying data)
+  data <- dt_summary_cols_build(data = data, context = context)
+
   # Create `body` with rendered values; move
   # input data cells to `body` that didn't have
   # any rendering applied during `render_formats()`;
@@ -43,7 +47,9 @@ build_data <- function(data, context) {
   data <- render_formats(data = data, skip_compat_check = FALSE, context = context)
   data <- render_substitutions(data = data, context = context)
   data <- migrate_unformatted_to_output(data = data, context = context)
+
   data <- perform_col_merge(data = data, context = context)
+
   data <- dt_body_reassemble(data = data)
 
   data <- reorder_stub_df(data = data)
@@ -94,10 +100,10 @@ build_data <- function(data, context) {
 # for vec_*() functions
 # only build the body correctly.
 build_data_body <- function(data, context) {
-  
+
   data <- dt_body_build(data = data)
   data <- render_formats(data = data, skip_compat_check = TRUE, context = context)
   data <- migrate_unformatted_to_output(data = data, context = context)
-  
+
   data
 }

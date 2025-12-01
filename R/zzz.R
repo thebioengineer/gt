@@ -177,6 +177,7 @@ gt_default_options <-
   # Only register S3 method once package is loaded
   vctrs::s3_register("gtable::as.gtable", "gt_tbl")
 
+
   invisible()
 }
 
