@@ -266,7 +266,7 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
         data = data, mark = footnote_ids[i], location = "ftr"
       )
 
-      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml), .where = 1)
+      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml, create_ns = TRUE), .where = 1)
     }
 
     content <- process_cell_content_ooxml(ooxml_type, footnote_xml,
