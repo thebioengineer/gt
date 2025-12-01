@@ -1,10 +1,6 @@
 skip_on_cran()
 
 # Function to skip tests if Suggested packages not available on system
-check_suggests <- function() {
-  skip_if_not_installed("officer")
-}
-
 test_that("word ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests

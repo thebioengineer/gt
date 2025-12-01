@@ -1742,7 +1742,6 @@ create_columns_component_xml <- function(
       spanner_cell_vals <- list()
 
       # Create the cell for the stubhead labels
-
       if (stub_available) {
 
         if (span_row_idx == 1) {

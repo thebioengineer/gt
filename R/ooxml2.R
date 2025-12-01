@@ -679,7 +679,10 @@ markdown_to_ooxml <- function(text, ooxml_type) {
 # parse_to_ooxml ----------------------------------------------------------
 
 parse_to_ooxml <- function(x, ooxml_type = c("word", "pptx"), ...) {
-  switch_ooxml(ooxml_type, word = parse_to_ooxml_word(x))
+  if (!inherits(x, "xml_nodeset")) {
+    x <- switch_ooxml(ooxml_type, word = parse_to_ooxml_word(x))
+  }
+  x
 }
 
 parse_to_ooxml_word <- function(x) {
@@ -760,7 +763,7 @@ process_cell_content_ooxml <- function(
     size       = size   %||% cell_style[["cell_text"]][["size"]]   %||% size_default,
     color      = color  %||% cell_style[["cell_text"]][["color"]]  %||% color_default,
     style      = style  %||% cell_style[["cell_text"]][["style"]]  %||% style_default,
-    weight     = weight %||%cell_style[["cell_text"]][["weight"]]  %||% weight_default,
+    weight     = weight %||% cell_style[["cell_text"]][["weight"]]  %||% weight_default,
     stretch    = stretch
   )
 
@@ -784,7 +787,7 @@ process_ooxml__text <- function(ooxml_type, nodes, whitespace = c("default", "pr
     attr    <- xml_attr(txt, "space")
 
     # If it's already set to preserve, respect preservation
-    if (attr != "preserve") {
+    if (!identical(attr, "preserve")) {
       ## options for white space: normal, nowrap, pre, pre-wrap, pre-line, break-spaces
       ## normal drops all newlines and collapse spaces
       ## general behavior based on: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space

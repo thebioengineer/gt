@@ -102,8 +102,7 @@ create_heading_row <- function(ooxml_type, data, split = FALSE, keep_with_next =
   stub_components <- dt_stub_components(data = data)
   subtitle_defined <- dt_heading_has_subtitle(data = data)
 
-  header_title_style <-
-    styles_tbl[styles_tbl$locname == "title", ]$styles[1][[1]]
+  header_title_style <- styles_tbl[styles_tbl$locname == "title", ]$styles[1][[1]]
 
   # Obtain the number of visible columns in the built table
   n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
@@ -148,6 +147,7 @@ create_table_caption_contents_ooxml <- function(ooxml_type, data, autonum = TRUE
 create_heading_row_title_paragraph <- function(ooxml_type, data, autonum = TRUE, keep_with_next = TRUE) {
   heading <- dt_heading_get(data = data)
 
+  footnotes_tbl <- dt_footnotes_get(data = data)
   styles_tbl <- dt_styles_get(data = data)
   header_title_style <- styles_tbl[styles_tbl$locname == "title", ]$styles[1][[1]]
 
@@ -165,7 +165,14 @@ create_heading_row_title_paragraph <- function(ooxml_type, data, autonum = TRUE,
     align_default   = "center"
   )
 
-  # TODO: footnote marks
+  if ("title" %in% footnotes_tbl$locname) {
+    footnote_title_marks <-coalesce_marks(fn_tbl = footnotes_tbl, locname = "title")
+
+    footnote_title_marks <- footnote_mark_to_ooxml(ooxml_type, data, mark = footnote_title_marks)
+    footnote_title_marks <- as_xml_node(footnote_title_marks)[[1L]]
+
+    xml_add_child(paragraphs, footnote_title_marks)
+  }
 
   if (autonum) {
     autonum_nodes <- as_xml_node(ooxml_table_autonum(ooxml_type,
@@ -187,6 +194,7 @@ create_heading_row_subtitle_paragraph <- function(ooxml_type, data, keep_with_ne
   }
 
   styles_tbl <- dt_styles_get(data = data)
+  footnotes_tbl <- dt_footnotes_get(data = data)
   heading <- dt_heading_get(data = data)
   table_font_color <- dt_options_get_value(data, option = "table_font_color")
 
@@ -203,6 +211,16 @@ create_heading_row_subtitle_paragraph <- function(ooxml_type, data, keep_with_ne
     keep_with_next  = keep_with_next,
     align_default   = "center"
   )
+
+  if ("subtitle" %in% footnotes_tbl$locname) {
+    footnote_subtitle_marks <- coalesce_marks(fn_tbl = footnotes_tbl, locname = "subtitle")
+
+    footnote_subtitle_marks <- footnote_mark_to_ooxml(ooxml_type, data, mark = footnote_subtitle_marks)
+    footnote_subtitle_marks <- as_xml_node(footnote_subtitle_marks)[[1L]]
+
+    xml_add_child(paragraphs, footnote_subtitle_marks)
+  }
+
 
   to_tags(paragraphs)
 }
@@ -234,9 +252,20 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
   footnote_rows <- lapply(seq_along(footnote_ids), function(i) {
     # in the build stage, we don't process markdown for footnote text
     # So, we process it now https://github.com/rstudio/gt/issues/1892
-    footnote_xml <- process_text_ooxml(footnote_text[[i]], ooxml_type)
+    footnote_xml <- parse_to_ooxml(
+      process_text_ooxml(footnote_text[[i]], ooxml_type = ooxml_type),
+      ooxml_type = ooxml_type
+    )
 
-    # TODO: footnote marks for the subtitle
+    # footnote marks
+    if (!is.na(footnote_ids[i]) && !identical(footnote_ids[i], "")) {
+
+      footnote_id_xml <- footnote_mark_to_ooxml(ooxml_type = ooxml_type,
+        data = data, mark = footnote_ids[i], location = "ftr"
+      )
+
+      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml), .where = 1)
+    }
 
     content <- process_cell_content_ooxml(ooxml_type, footnote_xml,
       cell_style = cell_style,
@@ -295,6 +324,10 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
   column_labels_border_top_color    <- dt_options_get_value(data = data, option = "column_labels_border_top_color")
   column_labels_border_bottom_color <- dt_options_get_value(data = data, option = "column_labels_border_bottom_color")
 
+  boxh <- dt_boxhead_get(data = data)
+  headings_vars <- vctrs::vec_slice(boxh$var, boxh$type == "default")
+  headings_labels <- dt_boxhead_get_vars_labels_default(data = data)
+
   spanners    <- dt_spanners_print_matrix(data, include_hidden = FALSE)
   spanner_ids <- dt_spanners_print_matrix(data, include_hidden = FALSE, ids = TRUE)
   spanner_row_values <- spanners[span_row_idx,]
@@ -316,7 +349,13 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
 
   col_alignment <- get_col_alignment(data)
 
-  cells <- lapply(seq_along(spanner_row_values), \(i) {
+  values <- if (span_row_idx == nrow(spanners)) {
+    headings_labels
+  } else {
+    spanner_row_values
+  }
+
+  cells <- lapply(seq_along(values), \(i) {
     if (colspans[i] == 0) {
       return (NULL)
     }
@@ -325,7 +364,7 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
       cell <- create_spanner_row_empty_cell_ooxml(ooxml_type, data,
         span_row_idx = span_row_idx,
         span_column_idx = i,
-        n = length(spanner_row_values)
+        n = length(values)
       )
       return(cell)
     }
@@ -350,13 +389,12 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
       top    = if (span_row_idx == 1) { list(size = 2, color = column_labels_border_top_color) }
     )
 
-    content <- process_cell_content_ooxml(ooxml_type, spanner_row_values[i],
+    content <- process_cell_content_ooxml(ooxml_type, values[i],
       cell_style     = cell_style,
       align_default  = if (span_row_idx == nrow(spanners)) col_alignment[i] else "center",
 
       keep_with_next = keep_with_next
     )
-
     ooxml_tbl_cell(ooxml_type, properties = ooxml_tbl_cell_properties(ooxml_type,
         borders  = borders,
         fill     = cell_style[["cell_fill"]][["color"]],
@@ -724,4 +762,62 @@ get_col_alignment <- function(data) {
   vctrs::vec_slice(boxh$column_align, boxh$type == "default")
 }
 
+# Transform a footnote mark to an XML representation
+footnote_mark_to_ooxml <- function(ooxml_type, data, mark, location = c("ref", "ftr")) {
+  switch_ooxml(ooxml_type,
+    word = footnote_mark_to_ooxml_word(data, mark = mark, location = location),
+    pptx = footnote_mark_to_ooxml_pptx(data, mark = mark, location = location)
+  )
+}
+
+footnote_mark_to_ooxml_word <- function(data, mark, location = c("ref", "ftr")) {
+
+  location <- match.arg(location)
+
+  if (length(mark) == 1 && is.na(mark)) {
+    return("")
+  }
+
+  spec <- get_footnote_spec_by_location(data = data, location = location)
+  spec <- spec %||% "^i"
+
+  if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
+  if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
+
+  tags <- ooxml_tag("w:r",
+    ooxml_tag("w:rPr",
+      ooxml_tag("w:vertAlign", "w:val" = if (grepl("^", spec, fixed = TRUE)) "superscript" else "baseline"),
+      if (grepl("i", spec, fixed = TRUE)) ooxml_tag("w:i"),
+      if (grepl("b", spec, fixed = TRUE)) ooxml_tag("w:b")
+    ),
+    ooxml_tag("w:t", "xml:space" = "default", mark)
+  )
+  as.character(tags)
+}
+
+footnote_mark_to_ooxml_pptx <- function(data, mark, location = c("ref", "ftr")) {
+  cli::cli_abort("footnotes not yet implemented for pptx")
+}
+
+paste_footnote_ooxml_word <- function(text, footmark_xml, position = "right") {
+  text_xml <- parse_to_ooxml(text, ooxml_type = "word")
+
+  position <- rlang::arg_match(position, values = c("left","right"))
+  footmark_xml <- as_xml_node(footmark_xml)[[1L]]
+
+  if (position == "right") {
+    xml_add_child(text_xml, footmark_xml)
+  } else {
+    xml_add_child(text_xml, footmark_xml, .where = 1)
+  }
+  paste0("<md_container>", as.character(text_xml), "</md_container>")
+}
+
+paste_footnote_ooxml_pptx <- function(
+    text,
+    footmark_xml,
+    position = "right"
+) {
+  cli::cli_abort("footnotes not yet implemented for pptx")
+}
 

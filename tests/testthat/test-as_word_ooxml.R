@@ -1,9 +1,5 @@
 skip_on_cran()
 
-check_suggests <- function() {
-  skip_if_not_installed("officer")
-}
-
 test_that("word ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
@@ -1201,7 +1197,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
 
 test_that("tables with footnotes can be added to a word doc", {
   check_suggests()
-  skip("footnote marks not yet implemented")
 
   ## simple table
   gt_exibble_min <-
@@ -1216,7 +1211,34 @@ test_that("tables with footnotes can be added to a word doc", {
       locations = cells_column_labels(columns = char )
     )
 
-  ## Add table to empty word document
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  xml_note_num <- xml_find_all(xml, './/w:t[text() = "num"]/../../w:r[last()]')
+  expect_equal(xml_attr(xml_find_all(xml_note_num, ".//w:rPr/w:vertAlign"), "val"), "superscript")
+  expect_equal(xml_text(xml_find_all(xml_note_num, ".//w:t")), "1")
+
+  xml_note_char <- xml_find_all(xml, './/w:t[text() = "char"]/../../w:r[last()]')
+  expect_equal(xml_attr(xml_find_all(xml_note_char, ".//w:rPr/w:vertAlign"), "val"), "superscript")
+  expect_equal(xml_text(xml_find_all(xml_note_char, ".//w:t")), "2")
+
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last()]//w:r/w:t')),
+    c("2", "this is a second footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last()]//w:vertAlign'), "val"),
+    "superscript"
+  )
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last() - 1]//w:r/w:t')),
+    c("1", "this is a footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last() - 1]//w:vertAlign'), "val"),
+    "superscript"
+  )
+
+  # ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
     ooxml_body_add_gt(
