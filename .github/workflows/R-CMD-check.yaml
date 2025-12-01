@@ -8,10 +8,7 @@ on:
   push:
     branches: [main, master, xml_pptx]
   pull_request:
-<<<<<<< HEAD
-=======
     branches: [main, master, xml_pptx]
->>>>>>> 3fc1edcb (trigger actions)
 
 name: R-CMD-check.yaml
 
