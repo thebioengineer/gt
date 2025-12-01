@@ -1,9 +1,5 @@
 skip_on_cran()
 
-check_suggests <- function() {
-  skip_if_not_installed("officer")
-}
-
 test_that("word ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
@@ -1204,7 +1200,7 @@ test_that("tables with footnotes can be added to a word doc", {
 
   ## simple table
   gt_exibble_min <-
-    exibble[1:2, 1:3] |>
+    exibble[1:2, ] |>
     gt() |>
     tab_footnote(
       footnote = md("this is a footer example"),
@@ -1215,8 +1211,8 @@ test_that("tables with footnotes can be added to a word doc", {
       locations = cells_column_labels(columns = char )
     )
 
+  # check the xml
   xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-
   xml_note_num <- xml_find_all(xml, './/w:t[text() = "num"]/../../w:r[last()]')
   expect_equal(xml_attr(xml_find_all(xml_note_num, ".//w:rPr/w:vertAlign"), "val"), "superscript")
   expect_equal(xml_text(xml_find_all(xml_note_num, ".//w:t")), "1")
@@ -1225,92 +1221,109 @@ test_that("tables with footnotes can be added to a word doc", {
   expect_equal(xml_attr(xml_find_all(xml_note_char, ".//w:rPr/w:vertAlign"), "val"), "superscript")
   expect_equal(xml_text(xml_find_all(xml_note_char, ".//w:t")), "2")
 
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last()]//w:r/w:t')),
+    c("2", "this is a second footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last()]//w:vertAlign'), "val"),
+    "superscript"
+  )
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last() - 1]//w:r/w:t')),
+    c("1", "this is a footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last() - 1]//w:vertAlign'), "val"),
+    "superscript"
+  )
+
   # ## Add table to empty word document
-  # word_doc <-
-  #   officer::read_docx() |>
-  #   ooxml_body_add_gt(
-  #     gt_exibble_min,
-  #     align = "center"
-  #   )
-  #
-  # ## save word doc to temporary file
-  # temp_word_file <- tempfile(fileext = ".docx")
-  # print(word_doc, target = temp_word_file)
-  #
-  # ## Manual Review
-  # if (!testthat::is_testing() && interactive()) {
-  #   shell.exec(temp_word_file)
-  # }
-  #
-  # ## Programmatic Review
-  # docx <- officer::read_docx(temp_word_file)
-  #
-  # ## get docx table contents
-  # docx_contents <-
-  #   docx$doc_obj$get() |>
-  #   xml2::xml_children() |>
-  #   xml2::xml_children()
-  #
-  # ## extract table contents
-  # docx_table_body_header <-
-  #   docx_contents[1] |>
-  #   xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-  #
-  # docx_table_body_contents <-
-  #   docx_contents[1] |>
-  #   xml2::xml_find_all(".//w:tr") |>
-  #   setdiff(docx_table_body_header)
-  #
-  # ## superscripts will display as "true#false" due to
-  # ## xml being:
-  # ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t><w:i>false</w:i>,
-  # ## and being converted to TRUE due to italic being true, then the superscript, then turning off italics
-  # expect_equal(
-  #   docx_table_body_header |>
-  #     xml2::xml_find_all(".//w:p") |>
-  #     xml2::xml_text(),
-  #   c(
-  #     "num1", "char2", "fctr", "date", "time",
-  #     "datetime", "currency", "row", "group"
-  #   )
-  # )
-  #
-  # ## superscripts will display as "true##" due to
-  # ## xml being:
-  # ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t>,
-  # ## and being converted to TRUE due to italic being true, then the superscript,
-  # expect_equal(
-  #   lapply(
-  #     docx_table_body_contents, function(x)
-  #     x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-  #   ),
-  #   list(
-  #     c(
-  #       "0.1111",
-  #       "apricot",
-  #       "one",
-  #       "2015-01-15",
-  #       "13:35",
-  #       "2018-01-01 02:22",
-  #       "49.95",
-  #       "row_1",
-  #       "grp_a"
-  #     ),
-  #     c(
-  #       "2.2220",
-  #       "banana",
-  #       "two",
-  #       "2015-02-15",
-  #       "14:40",
-  #       "2018-02-02 14:33",
-  #       "17.95",
-  #       "row_2",
-  #       "grp_a"
-  #     ),
-  #     c("1this is a footer example"),
-  #     c("2this is a second footer example")
-  #   )
-  # )
+  word_doc <-
+    officer::read_docx() |>
+    ooxml_body_add_gt(
+      gt_exibble_min,
+      align = "center"
+    )
+
+  ## save word doc to temporary file
+  temp_word_file <- tempfile(fileext = ".docx")
+  print(word_doc, target = temp_word_file)
+
+  ## Manual Review
+  if (!testthat::is_testing() && interactive()) {
+    shell.exec(temp_word_file)
+  }
+
+  ## Programmatic Review
+  docx <- officer::read_docx(temp_word_file)
+
+  ## get docx table contents
+  docx_contents <-
+    docx$doc_obj$get() |>
+    xml2::xml_children() |>
+    xml2::xml_children()
+
+  ## extract table contents
+  docx_table_body_header <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
+
+  docx_table_body_contents <-
+    docx_contents[1] |>
+    xml2::xml_find_all(".//w:tr") |>
+    setdiff(docx_table_body_header)
+
+  ## superscripts will display as "true#false" due to
+  ## xml being:
+  ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t><w:i>false</w:i>,
+  ## and being converted to TRUE due to italic being true, then the superscript, then turning off italics
+  expect_equal(
+    docx_table_body_header |>
+      xml2::xml_find_all(".//w:p") |>
+      xml2::xml_text(),
+    c(
+      "num1", "char2", "fctr", "date", "time",
+      "datetime", "currency", "row", "group"
+    )
+  )
+
+  ## superscripts will display as "true##" due to
+  ## xml being:
+  ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t>,
+  ## and being converted to TRUE due to italic being true, then the superscript,
+  expect_equal(
+    lapply(
+      docx_table_body_contents, function(x)
+      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
+    ),
+    list(
+      c(
+        "0.1111",
+        "apricot",
+        "one",
+        "2015-01-15",
+        "13:35",
+        "2018-01-01 02:22",
+        "49.95",
+        "row_1",
+        "grp_a"
+      ),
+      c(
+        "2.2220",
+        "banana",
+        "two",
+        "2015-02-15",
+        "14:40",
+        "2018-02-02 14:33",
+        "17.95",
+        "row_2",
+        "grp_a"
+      ),
+      c("1this is a footer example"),
+      c("2this is a second footer example")
+    )
+  )
 })
 
 test_that("tables with source notes can be added to a word doc", {

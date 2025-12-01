@@ -252,9 +252,20 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
   footnote_rows <- lapply(seq_along(footnote_ids), function(i) {
     # in the build stage, we don't process markdown for footnote text
     # So, we process it now https://github.com/rstudio/gt/issues/1892
-    footnote_xml <- process_text_ooxml(footnote_text[[i]], ooxml_type)
+    footnote_xml <- parse_to_ooxml(
+      process_text_ooxml(footnote_text[[i]], ooxml_type = ooxml_type),
+      ooxml_type = ooxml_type
+    )
 
-    # TODO: footnote marks for the subtitle
+    # footnote marks
+    if (!is.na(footnote_ids[i]) && !identical(footnote_ids[i], "")) {
+
+      footnote_id_xml <- footnote_mark_to_ooxml(ooxml_type = ooxml_type,
+        data = data, mark = footnote_ids[i], location = "ftr"
+      )
+
+      xml_add_child(footnote_xml, as_xml_node(footnote_id_xml), .where = 1)
+    }
 
     content <- process_cell_content_ooxml(ooxml_type, footnote_xml,
       cell_style = cell_style,

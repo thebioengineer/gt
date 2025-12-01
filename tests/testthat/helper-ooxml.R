@@ -45,3 +45,6 @@ expect_xml_snapshot <- function(xml) {
   expect_snapshot(writeLines(as.character(xml)))
 }
 
+check_suggests <- function() {
+  skip_if_not_installed("officer")
+}
