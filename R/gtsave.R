@@ -428,7 +428,8 @@ gt_save_docx <- function(
     path = NULL,
     ...,
     autonum = TRUE,
-    open = rlang::is_interactive()
+    open = rlang::is_interactive(),
+    as_word_func = as_word
 ) {
 
   # Because creation of a .docx container is somewhat difficult, we
@@ -444,7 +445,7 @@ gt_save_docx <- function(
       paste0(
         c(
           "```{=openxml}",
-          enc2utf8(as_word(data = data, autonum = autonum)),
+          enc2utf8(as_word_func(data = data, autonum = autonum)),
           "```",
           ""),
         collapse = "\n"
@@ -457,7 +458,7 @@ gt_save_docx <- function(
     seq_tbls <- seq_len(nrow(data$gt_tbls))
 
     for (i in seq_tbls) {
-      word_tbl_i <- as_word(grp_pull(data, which = i), autonum = autonum)
+      word_tbl_i <- as_word_func(grp_pull(data, which = i), autonum = autonum)
       word_tbls <- c(word_tbls, word_tbl_i)
     }
 

@@ -546,6 +546,13 @@ ooxml_table_autonum <- function(ooxml_type, font = "Calibri", size = 12) {
 
 }
 
+ooxml_image <- function(ooxml_type, src, height = 1, width = 1, units = "in", alt_text = "") {
+ switch_ooxml(ooxml_type, word = ooxml_image_word(src = src, height = height, width = width, units = units, alt_text = alt_text))
+}
+
+ooxml_image_word <- function(src, height = 1, width = 1, units = "in", alt_text = "") {
+  xml_image(src, height = height, width = width, units = units, alt_text = alt_text)
+}
 
 # ooxml_tag ---------------------------------------------------------------
 
@@ -750,6 +757,14 @@ process_cell_content_ooxml <- function(
   rlang::check_dots_empty()
   ooxml_type <- rlang::arg_match(ooxml_type)
 
+  font   <- font   %||% cell_style[["cell_text"]][["font"]]   %||% font_default
+  size   <- size   %||% cell_style[["cell_text"]][["size"]]   %||% size_default
+  color  <- color  %||% cell_style[["cell_text"]][["color"]]  %||% color_default
+  style  <- style  %||% cell_style[["cell_text"]][["style"]]  %||% style_default
+  weight <- weight %||% cell_style[["cell_text"]][["weight"]]  %||% weight_default
+
+  whitespace <- cell_style[["cell_text"]][["whitespace"]] %||% whitespace
+
   processed <- parse_to_ooxml(x, ooxml_type = ooxml_type)
 
   processed <- process_ooxml__paragraph(ooxml_type, nodes = processed,
@@ -759,24 +774,125 @@ process_cell_content_ooxml <- function(
   )
 
   processed <- process_ooxml__run(ooxml_type, nodes = processed,
-    font       = font   %||% cell_style[["cell_text"]][["font"]]   %||% font_default,
-    size       = size   %||% cell_style[["cell_text"]][["size"]]   %||% size_default,
-    color      = color  %||% cell_style[["cell_text"]][["color"]]  %||% color_default,
-    style      = style  %||% cell_style[["cell_text"]][["style"]]  %||% style_default,
-    weight     = weight %||% cell_style[["cell_text"]][["weight"]]  %||% weight_default,
+    font       = font ,
+    size       = size,
+    color      = color,
+    style      = style,
+    weight     = weight,
     stretch    = stretch
   )
 
-  processed <- process_ooxml__text(ooxml_type, nodes = processed,
-    whitespace = cell_style[["cell_text"]][["whitespace"]] %||% whitespace
+  processed <- process_ooxml__text(ooxml_type, nodes = processed, whitespace = whitespace)
+
+  processed <- process_ooxml__white_space_br(ooxml_type, processed,
+    whitespace = whitespace,
+
+    font       = font ,
+    size       = size,
+    color      = color,
+    style      = style,
+    weight     = weight,
+    stretch    = stretch
   )
 
   # TODO
-  # processed <- process_white_space_br_in_xml(processed, ...)
   # processed <- process_drop_empty_styling_nodes(processed)
 
   processed
 }
+
+process_ooxml__white_space_br <- function(ooxml_type, x,
+  whitespace = NULL,
+
+  font = NULL,
+  size = NULL,
+  color = NULL,
+  style = NULL,
+  weight = NULL,
+
+  stretch = NULL
+) {
+  switch_ooxml(ooxml_type,
+    word =  process_ooxml__white_space_br_word(x,
+      whitespace = whitespace,
+
+      font       = font ,
+      size       = size,
+      color      = color,
+      style      = style,
+      weight     = weight,
+      stretch    = stretch
+    )
+  )
+}
+
+process_ooxml__white_space_br_word <- function(x,
+  whitespace = NULL,
+
+  font = NULL,
+  size = NULL,
+  color = NULL,
+  style = NULL,
+  weight = NULL,
+
+  stretch = NULL
+) {
+
+  ## Options for white space: normal, nowrap, pre, pre-wrap, pre-line, break-spaces
+  ## normal drops all newlines and collapse spaces
+  ## general behavior based on: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+
+  ## Remove newlines (br) unless preserving it
+  if (!isTRUE(whitespace %in% c("pre", "pre-wrap", "pre-line", "break-spaces"))) {
+
+    paragraphs <- xml_find_all(x, "//w:p")
+
+    replacement_br <- as_xml_node(create_ns = TRUE, ooxml_tag("w:r",
+      ooxml_tag("w:rPr"),
+      ooxml_tag("w:t", "xml:space" = "preserve", " ")
+    ))
+
+    replacement_br <- process_ooxml__text("word", replacement_br,
+      whitespace = whitespace
+    )
+
+    replacement_br <- process_ooxml__run("word", replacement_br,
+      font       = font ,
+      size       = size,
+      color      = color,
+      style      = style,
+      weight     = weight,
+      stretch    = stretch
+    )
+
+    replacement_br <- replacement_br[[1]]
+
+    for (p in paragraphs) {
+
+      paragraph_children <- xml_children(p)
+
+      break_tags_locs <- which(xml_name(paragraph_children, ns = xml_ns(x)) == "w:br")
+      run_tags_locs <-  which(xml_name(paragraph_children, ns = xml_ns(x)) == "w:r")
+
+      if (length(break_tags_locs) > 0L) {
+        for (break_tag_loc in break_tags_locs) {
+
+          break_tag <- paragraph_children[[break_tag_loc]]
+
+          ## if the br is between two runs, replace with space
+          if (any(run_tags_locs > break_tag_loc) && any(run_tags_locs < break_tag_loc)) {
+            xml_add_sibling(break_tag, replacement_br, .where = "after")
+          }
+
+          xml_remove(break_tag)
+        }
+      }
+    }
+  }
+
+  x
+}
+
 
 process_ooxml__text <- function(ooxml_type, nodes, whitespace = "default") {
   nodes_text <- xml_find_all(nodes, switch_ooxml(ooxml_type, word = "//w:t", pptx = "//a:t"))
@@ -828,7 +944,7 @@ process_ooxml__run <- function(ooxml_type, nodes,
 
 process_ooxml__run_word <- function(nodes, font, size, color, style, weight, stretch) {
 
-  nodes_run <- xml_find_all(nodes, ".//w:r")
+  nodes_run <- xml_find_all(nodes, "//w:r")
   for (run in nodes_run) {
     run_image <- xml_find_first(run, ".//w:drawing")
     run_style <- xml_find_first(run, ".//w:rPr")
@@ -865,9 +981,7 @@ process_ooxml__run_word <- function(nodes, font, size, color, style, weight, str
         xml_add_child(run_style, "w:space", "w:val" = stretch_to_xml_stretch(stretch))
       }
 
-      if ("w:sz" %in% names) {
-        xml_set_attr(xml_find_first(run_style, ".//w:sz"), "w:val", size)
-      } else {
+      if (!"w:sz" %in% names) {
         xml_add_child(run_style, "w:sz", "w:val" = size)
       }
 
@@ -978,3 +1092,102 @@ to_tags <- function(nodeset) {
   })
   tagList(!!!tags)
 }
+
+fmt_image_ooxml <- function(ooxml_type, x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
+  switch_ooxml(ooxml_type,
+    word = fmt_image_ooxml_word(x, height = height, width = width, file_pattern = file_pattern, path = path)
+  )
+}
+
+auto_px <- function(x) {
+  if (!is.null(x)) {
+    if (is.numeric(x)) {
+      x <- paste0(x, "px")
+    } else {
+      if (is.character(x)) {
+        x <- convert_to_px(x)
+      }
+    }
+  }
+  x
+}
+
+fmt_image_ooxml_word <- function(x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
+  x_str <- character(length(x))
+  x_str_non_missing <- x[!is.na(x)]
+
+  # Automatically append `px` length unit when `height` or `width`
+  # is given as a number
+
+  height <- auto_px(height)
+  width  <- auto_px(width)
+
+  x_str_non_missing <-
+    vapply(
+      seq_along(x_str_non_missing),
+      FUN.VALUE = character(1L),
+      USE.NAMES = FALSE,
+      FUN = function(x) {
+
+        if (grepl(",", x_str_non_missing[x], fixed = TRUE)) {
+          files <- unlist(strsplit(x_str_non_missing[x], ",\\s*"))
+        } else {
+          files <- x_str_non_missing[x]
+        }
+
+        # Handle formatting of `file_pattern`
+        files <- apply_pattern_fmt_x(pattern = file_pattern, values = files)
+
+        out <- list()
+
+        out <- lapply(seq_along(files), function(y) {
+          # Handle case where the image is online
+          if ((!is.null(path) && grepl("https?://", path)) || grepl("https?://", files[y])) {
+
+            if (!is.null(path)) {
+
+              # Normalize ending of `path`
+              path <- gsub("/\\s+$", "", path)
+              uri <- paste0(path, "/", files[y])
+
+            } else {
+              uri <- files[y]
+            }
+
+            filename <- download_file(uri)
+
+          } else {
+
+            # Compose and normalize the local file path
+            filename <- gtsave_filename(path = path, filename = files[y])
+            filename <- path_expand(filename)
+          }
+
+          if (is.null(height) || is.null(width)) {
+
+            hw_ratio <- get_image_hw_ratio(filename)
+
+            if (is.null(width)) {
+              width <- round(height / hw_ratio, 0)
+            } else {
+              height <- round(width * hw_ratio, 0)
+            }
+          }
+
+          ooxml_tag("w:r",
+            ooxml_tag("w:rPr"),
+            ooxml_image("word", filename, height = height, width = width, units = "px")
+          )
+        })
+
+        p <- ooxml_tag("w:p", ooxml_tag("w:pPr"), !!!out)
+        paste0("<md_container>", as.character(p), "</md_container>")
+      }
+    )
+
+  x_str[!is.na(x)] <- x_str_non_missing
+  x_str[is.na(x)] <- NA_character_
+
+  x_str
+}
+

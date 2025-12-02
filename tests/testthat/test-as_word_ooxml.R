@@ -1,5 +1,55 @@
 skip_on_cran()
 
+ooxml_body_add_gt <- function(
+    x,
+    value,
+    align = "center",
+    pos = c("after","before","on"),
+    caption_location = c("top","bottom","embed"),
+    caption_align = "left",
+    split = FALSE,
+    keep_with_next = TRUE
+) {
+
+  ## check that officer is available
+  rlang::check_installed("officer", "to add gt tables to word documents.")
+
+  ## check that inputs are an officer rdocx and gt tbl
+  stopifnot(inherits(x, "rdocx"))
+
+  pos <- rlang::arg_match(pos)
+
+  xml <- as_word_ooxml(value,
+    align = align,
+    caption_location = caption_location,
+    caption_align = caption_align,
+    split = split,
+    keep_with_next = keep_with_next
+  )
+  suppressWarnings({
+    for (i in seq_along(xml)) {
+      x <- officer::body_add_xml(x, xml[[i]], pos)
+    }
+  })
+  x
+}
+
+read_xml_word_nodes <- function(x) {
+  xml2::xml_children(suppressWarnings(xml2::read_xml(paste0(
+    '<w:wrapper xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">',
+    paste(x, collapse = ""),
+    "</w:wrapper>"
+  ))))
+}
+
+expect_xml_snapshot <- function(xml) {
+  expect_snapshot(writeLines(as.character(xml)))
+}
+
+check_suggests <- function() {
+  skip_if_not_installed("officer")
+}
+
 test_that("word ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
@@ -68,7 +118,7 @@ test_that("word ooxml can be generated from gt object", {
   ## basic table with split enabled
   xml_split <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, split = FALSE))
   expect_equal(
-    purrr::map_lgl(xml_find_all(xml_split, "//w:trPr"), \(x) {
+    sapply(xml_find_all(xml_split, "//w:trPr"), \(x) {
       length(xml_find_all(x, ".//w:cantSplit")) == 1
     }),
     c(TRUE, TRUE)
@@ -128,26 +178,26 @@ test_that("word ooxml can be generated from gt object with cell styling", {
 
   # body rows
   xml_body <- xml_find_all(xml, "//w:tr")[c(3, 4, 6, 7)]
-  purrr::walk(xml_find_all(xml_body, "(.//w:tc)[1]//w:rPr"), \(node) {
+  for (node in xml_find_all(xml_body, "(.//w:tc)[1]//w:rPr")){
     expect_equal(xml_attr(xml_find_all(node, ".//w:rFonts"), "ascii"), "Biome")
     expect_equal(xml_attr(xml_find_all(node, ".//w:sz"), "val"), "20")
     expect_equal(length(xml_find_all(node, ".//w:i")), 1)
     expect_equal(xml_attr(xml_find_all(node, ".//w:color"), "val"), "00FF00")
     expect_equal(length(xml_find_all(node, ".//w:b")), 1)
-  })
+  }
 
   # orange cells
-  purrr::walk(c(2, 3, 5, 7, 9), \(i) {
+  for (i in c(2, 3, 5, 7, 9)) {
     shd <- xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))
     expect_equal(xml_attr(shd, "fill"), rep("FFA500", 4))
     expect_equal(xml_attr(shd, "val"), rep("clear", 4))
     expect_equal(xml_attr(shd, "color"), rep("auto", 4))
-  })
+  }
 
   # regular cells
-  purrr::walk(c(4, 6, 8), \(i) {
+  for (i in c(4, 6, 8)) {
     expect_equal(length(xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))), 0)
-  })
+  }
 
   # ## table with column and span styling
   gt_exibble_min <-
@@ -2401,12 +2451,9 @@ test_that("tables respects column and cell alignment and can be added to a word 
   )
 })
 
-
-test_that("markdown in the tables works out",{
-
+test_that("markdown in the tables works out", {
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   text_1a <- "
 ### This is Markdown.
@@ -2455,7 +2502,7 @@ There's a quick reference [here](https://commonmark.org/help/).
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
@@ -2547,7 +2594,6 @@ There's a quick reference [here](https://commonmark.org/help/).
 test_that("markdown with urls work", {
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   text_sample <- "
   Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
@@ -2563,7 +2609,7 @@ test_that("markdown with urls work", {
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
@@ -2593,9 +2639,7 @@ test_that("markdown with urls work", {
   )
 })
 
-test_that("markdown with img refs work",{
-  skip("gtsave() not using ooxml yet")
-
+test_that("markdown with img refs work", {
   skip_on_ci()
   check_suggests()
 
@@ -2618,7 +2662,7 @@ test_that("markdown with img refs work",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2652,12 +2696,10 @@ test_that("markdown with img refs work",{
   )
 })
 
-test_that("table with image refs work - local only",{
+test_that("table with image refs work - local only", {
 
   skip_on_ci()
   check_suggests()
-
-  skip("gtsave() not using ooxml yet")
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2682,7 +2724,7 @@ test_that("table with image refs work - local only",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt, filename = temp_docx)
+  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2740,11 +2782,10 @@ test_that("table with image refs work - local only",{
     )
 })
 
-test_that("table with image refs work - https",{
+test_that("table with image refs work - https", {
 
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   https_image_gt <-
     dplyr::tribble(
@@ -2756,7 +2797,7 @@ test_that("table with image refs work - https",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(https_image_gt, filename = temp_docx)
+  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2785,11 +2826,10 @@ test_that("table with image refs work - https",{
   expect_match(obj, "^media/.+?logo[.]svg$")
 })
 
-test_that("table with image refs work - local only - setting image widths and heights",{
+test_that("table with image refs work - local only - setting image widths and heights", {
 
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2837,9 +2877,9 @@ test_that("table with image refs work - local only - setting image widths and he
   temp_docx_2 <- tempfile(fileext = ".docx")
   temp_docx_3 <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt_height_and_width, filename = temp_docx_1)
-  gtsave(image_gt_height, filename = temp_docx_2)
-  gtsave(image_gt_width, filename = temp_docx_3)
+  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
+  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
+  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx_1)
