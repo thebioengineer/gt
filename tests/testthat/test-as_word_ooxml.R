@@ -2401,12 +2401,9 @@ test_that("tables respects column and cell alignment and can be added to a word 
   )
 })
 
-
-test_that("markdown in the tables works out",{
-
+test_that("markdown in the tables works out", {
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   text_1a <- "
 ### This is Markdown.
@@ -2455,7 +2452,7 @@ There's a quick reference [here](https://commonmark.org/help/).
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
