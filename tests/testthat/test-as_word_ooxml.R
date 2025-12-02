@@ -2590,8 +2590,6 @@ test_that("markdown with urls work", {
 })
 
 test_that("markdown with img refs work",{
-  skip("gtsave() not using ooxml yet")
-
   skip_on_ci()
   check_suggests()
 
@@ -2614,7 +2612,7 @@ test_that("markdown with img refs work",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
