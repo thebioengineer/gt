@@ -8571,8 +8571,13 @@ fmt_image <- function(
         x_str
 
       },
+      "ooxml/word" = function(x) {
+        fmt_image_ooxml("word", x, height = height, width = width, file_pattern = file_pattern, path = path)
+      },
+      "ooxml/pptx" = function(x) {
+        fmt_image_ooxml("pptx", x, height = height, width = width, file_pattern = file_pattern, path = path)
+      },
       word = function(x) {
-
         x_str <- character(length(x))
 
         x_str_non_missing <- x[!is.na(x)]

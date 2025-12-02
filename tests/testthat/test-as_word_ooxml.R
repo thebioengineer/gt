@@ -2589,7 +2589,7 @@ test_that("markdown with urls work", {
   )
 })
 
-test_that("markdown with img refs work",{
+test_that("markdown with img refs work", {
   skip_on_ci()
   check_suggests()
 
@@ -2651,8 +2651,6 @@ test_that("table with image refs work - local only",{
   skip_on_ci()
   check_suggests()
 
-  skip("gtsave() not using ooxml yet")
-
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
   ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
@@ -2676,7 +2674,7 @@ test_that("table with image refs work - local only",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt, filename = temp_docx)
+  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)

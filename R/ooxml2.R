@@ -546,6 +546,13 @@ ooxml_table_autonum <- function(ooxml_type, font = "Calibri", size = 12) {
 
 }
 
+ooxml_image <- function(ooxml_type, src, height = 1, width = 1, units = "in", alt_text = "") {
+ switch_ooxml(ooxml_type, word = ooxml_image_word(src = src, height = height, width = width, units = units, alt_text = alt_text))
+}
+
+ooxml_image_word <- function(src, height = 1, width = 1, units = "in", alt_text = "") {
+  xml_image(src, height = height, width = width, units = units, alt_text = alt_text)
+}
 
 # ooxml_tag ---------------------------------------------------------------
 
@@ -1085,3 +1092,102 @@ to_tags <- function(nodeset) {
   })
   tagList(!!!tags)
 }
+
+fmt_image_ooxml <- function(ooxml_type, x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
+  switch_ooxml(ooxml_type,
+    word = fmt_image_ooxml_word(x, height = height, width = width, file_pattern = file_pattern, path = path)
+  )
+}
+
+auto_px <- function(x) {
+  if (!is.null(x)) {
+    if (is.numeric(x)) {
+      x <- paste0(x, "px")
+    } else {
+      if (is.character(x)) {
+        x <- convert_to_px(x)
+      }
+    }
+  }
+  x
+}
+
+fmt_image_ooxml_word <- function(x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
+  x_str <- character(length(x))
+  x_str_non_missing <- x[!is.na(x)]
+
+  # Automatically append `px` length unit when `height` or `width`
+  # is given as a number
+
+  height <- auto_px(height)
+  width  <- auto_px(width)
+
+  x_str_non_missing <-
+    vapply(
+      seq_along(x_str_non_missing),
+      FUN.VALUE = character(1L),
+      USE.NAMES = FALSE,
+      FUN = function(x) {
+
+        if (grepl(",", x_str_non_missing[x], fixed = TRUE)) {
+          files <- unlist(strsplit(x_str_non_missing[x], ",\\s*"))
+        } else {
+          files <- x_str_non_missing[x]
+        }
+
+        # Handle formatting of `file_pattern`
+        files <- apply_pattern_fmt_x(pattern = file_pattern, values = files)
+
+        out <- list()
+
+        out <- lapply(seq_along(files), function(y) {
+          # Handle case where the image is online
+          if ((!is.null(path) && grepl("https?://", path)) || grepl("https?://", files[y])) {
+
+            if (!is.null(path)) {
+
+              # Normalize ending of `path`
+              path <- gsub("/\\s+$", "", path)
+              uri <- paste0(path, "/", files[y])
+
+            } else {
+              uri <- files[y]
+            }
+
+            filename <- download_file(uri)
+
+          } else {
+
+            # Compose and normalize the local file path
+            filename <- gtsave_filename(path = path, filename = files[y])
+            filename <- path_expand(filename)
+          }
+
+          if (is.null(height) || is.null(width)) {
+
+            hw_ratio <- get_image_hw_ratio(filename)
+
+            if (is.null(width)) {
+              width <- round(height / hw_ratio, 0)
+            } else {
+              height <- round(width * hw_ratio, 0)
+            }
+          }
+
+          ooxml_tag("w:r",
+            ooxml_tag("w:rPr"),
+            ooxml_image("word", filename, height = height, width = width, units = "px")
+          )
+        })
+
+        p <- ooxml_tag("w:p", ooxml_tag("w:pPr"), !!!out)
+        paste0("<md_container>", as.character(p), "</md_container>")
+      }
+    )
+
+  x_str[!is.na(x)] <- x_str_non_missing
+  x_str[is.na(x)] <- NA_character_
+
+  x_str
+}
+
