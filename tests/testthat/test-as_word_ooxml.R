@@ -2732,7 +2732,7 @@ test_that("table with image refs work - local only", {
     )
 })
 
-test_that("table with image refs work - https",{
+test_that("table with image refs work - https", {
 
   skip_on_ci()
   check_suggests()
@@ -2776,11 +2776,10 @@ test_that("table with image refs work - https",{
   expect_match(obj, "^media/.+?logo[.]svg$")
 })
 
-test_that("table with image refs work - local only - setting image widths and heights",{
+test_that("table with image refs work - local only - setting image widths and heights", {
 
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2828,9 +2827,9 @@ test_that("table with image refs work - local only - setting image widths and he
   temp_docx_2 <- tempfile(fileext = ".docx")
   temp_docx_3 <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt_height_and_width, filename = temp_docx_1)
-  gtsave(image_gt_height, filename = temp_docx_2)
-  gtsave(image_gt_width, filename = temp_docx_3)
+  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
+  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
+  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx_1)
