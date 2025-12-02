@@ -2547,7 +2547,6 @@ There's a quick reference [here](https://commonmark.org/help/).
 test_that("markdown with urls work", {
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   text_sample <- "
   Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
@@ -2563,7 +2562,7 @@ test_that("markdown with urls work", {
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
