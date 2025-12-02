@@ -10465,6 +10465,12 @@ fmt_markdown <- function(
       word = function(x) {
         markdown_to_xml(x)
       },
+      "ooxml/word" = function(x) {
+        markdown_to_ooxml(x, ooxml_type = "word")
+      },
+      "ooxml/pptx" = function(x) {
+        markdown_to_ooxml(x, ooxml_type = "pptx")
+      },
       grid = function(x) {
         x <- unescape_html(x)
         sub(
