@@ -68,7 +68,7 @@ test_that("word ooxml can be generated from gt object", {
   ## basic table with split enabled
   xml_split <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, split = FALSE))
   expect_equal(
-    purrr::map_lgl(xml_find_all(xml_split, "//w:trPr"), \(x) {
+    sapply(xml_find_all(xml_split, "//w:trPr"), \(x) {
       length(xml_find_all(x, ".//w:cantSplit")) == 1
     }),
     c(TRUE, TRUE)
@@ -128,26 +128,26 @@ test_that("word ooxml can be generated from gt object with cell styling", {
 
   # body rows
   xml_body <- xml_find_all(xml, "//w:tr")[c(3, 4, 6, 7)]
-  purrr::walk(xml_find_all(xml_body, "(.//w:tc)[1]//w:rPr"), \(node) {
+  for (node in xml_find_all(xml_body, "(.//w:tc)[1]//w:rPr")){
     expect_equal(xml_attr(xml_find_all(node, ".//w:rFonts"), "ascii"), "Biome")
     expect_equal(xml_attr(xml_find_all(node, ".//w:sz"), "val"), "20")
     expect_equal(length(xml_find_all(node, ".//w:i")), 1)
     expect_equal(xml_attr(xml_find_all(node, ".//w:color"), "val"), "00FF00")
     expect_equal(length(xml_find_all(node, ".//w:b")), 1)
-  })
+  }
 
   # orange cells
-  purrr::walk(c(2, 3, 5, 7, 9), \(i) {
+  for (i in c(2, 3, 5, 7, 9)) {
     shd <- xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))
     expect_equal(xml_attr(shd, "fill"), rep("FFA500", 4))
     expect_equal(xml_attr(shd, "val"), rep("clear", 4))
     expect_equal(xml_attr(shd, "color"), rep("auto", 4))
-  })
+  }
 
   # regular cells
-  purrr::walk(c(4, 6, 8), \(i) {
+  for (i in c(4, 6, 8)) {
     expect_equal(length(xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))), 0)
-  })
+  }
 
   # ## table with column and span styling
   gt_exibble_min <-
