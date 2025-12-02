@@ -2646,7 +2646,7 @@ test_that("markdown with img refs work", {
   )
 })
 
-test_that("table with image refs work - local only",{
+test_that("table with image refs work - local only", {
 
   skip_on_ci()
   check_suggests()
@@ -2736,7 +2736,6 @@ test_that("table with image refs work - https",{
 
   skip_on_ci()
   check_suggests()
-  skip("gtsave() not using ooxml yet")
 
   https_image_gt <-
     dplyr::tribble(
@@ -2748,7 +2747,7 @@ test_that("table with image refs work - https",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(https_image_gt, filename = temp_docx)
+  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
