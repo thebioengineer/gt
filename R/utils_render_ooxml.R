@@ -1,4 +1,37 @@
+as_pptx_ooxml <- function(
+  data,
+  align = "center",
+  caption_location = c("top", "bottom", "embed"),
+  caption_align = "left",
+  autonum = FALSE
+) {
+  if (isTRUE(autonum)) {
+    cli::cli_abort("{.arg autonum} is not supported bby pptx")
+  }
+  as_ooxml("pptx", data,
+    align = align, caption_location = caption_location,
+    caption_align = caption_align,
+    autonum = autonum
+  )
+}
+
 as_word_ooxml <- function(
+  data,
+  align = "center",
+  caption_location = c("top", "bottom", "embed"),
+  caption_align = "left",
+  split = FALSE,
+  keep_with_next = TRUE,
+  autonum = TRUE
+) {
+  as_ooxml("word", data,
+    align = align, caption_location = caption_location,
+    caption_align = caption_align, split = split, keep_with_next = keep_with_next,
+    autonum = autonum
+  )
+}
+
+as_ooxml <- function(ooxml_type,
   data,
   align = "center",
   caption_location = c("top", "bottom", "embed"),
@@ -13,28 +46,27 @@ as_word_ooxml <- function(
   caption_location <- rlang::arg_match(caption_location)
 
   # Build all table data objects through a common pipeline
-  data <- build_data(data, context = "ooxml/word")
+  data <- build_data(data, context = paste0("ooxml/", ooxml_type))
 
   embedded_heading <- identical(caption_location, "embed")
-  xml <- tagList(as_ooxml_tbl("word", data,
+  xml <- tagList3(as_ooxml_tbl(ooxml_type, data,
       align = align,
       split = split,
       keep_with_next = keep_with_next,
       embedded_heading = embedded_heading
   ))
   if (!embedded_heading) {
-    heading <- create_table_caption_contents_ooxml("word", data,
+    heading <- create_table_caption_contents_ooxml(ooxml_type, data,
       autonum = autonum,
       keep_with_next = if(caption_location == "bottom") FALSE else keep_with_next
     )
     if (identical(caption_location, "top")) {
-      xml <- htmltools::tagList(!!!heading, !!!xml)
+      xml <- tagList3(!!!heading, !!!xml)
     } else {
-      xml <- htmltools::tagList(!!!xml, !!!heading)
+      xml <- tagList3(!!!xml, !!!heading)
     }
   }
 
-  xml <- xml[!sapply(xml, is.null)]
   sapply(xml, as.character)
 }
 
@@ -84,12 +116,8 @@ as_ooxml_tbl <- function(ooxml_type, data,
 create_table_properties_ooxml <- function(ooxml_type, data, align = c("center", "start", "end")) {
   # TODO: set layout as autofit when dt_boxhead_get()$column_width
   #       are all NULL and figure out equivalent in pptx
-  ooxml_tbl_properties(ooxml_type,
-    justify = align,
-    width   = "100%"
-  )
+  ooxml_tbl_properties(ooxml_type, justify = align, width = "auto")
 }
-
 
 # table heading rows ------------------------------------------------------
 
