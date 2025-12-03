@@ -16,21 +16,22 @@ test_that("pptx ooxml can be generated from gt object", {
   exibble_min <- exibble[1, ]
 
   ## basic table
-  xml <- read_pptx_word_nodes(as_pptx_ooxml(gt(exibble_min)))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt(exibble_min)))
 
   expect_equal(length(xml), 1)
   expect_equal(xml_name(xml), "tbl")
-  expect_equal(length(xml_find_all(xml, "//w:keepNext")), 18)
 
-  expect_xml_snapshot(xml)
   expect_equal(
-    xml_attr(xml_find_all(xml, "(//w:tr)[1]//w:pPr/w:jc"), "val"),
-    c("end", "start", "center", "end", "end", "end", "end", "start", "start")
+    xml_attr(xml_find_all(xml, "(//a:tr)[1]//a:pPr"), "algn"),
+    c("r", "l", "ctr", "r", "r", "r", "r", "l", "l")
   )
+
   expect_equal(
-    xml_attr(xml_find_all(xml, "(//w:tr)[2]//w:pPr/w:jc"), "val"),
-    c("end", "start", "center", "end", "end", "end", "end", "start", "start")
+    xml_attr(xml_find_all(xml, "(//a:tr)[2]//a:pPr"), "algn"),
+    c("r", "l", "ctr", "r", "r", "r", "r", "l", "l")
   )
+
+  # TODO: check the tcBdr
 
   ## basic table with title
   gt_tbl_1 <-

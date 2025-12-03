@@ -147,7 +147,7 @@ ooxml_tbl_row <- function(ooxml_type, ..., is_header = FALSE, split = FALSE, hei
 
     pptx = {
       ooxml_tag("a:tr", tag_class = "ooxml_tbl_row",
-        ooxml_tbl_row_height(ooxml_type, value = height),
+        # ooxml_tbl_row_height(ooxml_type, value = height),
         !!!content
       )
     }
@@ -1108,12 +1108,50 @@ process_ooxml__run_word <- function(nodes, font, size, color, style, weight, str
 
 process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, stretch) {
 
-    # ooxml_tag(tag, tag_class = "ooxml_run_properties",
-    # ooxml_font(ooxml_type, font),
-    # ooxml_size(ooxml_type, size),
-    # ooxml_color(ooxml_type, color),
-    # ooxml_style(ooxml_type, style),
-    # ooxml_weight(ooxml_type, weight)
+  nodes_run <- xml_find_all(nodes, "//a:r")
+  for (run in nodes_run) {
+    run_image <- xml_find_first(run, ".//a:drawing")
+    run_style <- xml_find_first(run, ".//a:rPr")
+
+    if (length(run_image) > 0L) {
+      cli::cli_abort("images not yet supported in pptx")
+    } else {
+      # add styles if not already present
+      children <- xml_children(run_style)
+      names    <- xml_name(children, ns = xml_ns(nodes))
+
+      if (!"latin" %in% names) {
+        xml_add_child(run_style, "a:latin", "typeface" = font)
+      }
+
+      if (!"solidFill" %in% names && !is.null(color)) {
+        color <- toupper(gsub("#", "", color))
+        xml_add_child(
+          run_style,
+          as_xml_node(glue::glue('<a:solidFill><a:srgbClr val="{color}" /></a:soldFill>'), create_ns = TRUE, ooxml_type = "pptx")
+        )
+      }
+
+      if (identical(style, "italic")) {
+        xml_set_attr(run_style, "i" = "1")
+      }
+
+      if (identical(weight, "bold")) {
+        xml_set_attr(run_style, "b" = "1")
+      }
+
+      if (!is.null(stretch)) {
+        # TODO: stretch_to_ooxml_stretch
+        xml_set_attr(run_style, "spc" = stretch_to_xml_stretch(stretch) * 1000 / 20)
+      }
+
+      if (!is.null(size)) {
+        xml_set_attr(run_style, "sz", size * 50)
+      }
+
+    }
+
+  }
 
   nodes
 }
@@ -1181,21 +1219,39 @@ process_ooxml__paragraph_word <- function(nodes, align = NULL, keep_with_next = 
 
 process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next, style) {
 
-  #   switch_ooxml(ooxml_type,
-  #   word = ooxml_tag("w:pPr",
-  #     ooxml_tag("w:spacing", "w:before" = "0", "w:after" = "60"),
-  #     if (keep_next) ooxml_tag("w:keepNext"),
-  #     if (!is.null(align)) ooxml_tag("w:jc", "w:val" = arg_match_names(align, values = c(left = "start", right = "end", center = "center"))),
-  #     if (!is.null(style)) ooxml_tag("w:pStyle", "w:val" = style)
-  #
-  #   ),
-  #   pptx = ooxml_tag("a:pPr",
-  #     "algn" = arg_match_names(align, values = c(left = "l", right = "r", center = "ctr")),
-  #
-  #     ooxml_tag("a:spcBef", ooxml_tag("a:spcPts", val = "0")),
-  #     ooxml_tag("a:spcAft", ooxml_tag("a:spcPts", val = "300")),
-  #   )
-  # )
+  nodes_p <- xml_find_all(nodes, "//a:p")
+
+  # if there are no paragraph, add an empty one
+  if (length(nodes_p) == 0) {
+    xml_add_child(nodes, "w:p")
+    xml_add_child(xml_find_first(nodes, ".//a:p"), "a:pPr")
+    nodes_p <- xml_find_all(nodes, "//a:p")
+  }
+
+  for (p in nodes_p) {
+
+    if (length(xml_find_first(p, ".//a:drawing")) > 0L){
+      cli::cli_abort("drawing are not supported yet in pptx")
+    }
+
+    pPr        <- xml_find_all(p, ".//a:pPr")
+    children   <- xml_children(pPr)
+    names      <- xml_name(children)
+
+    if (!"spcBef" %in% names) {
+      xml_add_child(pPr, as_xml_node('<a:spcBef><a:spcPts val="0"></a:spcBef>', create_ns = TRUE, ooxml_type = "pptx"))
+    }
+
+    if (!"spcAft" %in% names) {
+      xml_add_child(pPr, as_xml_node('<a:spcAft><a:spcPts val="300"></a:spcAft>', create_ns = TRUE, ooxml_type = "pptx"))
+    }
+
+    if (!is.null(align)) {
+      val <- arg_match_names(align, c(left = "l", right = "r", center = "ctr"))
+      xml_set_attr(pPr, "algn", val)
+    }
+
+  }
 
   nodes
 }
