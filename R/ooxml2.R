@@ -1128,7 +1128,7 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
         color <- toupper(gsub("#", "", color))
         xml_add_child(
           run_style,
-          as_xml_node(glue::glue('<a:solidFill><a:srgbClr val="{color}" /></a:soldFill>'), create_ns = TRUE, ooxml_type = "pptx")
+          as_xml_node(glue::glue('<a:solidFill><a:srgbClr val="{color}" /></a:solidFill>'), create_ns = TRUE, ooxml_type = "pptx")[[1]]
         )
       }
 
@@ -1141,7 +1141,6 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
       }
 
       if (!is.null(stretch)) {
-        # TODO: stretch_to_ooxml_stretch
         xml_set_attr(run_style, "spc" = stretch_to_xml_stretch(stretch) * 1000 / 20)
       }
 

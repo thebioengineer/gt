@@ -1,15 +1,16 @@
 as_pptx_ooxml <- function(
   data,
   align = "center",
-  caption_location = "embed",
+  caption_location = c("top", "bottom", "embed"),
   caption_align = "left",
-  split = FALSE,
-  keep_with_next = TRUE,
-  autonum = TRUE
+  autonum = FALSE
 ) {
+  if (isTRUE(autonum)) {
+    cli::cli_abort("{.arg autonum} is not supported bby pptx")
+  }
   as_ooxml("pptx", data,
     align = align, caption_location = caption_location,
-    caption_align = caption_align, split = split, keep_with_next = keep_with_next,
+    caption_align = caption_align,
     autonum = autonum
   )
 }
