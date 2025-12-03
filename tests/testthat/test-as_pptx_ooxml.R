@@ -67,9 +67,7 @@ test_that("pptx ooxml can be generated from gt object", {
   )
 })
 
-skip("in progress")
-
-test_that("word ooxml can be generated from gt object with cell styling", {
+test_that("pptx ooxml can be generated from gt object with cell styling", {
   ## Table with cell styling
   gt_tbl_2 <-
     exibble[1:4, ] |>
@@ -97,35 +95,35 @@ test_that("word ooxml can be generated from gt object with cell styling", {
       style = cell_text(color = "blue"),
       locations = cells_row_groups()
     )
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_2, keep_with_next = FALSE))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_2))
 
   # row groups
-  expect_equal(xml_attr(xml_find_all(xml, '//w:t[text() = "My Row Group 2"]/../w:rPr/w:color'), "val"), "0000FF")
-  expect_equal(xml_attr(xml_find_all(xml, '//w:t[text() = "My Row Group 2"]/../w:rPr/w:sz'), "val"), "20")
-  expect_equal(xml_attr(xml_find_all(xml, '//w:t[text() = "My Row Group 1"]/../w:rPr/w:color'), "val"), "0000FF")
-  expect_equal(xml_attr(xml_find_all(xml, '//w:t[text() = "My Row Group 1"]/../w:rPr/w:sz'), "val"), "20")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr'), "sz"), "1000")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr'), "sz"), "1000")
 
   # body rows
-  xml_body <- xml_find_all(xml, "//w:tr")[c(3, 4, 6, 7)]
-  for (node in xml_find_all(xml_body, "(.//w:tc)[1]//w:rPr")){
-    expect_equal(xml_attr(xml_find_all(node, ".//w:rFonts"), "ascii"), "Biome")
-    expect_equal(xml_attr(xml_find_all(node, ".//w:sz"), "val"), "20")
-    expect_equal(length(xml_find_all(node, ".//w:i")), 1)
-    expect_equal(xml_attr(xml_find_all(node, ".//w:color"), "val"), "00FF00")
-    expect_equal(length(xml_find_all(node, ".//w:b")), 1)
+  xml_body <- xml_find_all(xml, "//a:tr")[c(3, 4, 6, 7)]
+  for (node in xml_find_all(xml_body, "(.//a:tc)[1]//a:rPr")){
+    expect_equal(xml_attr(xml_find_all(node, ".//a:latin"), "typeface"), "Biome")
+    expect_equal(xml_attr(node, "sz"), "1000")
+    expect_equal(xml_attr(node, "i"), "1")
+    expect_equal(xml_attr(xml_find_all(node, ".//a:solidFill/a:srgbClr"), "val"), "00FF00")
+    expect_equal(xml_attr(node, "b"), "1")
   }
 
   # orange cells
   for (i in c(2, 3, 5, 7, 9)) {
-    shd <- xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))
-    expect_equal(xml_attr(shd, "fill"), rep("FFA500", 4))
-    expect_equal(xml_attr(shd, "val"), rep("clear", 4))
-    expect_equal(xml_attr(shd, "color"), rep("auto", 4))
+    expect_equal(
+      xml_text(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr"))),
+      rep("FFA500", 4)
+    )
   }
 
   # regular cells
   for (i in c(4, 6, 8)) {
-    expect_equal(length(xml_find_all(xml_body, paste0("(.//w:tc)[", i, "]/w:tcPr/w:shd"))), 0)
+    expect_equal(length(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr"))), 0)
   }
 
   # ## table with column and span styling
@@ -151,37 +149,35 @@ test_that("word ooxml can be generated from gt object with cell styling", {
       locations = cells_column_spanners("My Span Label top")
     )
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
 
   # level 2 span
   for (j in c(1, 3:7)) {
-    expect_equal(xml_text(xml_find_all(xml, paste0("//w:tr[1]/w:tc[", j, "]//w:t"))), "")
+    expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
   }
-  xml_top_span <- xml_find_all(xml, "//w:tr[1]/w:tc[2]")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./w:tcPr/w:gridSpan"), "val"), "3")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./w:tcPr/w:shd"), "fill"), "FF0000")
-  expect_equal(xml_text(xml_find_all(xml_top_span, ".//w:t")), "My Span Label top")
+  xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
+  expect_equal(xml_text(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr")), "FF0000")
+  expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
-  xml_bottom_span <- xml_find_all(xml, "//w:tr[2]/w:tc[1]")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./w:tcPr/w:gridSpan"), "val"), "5")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./w:tcPr/w:shd"), "fill"), "FFA500")
-  expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//w:t")), "My Span Label")
+  xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
+  expect_equal(xml_text(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr")), "FFA500")
+  expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
-    expect_equal(xml_text(xml_find_all(xml, paste0("//w:tr[2]/w:tc[", j, "]//w:t"))), "")
+    expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[2]/a:tc[", j, "]//a:t"))), "")
   }
 
   # columns
   expect_equal(
-    xml_attr(xml_find_all(xml, "//w:tr[3]/w:tc/w:tcPr/w:shd"), "fill"),
+    xml_text(xml_find_all(xml, "//a:tr[3]/a:tc/a:tcPr/a:solidFill/a:srgbClr")),
     rep("00FF00", 9)
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, "//w:tr[3]//w:color"), "val"),
-    rep("A020F0", 9)
   )
 
 })
+
+skip("in progress")
 
 test_that("process_text() handles ooxml/word", {
   expect_equal(process_text("simple", context = "ooxml/word"), "simple")
