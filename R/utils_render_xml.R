@@ -3024,24 +3024,27 @@ as_xml_node <- function(x, create_ns = FALSE, ooxml_type = "word") {
   suppressWarnings(xml_children(as_xml_document(x)))
 }
 
-add_ns <- function(x, ooxml_type = c("word", "pptx")) {
-  ooxml_type <- rlang::arg_match(ooxml_type)
+ooxml_ns <- function(ooxml_type = "word") {
+  switch_ooxml(ooxml_type,
+    word = c(
+      "xmlns:r"   = "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+      "xmlns:w"   = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+      "xmlns:w14" = "http://schemas.microsoft.com/office/word/2010/wordml",
+      "xmlns:wp"  = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+    ),
 
+    pptx = c(
+      "xmlns:p" = "http://schemas.openxmlformats.org/presentationml/2006/main",
+      "xmlns:a" = "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "xmlns:r" = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    )
+  )
+}
+
+add_ns <- function(x, ooxml_type = "word") {
   x <- suppressWarnings(read_xml(x))
 
-  ns_word <- c(
-    `xmlns:r`   = "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-    `xmlns:w`   = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
-    `xmlns:w14` = "http://schemas.microsoft.com/office/word/2010/wordml",
-    `xmlns:wp`  = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
-  )
-  ns_pptx <- c(
-    "xmlns:p" = "http://schemas.openxmlformats.org/presentationml/2006/main",
-    "xmlns:a" = "http://schemas.openxmlformats.org/drawingml/2006/main",
-    "xmlns:r" = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-  )
-
-  xml2::xml_set_attrs(x, switch_ooxml(ooxml_type, word = ns_word, pptx = ns_pptx))
+  xml2::xml_set_attrs(x, ooxml_ns(ooxml_type))
   as.character(x)
 }
 
