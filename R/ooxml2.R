@@ -7,20 +7,12 @@ NULL
 ooxml_tbl <- function(ooxml_type, properties = NULL, grid = NULL, ...) {
   rows <- ooxml_list(ooxml_type, "ooxml_tbl_row", ooxml_tbl_row, ...)
 
-  switch_ooxml(ooxml_type,
-    word = {
-      ooxml_tag("w:tbl", tag_class = "ooxml_tbl",
-        "xmlns:w" = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
-        "xmlns:wp" = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
-        "xmlns:r" = "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-        "xmlns:w14" = "http://schemas.microsoft.com/office/word/2010/wordml",
+  tag <- switch_ooxml_tag(ooxml_type, "tbl")
+  ooxml_tag(tag, tag_class = "ooxml_tbl", !!!ooxml_ns(ooxml_type),
+    check_inherits(properties, "ooxml_tbl_properties", accept_null = TRUE),
+    check_inherits(grid, "ooxml_tbl_grid", accept_null = TRUE),
 
-        check_inherits(properties, "ooxml_tbl_properties", accept_null = TRUE),
-        check_inherits(grid, "ooxml_tbl_grid", accept_null = TRUE),
-
-        !!!rows
-      )
-    }
+    !!!rows
   )
 }
 
@@ -860,17 +852,21 @@ process_ooxml__white_space_br <- function(ooxml_type, x,
 
   stretch = NULL
 ) {
-  switch_ooxml(ooxml_type,
-    word =  process_ooxml__white_space_br_word(x,
-      whitespace = whitespace,
 
-      font       = font ,
-      size       = size,
-      color      = color,
-      style      = style,
-      weight     = weight,
-      stretch    = stretch
-    )
+  fun <- switch_ooxml(ooxml_type,
+    word = process_ooxml__white_space_br_word,
+    pptx = process_ooxml__white_space_br_pptx
+  )
+
+  fun(x,
+    whitespace = whitespace,
+
+    font       = font ,
+    size       = size,
+    color      = color,
+    style      = style,
+    weight     = weight,
+    stretch    = stretch
   )
 }
 
@@ -940,6 +936,76 @@ process_ooxml__white_space_br_word <- function(x,
 
   x
 }
+
+# TODO: if this remains the same as the word version,
+#       modulo the a/w prefix, then merge them
+process_ooxml__white_space_br_pptx <- function(x,
+  whitespace = NULL,
+
+  font = NULL,
+  size = NULL,
+  color = NULL,
+  style = NULL,
+  weight = NULL,
+
+  stretch = NULL
+) {
+
+  ## Options for white space: normal, nowrap, pre, pre-wrap, pre-line, break-spaces
+  ## normal drops all newlines and collapse spaces
+  ## general behavior based on: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+
+  ## Remove newlines (br) unless preserving it
+  if (!isTRUE(whitespace %in% c("pre", "pre-wrap", "pre-line", "break-spaces"))) {
+
+    paragraphs <- xml_find_all(x, "//a:p")
+
+    replacement_br <- as_xml_node(create_ns = TRUE, ooxml_type = "pptx", ooxml_tag("a:r",
+      ooxml_tag("a:rPr"),
+      ooxml_tag("a:t", "xml:space" = "preserve", " ")
+    ))
+
+    replacement_br <- process_ooxml__text("pptx", replacement_br,
+      whitespace = whitespace
+    )
+
+    replacement_br <- process_ooxml__run("pptx", replacement_br,
+      font       = font ,
+      size       = size,
+      color      = color,
+      style      = style,
+      weight     = weight,
+      stretch    = stretch
+    )
+
+    replacement_br <- replacement_br[[1]]
+
+    for (p in paragraphs) {
+
+      paragraph_children <- xml_children(p)
+
+      break_tags_locs <- which(xml_name(paragraph_children, ns = xml_ns(x)) == "a:br")
+      run_tags_locs <-  which(xml_name(paragraph_children, ns = xml_ns(x)) == "a:r")
+
+      if (length(break_tags_locs) > 0L) {
+        for (break_tag_loc in break_tags_locs) {
+
+          break_tag <- paragraph_children[[break_tag_loc]]
+
+          ## if the br is between two runs, replace with space
+          if (any(run_tags_locs > break_tag_loc) && any(run_tags_locs < break_tag_loc)) {
+            xml_add_sibling(break_tag, replacement_br, .where = "after")
+          }
+
+          xml_remove(break_tag)
+        }
+      }
+    }
+  }
+
+  x
+}
+
 
 
 process_ooxml__text <- function(ooxml_type, nodes, whitespace = "default") {
