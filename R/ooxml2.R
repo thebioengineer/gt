@@ -1133,15 +1133,15 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
       }
 
       if (identical(style, "italic")) {
-        xml_set_attr(run_style, "i" = "1")
+        xml_set_attr(run_style, "i", "1")
       }
 
       if (identical(weight, "bold")) {
-        xml_set_attr(run_style, "b" = "1")
+        xml_set_attr(run_style, "b", "1")
       }
 
       if (!is.null(stretch)) {
-        xml_set_attr(run_style, "spc" = stretch_to_xml_stretch(stretch) * 1000 / 20)
+        xml_set_attr(run_style, "spc", stretch_to_xml_stretch(stretch) * 1000 / 20)
       }
 
       if (!is.null(size)) {
