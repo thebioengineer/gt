@@ -11,7 +11,7 @@
             <w:start w:w="60" w:type="dxa"/>
             <w:end w:w="60" w:type="dxa"/>
           </w:tblCellMar>
-          <w:tblW w:type="pct" w:w="100"/>
+          <w:tblW w:type="auto"/>
           <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noVBand="0" w:noHBand="0"/>
           <w:jc w:val="center"/>
         </w:tblPr>
@@ -593,7 +593,7 @@
             <w:start w:w="60" w:type="dxa"></w:start>
             <w:end w:w="60" w:type="dxa"></w:end>
           </w:tblCellMar>
-          <w:tblW w:type="pct" w:w="100"></w:tblW>
+          <w:tblW w:type="auto"></w:tblW>
           <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noVBand="0" w:noHBand="0"></w:tblLook>
           <w:jc w:val="center"></w:jc>
         </w:tblPr>

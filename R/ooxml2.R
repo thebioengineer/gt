@@ -42,22 +42,17 @@ word_tbl_cell_margins <- function() {
   )
 }
 
-word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width="100%", tableStyle=NULL) {
+word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width = "auto", tableStyle=NULL) {
   rlang::check_dots_empty()
 
   if (!rlang::is_character(width, n = 1)) {
     cli::cli_abort("{.arg width} must be a scalar character value.")
   }
 
-  w_type <- "dxa"
-  if (grepl("%$", width)){
-    w_type <- "pct"
-    width <- gsub("%$", "", width)
-  }
 
   ooxml_tag("w:tblPr", tag_class = "ooxml_tbl_properties",
     word_tbl_cell_margins(),
-    ooxml_tag("w:tblW", "w:type" = w_type, "w:w" = width),
+    ooxml_tbl_width("word", width = width),
     # ooxml_tag("w:tblLayout", "w:type" = rlang::arg_match(layout)),
     ooxml_tag("w:tblLook",
       "w:firstRow"    = "0",
@@ -71,8 +66,7 @@ word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c
   )
 }
 
-pptx_tbl_properties <- function(..., tableStyle = NA) {
-  rlang::check_dots_empty()
+pptx_tbl_properties <- function(..., width = "auto", tableStyle = NULL) {
 
   ooxml_tag("a:tblPr", tag_class = "ooxml_tbl_properties",
     "a:firstRow"    = "0",
@@ -82,9 +76,41 @@ pptx_tbl_properties <- function(..., tableStyle = NA) {
     "a:bandCol"     = "0",
     "a:bandRow"     = "0",
 
-    ooxml_tag("a:tableStyleId", tableStyle)
+    ooxml_tbl_width("pptx", width = width),
+
+    if (!is.null(tableStyle)) ooxml_tag("a:tableStyleId", tableStyle)
   )
 }
+
+ooxml_tbl_width <- function(ooxml_type, width = "auto") {
+  if (is.null(width)) {
+    return(NULL)
+  }
+
+  if (identical(width, "auto")) {
+    return(switch_ooxml(ooxml_type,
+      word = ooxml_tag("w:tblW"  , "w:type" = "auto"),
+      pptx = ooxml_tag("a:tableW", "a:type" = "auto")
+    ))
+  }
+
+  if (grepl("%$", width)) {
+    width <- as.numeric(sub("%$", "", width))
+    return(switch_ooxml(ooxml_type,
+      word = ooxml_tag("w:tblW"  , "w:type" = "pct", "w:w" = 50 * width),
+      pptx = ooxml_tag("a:tableW", "a:type" = "pct", "a:w" = 1000 * width)
+    ))
+  }
+
+  # otherwise assume dxa, expressed in pt
+  width <- as.numeric(width)
+  return(switch_ooxml(ooxml_type,
+    word = ooxml_tag("w:tblW"  , "w:type" = "dxa", "w:w" = 20 * width),
+    pptx = ooxml_tag("a:tableW", "a:type" = "pct", "a:w" = 20 * width)
+  ))
+
+}
+
 
 ## tbl_grid -----------------------------------------------------------
 
@@ -659,6 +685,9 @@ splice3 <- function(...) {
   rlang::splice(list3(...))
 }
 
+tagList3 <- function(...) {
+  htmltools::tagList(!!!list3(...))
+}
 
 # process_text() implementation -------------------------------------------
 
