@@ -715,15 +715,15 @@ markdown_to_ooxml <- function(text, ooxml_type) {
 # parse_to_ooxml ----------------------------------------------------------
 
 parse_to_ooxml <- function(x, ooxml_type = c("word", "pptx"), ...) {
-  if (!inherits(x, "xml_nodeset")) {
-    x <- switch_ooxml(ooxml_type, word = parse_to_ooxml_word(x))
-  }
-  x
+  switch_ooxml(ooxml_type, word = parse_to_ooxml_word(x), pptx = parse_to_ooxml_pptx(x))
 }
 
-parse_to_ooxml_word <- function(x) {
+parse_to_ooxml <- function(x, ooxml_type = "word") {
+  if (inherits(x, "xml_nodeset")) {
+    return(x)
+  }
   if (is.null(x) || length(x) == 0) {
-    x <- parse_to_ooxml_word_simple("")
+    x <- parse_to_ooxml_simple("", ooxml_type)
   }
 
   if (length(x) > 1) {
@@ -733,28 +733,47 @@ parse_to_ooxml_word <- function(x) {
   }
 
   if (!grepl("^<md_container>.*</md_container>$", x)) {
-    x <- parse_to_ooxml_word_simple(enc2utf8(htmltools::htmlEscape(x)))
+    x <- parse_to_ooxml_simple(enc2utf8(htmltools::htmlEscape(x)), ooxml_type)
   }
 
-  parsed_xml_contents <- suppressWarnings(read_xml(add_ns(x)))
+  parsed_xml_contents <- suppressWarnings(read_xml(add_ns(x, ooxml_type)))
   xml_children(parsed_xml_contents)
 }
 
-parse_to_ooxml_word_simple <- function(text = "") {
-  paste0(
-'<md_container>
+parse_to_ooxml_simple <- function(text = "", ooxml_type = "word") {
+  switch_ooxml(ooxml_type,
+    word = glue::glue('
+<md_container>
   <w:p>
     <w:pPr>
       <w:spacing w:before="0" w:after="60"/>
     </w:pPr>
     <w:r>
       <w:rPr/>
-      <w:t xml:space="default">', text, '</w:t>
+      <w:t xml:space="default">{text}</w:t>
     </w:r>
   </w:p>
-</md_container>')
-}
+</md_container>'),
 
+    pptx = glue::glue('
+<md_container>
+  <a:p>
+    <a:pPr>
+      <a:spcBef>
+        <a:spcPts val="0"/>
+      </a:spcBef>
+      <a:spcAft>
+        <a:spcPts val="300"/>
+      </a:spcAft>
+    </a:pPr>
+    <a:r>
+      <a:rPr/>
+      <a:t>{text}</a:t>
+    </a:r>
+  </a:p>
+</md_container>')
+  )
+}
 
 # process cell content ----------------------------------------------------
 

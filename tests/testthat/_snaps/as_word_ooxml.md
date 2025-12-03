@@ -1,3 +1,18 @@
+# parse_to_ooxml(word) creates the correct nodes
+
+    Code
+      writeLines(as.character(xml))
+    Output
+      <w:p>
+        <w:pPr>
+          <w:spacing w:before="0" w:after="60"/>
+        </w:pPr>
+        <w:r>
+          <w:rPr/>
+          <w:t xml:space="default">hello</w:t>
+        </w:r>
+      </w:p>
+
 # word ooxml can be generated from gt object
 
     Code

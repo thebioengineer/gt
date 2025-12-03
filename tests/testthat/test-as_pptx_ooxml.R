@@ -4,17 +4,20 @@ check_suggests <- function() {
   skip_if_not_installed("officer")
 }
 
-test_that("parse_to_ooxml(word) creates the correct nodes", {
-  expect_xml_snapshot(parse_to_ooxml("hello", "word"))
+test_that("parse_to_ooxml(pptx) creates the correct nodes", {
+  expect_xml_snapshot(parse_to_ooxml("hello", "pptx"))
 })
 
-test_that("word ooxml can be generated from gt object", {
+skip("in progress")
+
+test_that("pptx ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
   exibble_min <- exibble[1, ]
 
   ## basic table
-  xml <- read_xml_word_nodes(as_word_ooxml(gt(exibble_min)))
+  xml <- read_pptx_word_nodes(as_pptx_ooxml(gt(exibble_min)))
+
   expect_equal(length(xml), 1)
   expect_equal(xml_name(xml), "tbl")
   expect_equal(length(xml_find_all(xml, "//w:keepNext")), 18)
@@ -97,6 +100,8 @@ test_that("word ooxml can be generated from gt object", {
   xml_keep_next_false <- read_xml_word_nodes(as_word_ooxml(gt_tbl_1, keep_with_next = FALSE))
   expect_equal(length(xml_find_all(xml_keep_next_false, "//w:keepNext")), 0)
 })
+
+skip("---------")
 
 test_that("word ooxml can be generated from gt object with cell styling", {
   ## Table with cell styling
