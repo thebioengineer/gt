@@ -116,7 +116,7 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
   # orange cells
   for (i in c(2, 3, 5, 7, 9)) {
     expect_equal(
-      xml_text(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr"))),
+      xml_attr(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr")), "val"),
       rep("FFA500", 4)
     )
   }
@@ -157,13 +157,13 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
   }
   xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
   expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
-  expect_equal(xml_text(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr")), "FF0000")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
   expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
   xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
   expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
-  expect_equal(xml_text(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr")), "FFA500")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
   expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
     expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[2]/a:tc[", j, "]//a:t"))), "")

@@ -61,12 +61,12 @@ word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c
 pptx_tbl_properties <- function(..., width = "auto", tableStyle = NULL) {
 
   ooxml_tag("a:tblPr", tag_class = "ooxml_tbl_properties",
-    "a:firstRow"    = "0",
-    "a:lastRow"     = "0",
-    "a:firstColumn" = "0",
-    "a:lastCol"     = "0",
-    "a:bandCol"     = "0",
-    "a:bandRow"     = "0",
+    "firstRow"    = "0",
+    "lastRow"     = "0",
+    "firstCol" = "0",
+    "lastCol"     = "0",
+    "bandCol"     = "0",
+    "bandRow"     = "0",
 
     ooxml_tbl_width("pptx", width = width),
 
@@ -82,7 +82,7 @@ ooxml_tbl_width <- function(ooxml_type, width = "auto") {
   if (identical(width, "auto")) {
     return(switch_ooxml(ooxml_type,
       word = ooxml_tag("w:tblW"  , "w:type" = "auto"),
-      pptx = ooxml_tag("a:tableW", "a:type" = "auto")
+      pptx = ooxml_tag("a:tableW", "type" = "auto", w = "0")
     ))
   }
 
@@ -90,7 +90,7 @@ ooxml_tbl_width <- function(ooxml_type, width = "auto") {
     width <- as.numeric(sub("%$", "", width))
     return(switch_ooxml(ooxml_type,
       word = ooxml_tag("w:tblW"  , "w:type" = "pct", "w:w" = 50 * width),
-      pptx = ooxml_tag("a:tableW", "a:type" = "pct", "a:w" = 1000 * width)
+      pptx = ooxml_tag("a:tableW", "type" = "pct", "w" = 1000 * width)
     ))
   }
 
@@ -98,7 +98,7 @@ ooxml_tbl_width <- function(ooxml_type, width = "auto") {
   width <- as.numeric(width)
   return(switch_ooxml(ooxml_type,
     word = ooxml_tag("w:tblW"  , "w:type" = "dxa", "w:w" = 20 * width),
-    pptx = ooxml_tag("a:tableW", "a:type" = "pct", "a:w" = 20 * width)
+    pptx = ooxml_tag("a:tableW", "type" = "pct", "w" = 20 * width)
   ))
 
 }
@@ -116,12 +116,13 @@ ooxml_tbl_grid <- function(ooxml_type, ...) {
   gridCol_tag <- switch_ooxml_tag(ooxml_type, "gridCol")
 
   grid_cols <- lapply(dots, \(width) {
-    if (is.null(width)) {
-      ooxml_tag(gridCol_tag)
-    } else if (ooxml_type == "word") {
+    if (ooxml_type == "word") {
+      if (is.null(width)) {
+        ooxml_tag(gridCol_tag)
+      } else
       ooxml_tag(gridCol_tag, "w:w" = width)
     } else {
-      ooxml_tag(gridCol_tag, "w" = width)
+      ooxml_tag(gridCol_tag, "w" = width %||% "100000")
     }
   })
   ooxml_tag(tblGrid_tag, tag_class = "ooxml_tbl_grid", !!!grid_cols)
@@ -147,7 +148,7 @@ ooxml_tbl_row <- function(ooxml_type, ..., is_header = FALSE, split = FALSE, hei
 
     pptx = {
       ooxml_tag("a:tr", tag_class = "ooxml_tbl_row",
-        # ooxml_tbl_row_height(ooxml_type, value = height),
+        ooxml_tbl_row_height(ooxml_type, value = height),
         !!!content
       )
     }
@@ -197,8 +198,8 @@ ooxml_tbl_row_height <- function(ooxml_type, value, ..., error_call = current_en
   }
 
   pptx_trHeight <- function() {
-    # TODO: checks for row height in pptx
-    splice3(h = value)
+    value <- value %||% 10
+    splice3(h = value * 1000)
   }
 
   switch_ooxml(ooxml_type,
@@ -350,7 +351,7 @@ ooxml_fill <- function(ooxml_type, color = NULL) {
       `w:fill`  = color
     ),
     pptx = ooxml_tag("a:solidFill", tag_class = "ooxml_fill",
-      ooxml_tag("a:srgbClr", color)
+      ooxml_tag("a:srgbClr", "val" = color)
     )
   )
 }
