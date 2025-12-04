@@ -24,37 +24,37 @@
       writeLines(as.character(xml))
     Output
       <a:tbl xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-        <a:tblPr a:firstRow="0" a:lastRow="0" a:firstColumn="0" a:lastCol="0" a:bandCol="0" a:bandRow="0">
-          <a:tableW a:type="auto"/>
+        <a:tblPr firstRow="0" lastRow="0" firstCol="0" lastCol="0" bandCol="0" bandRow="0">
+          <a:tableW type="auto" w="0"/>
         </a:tblPr>
         <a:tblGrid>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
-          <a:gridCol/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
+          <a:gridCol w="1016000"/>
         </a:tblGrid>
-        <a:tr>
+        <a:tr h="10000">
           <a:tc>
             <a:tcPr>
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
               </a:tcBdr>
@@ -85,12 +85,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -121,12 +121,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -157,12 +157,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -193,12 +193,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -229,12 +229,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -265,12 +265,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -301,12 +301,12 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
               </a:tcBdr>
@@ -337,17 +337,17 @@
               <a:tcBdr>
                 <a:lnT w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="25400" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -374,28 +374,28 @@
             </a:txBody>
           </a:tc>
         </a:tr>
-        <a:tr>
+        <a:tr h="10000">
           <a:tc>
             <a:tcPr>
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -426,22 +426,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -472,22 +472,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -518,22 +518,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -564,22 +564,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -610,22 +610,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -656,22 +656,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -702,22 +702,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
@@ -748,22 +748,22 @@
               <a:tcBdr>
                 <a:lnT w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnT>
                 <a:lnB w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
                 <a:lnL w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnL>
                 <a:lnR w="6350" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
-                    <a:srgbClr>D3D3D3</a:srgbClr>
+                    <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnR>
               </a:tcBdr>
