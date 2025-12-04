@@ -8,6 +8,55 @@ test_that("parse_to_ooxml(pptx) creates the correct nodes", {
   expect_xml_snapshot(parse_to_ooxml("hello", "pptx"))
 })
 
+test_that("process_text() handles ooxml/pptx", {
+  expect_equal(process_text("simple", context = "ooxml/pptx"), "simple")
+
+  # <br>
+  xml <- read_xml_pptx_nodes(process_text(md("simple <br> markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 2)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple", "markdown")
+  )
+
+  # strong
+  xml <- read_xml_pptx_nodes(process_text(md("simple **strong** markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "strong", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "b"),
+    c(NA, "1", NA)
+  )
+
+  # emph
+  xml <- read_xml_pptx_nodes(process_text(md("simple *emph* markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "emph", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "i"),
+    c(NA, "1", NA)
+  )
+
+  # emph
+  xml <- read_xml_pptx_nodes(process_text(md("simple __*emph/strong*__ markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "emph/strong", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "i"),
+    c(NA, "1", NA)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "b"),
+    c(NA, "1", NA)
+  )
+
+})
+
 test_that("pptx ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
@@ -178,18 +227,6 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
 })
 
 skip("in progress")
-
-test_that("process_text() handles ooxml/word", {
-  expect_equal(process_text("simple", context = "ooxml/word"), "simple")
-  expect_equal(
-    process_text(md("simple <br> markdown"), context = "ooxml/word"),
-    process_text(md("simple <br> markdown"), context = "word")
-  )
-  expect_equal(
-    process_text(html("simple <br> html"), context = "ooxml/word"),
-    process_text(html("simple <br> html"), context = "word")
-  )
-})
 
 test_that("word ooxml handles md() and html()", {
 
