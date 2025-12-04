@@ -522,44 +522,38 @@ gt_save_pptx <- function(
   }
 
   md_text <- glue::glue('
+---
+output:
+  powerpoint_presentation:
+    md_extensions: +raw_attribute
+---
+
 ```{{=openxml}}
-<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-  <p:cSld>
-    <p:spTree>
+<p:graphicFrame>
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="4" name="Table 1"/>
+    <p:cNvGraphicFramePr/>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="0" y="0"/>
+    <a:ext cx="9144000" cy="6858000"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
 
-      <p:graphicFrame>
-        <p:nvGraphicFramePr>
-          <p:cNvPr id="4" name="Table 1"/>
-          <p:cNvGraphicFramePr/>
-          <p:nvPr/>
-        </p:nvGraphicFramePr>
-        <p:xfrm>
-          <a:off x="100000" y="100000"/>
-          <a:ext cx="5000000" cy="2000000"/>
-        </p:xfrm>
+      { enc2utf8(as_pptx_ooxml(data = data)) }
 
-        <a:graphic>
-          <a:graphicData
-            uri="http://schemas.openxmlformats.org/drawingml/2006/table">
-
-{ enc2utf8(as_pptx_ooxml(data = data)) }
-
-          </a:graphicData>
-        </a:graphic>
-
-      </p:graphicFrame>
-
-    </p:spTree>
-  </p:cSld>
-
-</p:sld>
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>
 ```
+
 ')
 
   md_file <- tempfile(fileext = ".md")
 
-  writeChar(iconv(md_text, to = "UTF-8"), con = md_file)
-
+  writeLines(md_text, con = md_file)
   rmarkdown::pandoc_convert(
     input  = md_file,
     output = filename
@@ -568,6 +562,7 @@ gt_save_pptx <- function(
   # if (needs_gt_as_word_post_processing(word_md_text)) {
   #   gt_as_word_post_processing(path = filename)
   # }
+
 }
 
 #' Get the lowercase extension from a filename
