@@ -1,9 +1,24 @@
+# parse_to_ooxml(word) creates the correct nodes
+
+    Code
+      writeLines(as.character(xml))
+    Output
+      <w:p>
+        <w:pPr>
+          <w:spacing w:before="0" w:after="60"/>
+        </w:pPr>
+        <w:r>
+          <w:rPr/>
+          <w:t xml:space="default">hello</w:t>
+        </w:r>
+      </w:p>
+
 # word ooxml can be generated from gt object
 
     Code
       writeLines(as.character(xml))
     Output
-      <w:tbl xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+      <w:tbl xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
         <w:tblPr>
           <w:tblCellMar>
             <w:top w:w="0" w:type="dxa"/>
@@ -11,7 +26,7 @@
             <w:start w:w="60" w:type="dxa"/>
             <w:end w:w="60" w:type="dxa"/>
           </w:tblCellMar>
-          <w:tblW w:type="pct" w:w="100"/>
+          <w:tblW w:type="auto"/>
           <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noVBand="0" w:noHBand="0"/>
           <w:jc w:val="center"/>
         </w:tblPr>
@@ -585,7 +600,7 @@
     Code
       writeLines(as.character(xml))
     Output
-      <w:tbl xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+      <w:tbl xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
         <w:tblPr>
           <w:tblCellMar>
             <w:top w:w="0" w:type="dxa"></w:top>
@@ -593,7 +608,7 @@
             <w:start w:w="60" w:type="dxa"></w:start>
             <w:end w:w="60" w:type="dxa"></w:end>
           </w:tblCellMar>
-          <w:tblW w:type="pct" w:w="100"></w:tblW>
+          <w:tblW w:type="auto"></w:tblW>
           <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noVBand="0" w:noHBand="0"></w:tblLook>
           <w:jc w:val="center"></w:jc>
         </w:tblPr>

@@ -183,7 +183,8 @@ gtsave <- function(
       "*" = "`.pdf`          (PDF file)",
       "*" = "`.tex`, `.rnw`  (LaTeX file)",
       "*" = "`.rtf`          (RTF file)",
-      "*" = "`.docx`         (Word file)"
+      "*" = "`.docx`         (Word file)",
+      "*" = "`.pptx`         (PowerPoint file)",
     ))
   }
 
@@ -200,6 +201,7 @@ gtsave <- function(
     "png" = ,
     "pdf" = gt_save_webshot(data = data, filename, path, ...),
     "docx" = gt_save_docx(data = data, filename, path, ...),
+    "pptx" = gt_save_pptx(data = data, filename, path, ...),
     {
       cli::cli_abort(c(
         "The file extension supplied (`.{file_ext}`) cannot be used.",
@@ -209,7 +211,8 @@ gtsave <- function(
         "*" = "`.pdf`          (PDF file)",
         "*" = "`.tex`, `.rnw`  (LaTeX file)",
         "*" = "`.rtf`          (RTF file)",
-        "*" = "`.docx`         (Word file)"
+        "*" = "`.docx`         (Word file)",
+        "*" = "`.pptx`         (PowerPoint file)",
       ))
     }
   )
@@ -428,7 +431,8 @@ gt_save_docx <- function(
     path = NULL,
     ...,
     autonum = TRUE,
-    open = rlang::is_interactive()
+    open = rlang::is_interactive(),
+    as_word_func = as_word
 ) {
 
   # Because creation of a .docx container is somewhat difficult, we
@@ -444,7 +448,7 @@ gt_save_docx <- function(
       paste0(
         c(
           "```{=openxml}",
-          enc2utf8(as_word(data = data, autonum = autonum)),
+          enc2utf8(as_word_func(data = data, autonum = autonum)),
           "```",
           ""),
         collapse = "\n"
@@ -457,7 +461,7 @@ gt_save_docx <- function(
     seq_tbls <- seq_len(nrow(data$gt_tbls))
 
     for (i in seq_tbls) {
-      word_tbl_i <- as_word(grp_pull(data, which = i), autonum = autonum)
+      word_tbl_i <- as_word_func(grp_pull(data, which = i), autonum = autonum)
       word_tbls <- c(word_tbls, word_tbl_i)
     }
 
@@ -493,6 +497,72 @@ gt_save_docx <- function(
   if (needs_gt_as_word_post_processing(word_md_text)) {
     gt_as_word_post_processing(path = filename)
   }
+}
+
+#' Saving function for a Word (docx) file
+#'
+#' @noRd
+gt_save_pptx <- function(
+    data,
+    filename,
+    path = NULL,
+    ...,
+    open = rlang::is_interactive()
+) {
+
+  # Because creation of a .docx container is somewhat difficult, we
+  # require the rmarkdown package to be installed to generate this
+  # type of output
+  rlang::check_installed("rmarkdown", "to save gt tables as Word documents.")
+
+  filename <- gtsave_filename(path = path, filename = filename)
+
+  if (is_gt_group(data = data)) {
+    cli::cli_abort("grouped tables are not supported yet")
+  }
+
+  md_text <- glue::glue('
+---
+output:
+  powerpoint_presentation:
+    md_extensions: +raw_attribute
+---
+
+```{{=openxml}}
+<p:graphicFrame>
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="4" name="Table 1"/>
+    <p:cNvGraphicFramePr/>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="0" y="0"/>
+    <a:ext cx="9144000" cy="6858000"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+
+      { enc2utf8(as_pptx_ooxml(data = data)) }
+
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>
+```
+
+')
+
+  md_file <- tempfile(fileext = ".md")
+
+  writeLines(md_text, con = md_file)
+  rmarkdown::pandoc_convert(
+    input  = md_file,
+    output = filename
+  )
+
+  # if (needs_gt_as_word_post_processing(word_md_text)) {
+  #   gt_as_word_post_processing(path = filename)
+  # }
+
 }
 
 #' Get the lowercase extension from a filename

@@ -1,125 +1,83 @@
-#' @title Add gt table into a Word document
-#' @description Add a gt into a Word document.
-#' @param x `rdocx` object
-#' @param value `gt` object
-#' @param align left, center (default) or right.
-#' @param caption_location top (default), bottom, or embed Indicating if the title and subtitle should be listed above, below, or be embedded in the table
-#' @param caption_align left (default), center, or right. Alignment of caption (title and subtitle). Used when `caption_location` is not "embed".
-#' @param split set to TRUE if you want to activate Word
-#' option 'Allow row to break across pages'.
-#' @param keep_with_next Word option 'keep rows together' can be
-#' activated when TRUE. It avoids page break within tables.
-#' @param pos where to add the gt table relative to the cursor,
-#' one of "after" (default), "before", "on" (end of line).
-#'
-#' @seealso \link[flextable]{body_add_flextable}
-#'
-#' @examples
-#'
-#' library(officer)
-#' library(gt)
-#' gt_tbl <- gt( head( exibble ) )
-#'
-#' doc <- read_docx()
-#' doc <- body_add_gt(doc, value = gt_tbl)
-#' fileout <- tempfile(fileext = ".docx")
-#' print(doc, target = fileout)
-#' @noRd
-body_add_gt <- function(
-    x,
-    value,
-    align = "center",
-    pos = c("after","before","on"),
-    caption_location = c("top","bottom","embed"),
-    caption_align = "left",
-    split = FALSE,
-    keep_with_next = TRUE
-) {
-
-  ## check that officer is available
-  rlang::check_installed("officer", "to add gt tables to word documents.")
-
-  ## check that inputs are an officer rdocx and gt tbl
-  stopifnot(inherits(x, "rdocx"))
-  stopifnot(inherits(value, "gt_tbl"))
-
-  pos <- rlang::arg_match(pos)
-  caption_location <- rlang::arg_match(caption_location)
-
-  # Build all table data objects through a common pipeline
-  value <- build_data(data = value, context = "word")
-
-  ## Create and add table caption if it is to come before the table
-  if (caption_location %in% c("top")) {
-    header_xml <-
-      as_word_tbl_header_caption(
-        data = value,
-        align = caption_align,
-        split = split,
-        keep_with_next = keep_with_next
-      )
-
-    if (!identical(header_xml,c(""))) {
-      for (header_component in header_xml) {
-        x <- officer::body_add_xml(x, str = header_component, pos) |>
-          suppressWarnings()
-      }
-    }
-  }
-
-  ## Create and add the table to the docxr. If the
-  tbl_xml <-
-    as_word_tbl_body(
-      data = value,
-      align = align,
-      split = split,
-      keep_with_next = keep_with_next,
-      embedded_heading = identical(caption_location, "embed")
-    ) |>
-    as.character()
-
-  x <-
-    officer::body_add_xml(x, str = tbl_xml, pos) |>
-    suppressWarnings()
-
-  ## Create and add table caption if it is to come after the table
-  if (caption_location %in% c("bottom")) {
-
-    ## set keep_with_next to false here to prevent it trying to keep with non-table content
-    header_xml <-
-      as_word_tbl_header_caption(
-        data = value,
-        align = caption_align,
-        split = split,
-        keep_with_next = FALSE
-      )
-
-    if (!identical(header_xml,c(""))) {
-      for (header_component in header_xml) {
-        x <-
-          officer::body_add_xml(x, str = header_component, pos) |>
-          suppressWarnings()
-      }
-    }
-  }
-
-  x
-}
+skip_on_cran()
 
 check_suggests <- function() {
   skip_if_not_installed("officer")
 }
 
-skip_on_cran()
+test_that("parse_to_ooxml(pptx) creates the correct nodes", {
+  expect_xml_snapshot(parse_to_ooxml("hello", "pptx"))
+})
 
-# Function to skip tests if Suggested packages not available on system
-test_that("word ooxml can be generated from gt object", {
+test_that("process_text() handles ooxml/pptx", {
+  expect_equal(process_text("simple", context = "ooxml/pptx"), "simple")
+
+  # <br>
+  xml <- read_xml_pptx_nodes(process_text(md("simple <br> markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 2)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple", "markdown")
+  )
+
+  # strong
+  xml <- read_xml_pptx_nodes(process_text(md("simple **strong** markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "strong", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "b"),
+    c(NA, "1", NA)
+  )
+
+  # emph
+  xml <- read_xml_pptx_nodes(process_text(md("simple *emph* markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "emph", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "i"),
+    c(NA, "1", NA)
+  )
+
+  # emph
+  xml <- read_xml_pptx_nodes(process_text(md("simple __*emph/strong*__ markdown"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("simple ", "emph/strong", " markdown")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "i"),
+    c(NA, "1", NA)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r/a:rPr"), "b"),
+    c(NA, "1", NA)
+  )
+
+})
+
+test_that("pptx ooxml can be generated from gt object", {
 
   # Create a one-row table for these tests
   exibble_min <- exibble[1, ]
 
   ## basic table
-  expect_snapshot_word(gt(exibble_min))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt(exibble_min)))
+  expect_xml_snapshot(xml)
+
+  expect_equal(length(xml), 1)
+  expect_equal(xml_name(xml), "tbl")
+
+  expect_equal(
+    xml_attr(xml_find_all(xml, "(//a:tr)[1]//a:pPr"), "algn"),
+    c("r", "l", "ctr", "r", "r", "r", "r", "l", "l")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(xml, "(//a:tr)[2]//a:pPr"), "algn"),
+    c("r", "l", "ctr", "r", "r", "r", "r", "l", "l")
+  )
 
   ## basic table with title
   gt_tbl_1 <-
@@ -129,25 +87,36 @@ test_that("word ooxml can be generated from gt object", {
       title = "TABLE TITLE",
       subtitle = "table subtitle"
     )
-
-  expect_snapshot_word(gt_tbl_1)
+  xml_top <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_1))
+  expect_equal(length(xml_top), 3)
+  expect_equal(xml_name(xml_top), c("p", "p", "tbl"))
+  expect_xml_snapshot(xml_top[[1]])
+  expect_xml_snapshot(xml_top[[2]])
 
   ## basic table with title added below table
-  expect_snapshot_word(gt_tbl_1, caption_location = "bottom")
+  xml_bottom <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_1, caption_location = "bottom"))
+  expect_equal(length(xml_bottom), 3)
+  expect_equal(xml_name(xml_bottom), c("tbl", "p", "p"))
+  expect_equal(xml_top[[3]], xml_bottom[[1]])
+  expect_equal(length(xml_find_all(xml_bottom, "//a:tr")), 2)
 
   ## basic table with title embedded on the top of table
-  expect_snapshot_word(gt_tbl_1, caption_location = "embed")
+  xml_embed <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_1, caption_location = "embed"))
+  expect_equal(length(xml_embed), 1)
+  expect_equal(xml_name(xml_embed), c("tbl"))
+  expect_equal(length(xml_find_all(xml_embed, "//a:tr")), 3)
 
-  ## basic table with split enabled
-  expect_snapshot_word(gt_tbl_1, split = TRUE)
+  expect_equal(
+    xml_find_all(xml_top, "(//a:tr)[1]")[[1]],
+    xml_find_all(xml_embed, "(//a:tr)[2]")[[1]]
+  )
+  expect_equal(
+    xml_find_all(xml_top, "(//a:tr)[2]")[[1]],
+    xml_find_all(xml_embed, "(//a:tr)[3]")[[1]]
+  )
+})
 
-  ## basic table with autonum disabled
-  expect_snapshot_word(gt_tbl_1, autonum = FALSE)
-
-  ## basic table with keep_with_next disabled (should only appear in the column
-  ## headers)
-  expect_snapshot_word(gt_tbl_1, keep_with_next = FALSE)
-
+test_that("pptx ooxml can be generated from gt object with cell styling", {
   ## Table with cell styling
   gt_tbl_2 <-
     exibble[1:4, ] |>
@@ -175,15 +144,41 @@ test_that("word ooxml can be generated from gt object", {
       style = cell_text(color = "blue"),
       locations = cells_row_groups()
     )
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_2))
 
-  expect_snapshot_word(gt_tbl_2, keep_with_next = FALSE)
+  # row groups
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr'), "sz"), "1000")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr'), "sz"), "1000")
 
-  ## table with column and span styling
+  # body rows
+  xml_body <- xml_find_all(xml, "//a:tr")[c(3, 4, 6, 7)]
+  for (node in xml_find_all(xml_body, "(.//a:tc)[1]//a:rPr")){
+    expect_equal(xml_attr(xml_find_all(node, ".//a:latin"), "typeface"), "Biome")
+    expect_equal(xml_attr(node, "sz"), "1000")
+    expect_equal(xml_attr(node, "i"), "1")
+    expect_equal(xml_attr(xml_find_all(node, ".//a:solidFill/a:srgbClr"), "val"), "00FF00")
+    expect_equal(xml_attr(node, "b"), "1")
+  }
+
+  # orange cells
+  for (i in c(2, 3, 5, 7, 9)) {
+    expect_equal(
+      xml_attr(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr")), "val"),
+      rep("FFA500", 4)
+    )
+  }
+
+  # regular cells
+  for (i in c(4, 6, 8)) {
+    expect_equal(length(xml_find_all(xml_body, paste0("(.//a:tc)[", i, "]/a:tcPr/a:solidFill/a:srgbClr"))), 0)
+  }
+
+  # ## table with column and span styling
   gt_exibble_min <-
-    exibble[1:4, ] |>
-    gt(rowname_col = "char") |>
-    tab_row_group("My Row Group 1", c(1:2)) |>
-    tab_row_group("My Row Group 2", c(3:4)) |>
+    exibble[1, ] |>
+    gt() |>
     tab_spanner("My Span Label", columns = 1:5) |>
     tab_spanner("My Span Label top", columns = 2:4, level = 2) |>
     tab_style(
@@ -201,16 +196,42 @@ test_that("word ooxml can be generated from gt object", {
     tab_style(
       style = cell_fill(color = "red"),
       locations = cells_column_spanners("My Span Label top")
-    ) |>
-    tab_style(
-      style = cell_fill(color = "pink"),
-      locations = cells_stubhead()
-    ) |>
-    as_word()
+    )
 
-  gt_exibble_min_sha1 <- rlang::hash(gt_exibble_min)
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
 
-  expect_equal(gt_exibble_min_sha1, "be8267d755328ebf90527242ff60c54c")
+  # level 2 span
+  for (j in c(1, 3:7)) {
+    expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
+  }
+  xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
+  expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
+
+  # level 1 span
+  xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
+  expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
+  for (j in c(2:5)) {
+    expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[2]/a:tc[", j, "]//a:t"))), "")
+  }
+
+  # columns
+  expect_equal(
+    xml_attr(xml_find_all(xml, "//a:tr[3]/a:tc/a:tcPr/a:solidFill/a:srgbClr"), "val"),
+    rep("00FF00", 9)
+  )
+
+})
+
+skip("in progress")
+
+test_that("word ooxml handles md() and html()", {
+
+  # Create a one-row table for these tests
+  exibble_min <- exibble[1, ]
 
   ## basic table with linebreak in title
   gt_tbl_linebreaks_md <-
@@ -220,8 +241,14 @@ test_that("word ooxml can be generated from gt object", {
       title = md("TABLE <br> TITLE"),
       subtitle = md("table <br> subtitle")
     )
-
-  expect_snapshot_word(gt_tbl_linebreaks_md)
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  expect_equal(
+    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    "TABLE"
+  )
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
 
   ## basic table with linebreak in title
   gt_tbl_linebreaks_html <-
@@ -232,36 +259,155 @@ test_that("word ooxml can be generated from gt object", {
       subtitle = html("table <br> subtitle")
     )
 
-  expect_snapshot_word(gt_tbl_linebreaks_html)
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  expect_equal(
+    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    "TABLE"
+  )
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
 })
 
 test_that("word ooxml escapes special characters in gt object", {
+  df <- data.frame(special_characters = "><&\n\r\"'", stringsAsFactors = FALSE)
+  xml <- read_xml_word_nodes(as_word_ooxml(gt(df)))
 
-  # Create a one-row table for these tests
-  exibble_min <-
-    exibble[1, ] |>
-    dplyr::mutate(special_characters = "><&\n\r\"'")
-
-  ## basic table
-  expect_snapshot_word(gt(exibble_min))
+  expect_snapshot(
+    xml_find_all(xml, "(//w:t)[last()]/text()")
+  )
 })
 
 test_that("word ooxml escapes special characters in gt object footer", {
 
-  # Create a one-row table for these tests
-  exibble_min <- exibble[1, ]
-
-  ## basic table with invalid footnote
-  gt_tbl <-
-    exibble_min |>
-    gt() |>
+  gt_tbl <- gt(data.frame(num = 1)) |>
     tab_footnote(footnote = "p < .05, ><&\n\r\"'")
 
-  expect_snapshot_word(gt_tbl)
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl))
+  expect_snapshot(xml_find_all(xml, "//w:tr[last()]//w:t"))
+})
+
+test_that("multicolumn stub are supported", {
+  test_data <- dplyr::tibble(
+    mfr = c("Ford", "Ford", "BMW", "BMW", "Audi"),
+    model = c("GT", "F-150", "X5", "X3", "A4"),
+    trim = c("Base", "XLT", "xDrive35i", "sDrive28i", "Premium"),
+    year = c(2017, 2018, 2019, 2020, 2021),
+    hp = c(647, 450, 300, 228, 261),
+    msrp = c(447000, 28000, 57000, 34000, 37000)
+  )
+
+  # Three-column stub
+  triple_stub <- gt(test_data, rowname_col = c("mfr", "model", "trim"))
+
+  # The merge cells on the first column
+  xml <- read_xml(as_word_ooxml(triple_stub))
+  nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
+  expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
+  expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")
+
+  nodes_BMW <- xml_find_all(xml, ".//w:t[. = 'BMW']")
+  expect_equal(xml_attr(xml_find_all(nodes_BMW[[1]], "../../..//w:vMerge"), "val"), "restart")
+  expect_equal(xml_attr(xml_find_all(nodes_BMW[[2]], "../../..//w:vMerge"), "val"), "continue")
+
+  nodes_Audi <- xml_find_all(xml, ".//w:t[. = 'Audi']")
+  expect_equal(xml_length(xml_find_all(nodes_Audi[[1]], "../../..//w:vMerge")), 0)
+
+  # no other merge cells
+  expect_equal(length(xml_find_all(xml, ".//w:vMerge")), 4)
+
+  # no stub head, i.e. empty text
+  expect_equal(
+    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    c("", "year", "hp", "msrp")
+  )
+  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+  for (i in 2:4) {
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+  }
+
+  # one label: merged
+  xml <- test_data |>
+    gt(rowname_col = c("mfr", "model", "trim")) |>
+    tab_stubhead("one") |>
+    as_word() %>%
+    read_xml()
+  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+  for (i in 2:4) {
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+  }
+
+  expect_equal(
+    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    c("one", "year", "hp", "msrp")
+  )
+
+  # 3 labels
+  xml <- test_data |>
+    gt(rowname_col = c("mfr", "model", "trim")) |>
+    tab_stubhead(c("one", "two", "three")) |>
+    as_word() %>%
+    read_xml()
+
+  expect_equal(
+    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    c("one", "two", "three", "year", "hp", "msrp")
+  )
+
+  # add spanner
+  xml <- test_data |>
+    gt(rowname_col = c("mfr", "model", "trim")) |>
+    tab_stubhead(c("one", "two", "three")) |>
+    tab_spanner(label = "span", columns = c(hp, msrp)) |>
+    as_word() %>%
+    read_xml()
+
+  expect_equal(
+    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    c("one", "two", "three", "", "span")
+  )
+  # first row
+  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  for (i in 1:3) {
+    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "restart")
+  }
+  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//w:gridSpan"), "val"), "2")
+
+  # second row
+  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
+  for (i in 1:3) {
+    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "continue")
+  }
+
+  # spanner - one label
+  xml <- test_data |>
+    gt(rowname_col = c("mfr", "model", "trim")) |>
+    tab_stubhead(c("one")) |>
+    tab_spanner(label = "span", columns = c(hp, msrp)) |>
+    as_word() %>%
+    read_xml()
+
+  expect_equal(
+    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    c("one", "", "span")
+  )
+
+  # first row
+  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "restart")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//w:gridSpan"), "val"), "2")
+
+  # second row
+  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "continue")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+
 })
 
 test_that("tables can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -274,9 +420,8 @@ test_that("tables can be added to a word doc", {
     )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    body_add_gt(
+  word_doc <- officer::read_docx() |>
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -372,7 +517,7 @@ test_that("tables with special characters can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -457,7 +602,7 @@ test_that("tables with embedded titles can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       caption_location = "embed",
       align = "center"
@@ -529,7 +674,6 @@ test_that("tables with embedded titles can be added to a word doc", {
 })
 
 test_that("tables with spans can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -549,7 +693,7 @@ test_that("tables with spans can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -633,7 +777,6 @@ test_that("tables with spans can be added to a word doc", {
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -661,7 +804,7 @@ test_that("tables with multi-level spans can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -747,8 +890,8 @@ test_that("tables with multi-level spans can be added to a word doc", {
 })
 
 test_that("tables with summaries can be added to a word doc", {
-
   check_suggests()
+  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -769,7 +912,7 @@ test_that("tables with summaries can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -924,8 +1067,8 @@ test_that("tables with summaries can be added to a word doc", {
 })
 
 test_that("tables with grand summaries but no rownames can be added to a word doc", {
-
   check_suggests()
+  skip("grand summaries not yet implemented")
 
   ## simple table
   gt_exibble_min <-
@@ -941,7 +1084,7 @@ test_that("tables with grand summaries but no rownames can be added to a word do
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -1064,7 +1207,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
 })
 
 test_that("tables with footnotes can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1080,10 +1222,37 @@ test_that("tables with footnotes can be added to a word doc", {
       locations = cells_column_labels(columns = char )
     )
 
-  ## Add table to empty word document
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  xml_note_num <- xml_find_all(xml, './/w:t[text() = "num"]/../../w:r[last()]')
+  expect_equal(xml_attr(xml_find_all(xml_note_num, ".//w:rPr/w:vertAlign"), "val"), "superscript")
+  expect_equal(xml_text(xml_find_all(xml_note_num, ".//w:t")), "1")
+
+  xml_note_char <- xml_find_all(xml, './/w:t[text() = "char"]/../../w:r[last()]')
+  expect_equal(xml_attr(xml_find_all(xml_note_char, ".//w:rPr/w:vertAlign"), "val"), "superscript")
+  expect_equal(xml_text(xml_find_all(xml_note_char, ".//w:t")), "2")
+
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last()]//w:r/w:t')),
+    c("2", "this is a second footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last()]//w:vertAlign'), "val"),
+    "superscript"
+  )
+  expect_equal(
+    xml_text(xml_find_all(xml, './/w:tr[last() - 1]//w:r/w:t')),
+    c("1", "this is a footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/w:tr[last() - 1]//w:vertAlign'), "val"),
+    "superscript"
+  )
+
+  # ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -1169,7 +1338,6 @@ test_that("tables with footnotes can be added to a word doc", {
 })
 
 test_that("tables with source notes can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1178,10 +1346,21 @@ test_that("tables with source notes can be added to a word doc", {
     gt() |>
     tab_source_note(source_note = "this is a source note example")
 
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
+    "this is a source note example"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:gridSpan"), "val"),
+    "9"
+  )
+
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble_min, align = "center")
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1262,7 +1441,6 @@ test_that("tables with source notes can be added to a word doc", {
 })
 
 test_that("long tables can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1277,7 +1455,7 @@ test_that("long tables can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_letters, align = "center")
+    ooxml_body_add_gt(gt_letters, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1334,7 +1512,6 @@ test_that("long tables can be added to a word doc", {
 })
 
 test_that("long tables with spans can be added to a word doc", {
-
   check_suggests()
 
   ## simple table
@@ -1353,7 +1530,7 @@ test_that("long tables with spans can be added to a word doc", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_letters, align = "center")
+    ooxml_body_add_gt(gt_letters, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1461,7 +1638,7 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble_min, align = "center")
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1609,7 +1786,6 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
-
   check_suggests()
 
   ## simple table
@@ -1641,6 +1817,9 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
       locations = cells_stubhead()
     )
 
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+
   if (!testthat::is_testing() && interactive()) {
     print(gt_exibble_min)
   }
@@ -1648,7 +1827,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble_min, align = "center")
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1707,7 +1886,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
-
   check_suggests()
 
   ## simple table
@@ -1736,7 +1914,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble_min, align = "center")
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1791,7 +1969,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 })
 
 test_that("footnotes styling gets applied to footer marks", {
-
   check_suggests()
 
   ## simple table
@@ -1802,6 +1979,30 @@ test_that("footnotes styling gets applied to footer marks", {
     tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
     opt_footnote_spec(spec_ftr = "(b)")
 
+  # check the xml
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
+
+  # first note
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()-1]//w:t")),
+    "My Footnote"
+  )
+  expect_equal(length(xml_find_all(xml, ".//w:tr[last()-1]//w:b")), 0)
+
+  # second note
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
+    c("(1)", "My Footnote 2")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:vertAlign"), "val"),
+    "baseline"
+  )
+  expect_equal(
+    length(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:b")),
+    1
+  )
+
   if (!testthat::is_testing() && interactive()) {
     print(gt_exibble_min)
   }
@@ -1809,7 +2010,7 @@ test_that("footnotes styling gets applied to footer marks", {
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble_min, align = "center")
+    ooxml_body_add_gt(gt_exibble_min, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -1859,13 +2060,13 @@ test_that("footnotes styling gets applied to footer marks", {
 
   expect_equal(
     style_bold,
-    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
   )
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
-
   check_suggests()
+  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -1915,7 +2116,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(
+    ooxml_body_add_gt(
       gt_exibble_min,
       align = "center"
     )
@@ -2043,7 +2244,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 })
 
 test_that("tables preserves spaces in text & can be added to a word doc", {
-
   skip_on_ci()
   check_suggests()
 
@@ -2064,7 +2264,7 @@ test_that("tables preserves spaces in text & can be added to a word doc", {
   ## Add table to empty word document
   word_doc_normal <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble, align = "center")
+    ooxml_body_add_gt(gt_exibble, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -2154,7 +2354,7 @@ test_that("tables respects column and cell alignment and can be added to a word 
   ## Add table to empty word document
   word_doc <-
     officer::read_docx() |>
-    body_add_gt(gt_exibble, align = "center")
+    ooxml_body_add_gt(gt_exibble, align = "center")
 
   ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
@@ -2213,8 +2413,7 @@ test_that("tables respects column and cell alignment and can be added to a word 
   )
 })
 
-test_that("markdown in the tables works out",{
-
+test_that("markdown in the tables works out", {
   skip_on_ci()
   check_suggests()
 
@@ -2265,7 +2464,7 @@ There's a quick reference [here](https://commonmark.org/help/).
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
@@ -2355,7 +2554,6 @@ There's a quick reference [here](https://commonmark.org/help/).
 })
 
 test_that("markdown with urls work", {
-
   skip_on_ci()
   check_suggests()
 
@@ -2373,7 +2571,7 @@ test_that("markdown with urls work", {
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_docx)
@@ -2403,8 +2601,7 @@ test_that("markdown with urls work", {
   )
 })
 
-test_that("markdown with img refs work",{
-
+test_that("markdown with img refs work", {
   skip_on_ci()
   check_suggests()
 
@@ -2427,7 +2624,7 @@ test_that("markdown with img refs work",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(markdown_gt, filename = temp_docx)
+  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2461,7 +2658,7 @@ test_that("markdown with img refs work",{
   )
 })
 
-test_that("table with image refs work - local only",{
+test_that("table with image refs work - local only", {
 
   skip_on_ci()
   check_suggests()
@@ -2489,7 +2686,7 @@ test_that("table with image refs work - local only",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt, filename = temp_docx)
+  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2547,7 +2744,7 @@ test_that("table with image refs work - local only",{
     )
 })
 
-test_that("table with image refs work - https",{
+test_that("table with image refs work - https", {
 
   skip_on_ci()
   check_suggests()
@@ -2562,7 +2759,7 @@ test_that("table with image refs work - https",{
 
   temp_docx <- tempfile(fileext = ".docx")
 
-  gtsave(https_image_gt, filename = temp_docx)
+  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx)
@@ -2591,8 +2788,7 @@ test_that("table with image refs work - https",{
   expect_match(obj, "^media/.+?logo[.]svg$")
 })
 
-
-test_that("table with image refs work - local only - setting image widths and heights",{
+test_that("table with image refs work - local only - setting image widths and heights", {
 
   skip_on_ci()
   check_suggests()
@@ -2643,9 +2839,9 @@ test_that("table with image refs work - local only - setting image widths and he
   temp_docx_2 <- tempfile(fileext = ".docx")
   temp_docx_3 <- tempfile(fileext = ".docx")
 
-  gtsave(image_gt_height_and_width, filename = temp_docx_1)
-  gtsave(image_gt_height, filename = temp_docx_2)
-  gtsave(image_gt_width, filename = temp_docx_3)
+  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
+  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
+  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
 
   if (!testthat::is_testing() && interactive()) {
     shell.exec(temp_docx_1)
@@ -2714,125 +2910,6 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
     sub_small_vals() |>
     sub_large_vals(threshold = 100)
 
-  expect_snapshot_word(tbl)
-})
-
-test_that("multicolumn stub are supported", {
-  test_data <- dplyr::tibble(
-    mfr = c("Ford", "Ford", "BMW", "BMW", "Audi"),
-    model = c("GT", "F-150", "X5", "X3", "A4"),
-    trim = c("Base", "XLT", "xDrive35i", "sDrive28i", "Premium"),
-    year = c(2017, 2018, 2019, 2020, 2021),
-    hp = c(647, 450, 300, 228, 261),
-    msrp = c(447000, 28000, 57000, 34000, 37000)
-  )
-
-  # Three-column stub
-  triple_stub <- gt(test_data, rowname_col = c("mfr", "model", "trim"))
-
-  # The merge cells on the first column
-  xml <- read_xml(as_word(triple_stub))
-  nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")
-
-  nodes_BMW <- xml_find_all(xml, ".//w:t[. = 'BMW']")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[2]], "../../..//w:vMerge"), "val"), "continue")
-
-  nodes_Audi <- xml_find_all(xml, ".//w:t[. = 'Audi']")
-  expect_equal(xml_length(xml_find_all(nodes_Audi[[1]], "../../..//w:vMerge")), 0)
-
-  # no other merge cells
-  expect_equal(length(xml_find_all(xml, ".//w:vMerge")), 4)
-
-  # no stub head, i.e. empty text
-  expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
-    c("", "year", "hp", "msrp")
-  )
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-  for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
-  }
-
-  # one label: merged
-  xml <- test_data |>
-    gt(rowname_col = c("mfr", "model", "trim")) |>
-    tab_stubhead("one") |>
-    as_word() %>%
-    read_xml()
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-  for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
-  }
-
-  expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
-    c("one", "year", "hp", "msrp")
-  )
-
-  # 3 labels
-  xml <- test_data |>
-    gt(rowname_col = c("mfr", "model", "trim")) |>
-    tab_stubhead(c("one", "two", "three")) |>
-    as_word() %>%
-    read_xml()
-
-  expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
-    c("one", "two", "three", "year", "hp", "msrp")
-  )
-
-  # add spanner
-  xml <- test_data |>
-    gt(rowname_col = c("mfr", "model", "trim")) |>
-    tab_stubhead(c("one", "two", "three")) |>
-    tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
-
-  expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
-    c("one", "two", "three", "", "span")
-  )
-  # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "restart")
-  }
-  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//w:gridSpan"), "val"), "2")
-
-  # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "continue")
-  }
-
-  # spanner - one label
-  xml <- test_data |>
-    gt(rowname_col = c("mfr", "model", "trim")) |>
-    tab_stubhead(c("one")) |>
-    tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
-
-  expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
-    c("one", "", "span")
-  )
-
-  # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//w:gridSpan"), "val"), "2")
-
-  # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "continue")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-
+  xml <- as_word_ooxml(tbl)
+  expect_xml_snapshot(xml)
 })

@@ -74,7 +74,8 @@ Suggests:
     testthat (>= 3.1.9),
     tidyr (>= 1.0.0),
     webshot2 (>= 0.1.0),
-    withr
+    withr, 
+    officer
 Config/Needs/coverage: officer
 Config/Needs/website: quarto
 ByteCompile: true
