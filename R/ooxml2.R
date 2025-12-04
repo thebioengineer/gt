@@ -699,13 +699,6 @@ process_text_ooxml <- function(text, ooxml_type = c("word", "pptx")) {
   as.character(text)
 }
 
-markdown_to_ooxml <- function(text, ooxml_type) {
-  switch_ooxml(ooxml_type,
-    word = markdown_to_xml(text)
-  )
-}
-
-
 # parse_to_ooxml ----------------------------------------------------------
 
 parse_to_ooxml <- function(x, ooxml_type = c("word", "pptx"), ...) {
@@ -1361,4 +1354,303 @@ fmt_image_ooxml_word <- function(x, height = NULL, width = NULL, file_pattern = 
 
   x_str
 }
+
+
+# markdown to ooxml ----------------------------------------------------
+
+markdown_to_ooxml <- function(text, ooxml_type = c("word", "pptx")) {
+
+  rules <- switch_ooxml(ooxml_type,
+    word = cmark_rules_xml,
+    pptx = cmark_rules_ooxml_pptx
+  )
+
+  res <- gsub("<br>", "\n\n", as.character(text))
+  sapply(res, USE.NAMES = FALSE, function(x) {
+    cmark <- commonmark::markdown_xml(x)
+    xml   <- read_xml(cmark)
+    if (!identical(xml2::xml_name(xml), "document")) {
+      cli::cli_abort("Unexpected result from markdown parsing: `document` element not found")
+    }
+    children <- xml2::xml_children(xml)
+
+    apply_rules <- function(x, ...) {
+
+      if (inherits(x, "xml_nodeset")) {
+        results <- lapply(x, apply_rules)
+        rlang::exec(paste, !!!results, collapse = "\n")
+      } else {
+
+        output <- if (xml2::xml_type(x) == "element") {
+
+          rule <- rules[[xml2::xml_name(x)]]
+
+          if (is.null(rule)) {
+
+            rlang::warn(
+              "Unknown commonmark element encountered: {.val {xml2::xml_name(x)}}",
+              .frequency = "once",
+              .frequency_id = "gt_commonmark_unknown_element"
+            )
+
+            apply_rules(xml2::xml_children(x), ...)
+
+          } else if (is.function(rule)) {
+            rule(x, apply_rules, ...)
+          }
+        }
+        paste0(output, collapse = "")
+      }
+    }
+
+    res <- lapply(children, apply_rules)
+    res <-  paste0(res, collapse = "")
+    paste0("<md_container>", res, "</md_container>")
+  })
+}
+
+
+cmark_rules_ooxml_pptx <- list2(
+
+  text = function(x, process, ...) {
+    txt <- enc2utf8(as.character(htmltools::htmlEscape(xml2::xml_text(x))))
+    glue::glue('<a:r><a:rPr/><a:t xml:space = "preserve">{txt}</a:t></a:r>')
+  },
+  paragraph = function(x, process, ...) {
+    runs <- paste(lapply(xml2::xml_children(x), process), collapse = "")
+    glue::glue('<a:p><a:pPr/>{runs}</a:p>')
+  },
+  strong = function(x, process, ...) {
+    res <- as_xml_node(process(xml_children(x), ...), create_ns = TRUE, ooxml_type = "pptx")
+    xml_set_attr(xml_find_all(res, ".//a:rPr"), "b", "1")
+    as.character(res)
+  },
+  emph = function(x, process, ...) {
+    res <- as_xml_node(process(xml_children(x), ...), create_ns = TRUE, ooxml_type = "pptx")
+    xml_set_attr(xml_find_all(res, ".//a:rPr"), "i", "1")
+    as.character(res)
+  },
+  image = function(x, process, ...) {
+    cli::cli_abort("image is not yet supported in pptx")
+  },
+
+
+  #------- TODO: later
+  #,
+
+  # ## Complex styling
+  # heading = function(x, process, ...) {
+  #   heading_sizes <- c(36, 32, 28, 24, 20, 16)
+  #   fs <- heading_sizes[as.numeric(xml2::xml_attr(x, attr = "level"))]
+  #   x <- process(xml2::xml_children(x))
+  #   res <- add_text_style(x, style = xml_sz(val = fs))
+  #
+  #   as.character(xml_p(xml_pPr(), res))
+  # },
+  #
+  # thematic_break = function(x, process, ...) {
+  #   res <- xml_p(
+  #     xml_pPr(
+  #       xml_keepNext(),
+  #       xml_pBdr(
+  #         xml_border(dir = "bottom", type = "single", size = 6, space = 1, color = "auto")
+  #       ),
+  #       xml_spacing(after = 60)
+  #     )
+  #   )
+  #   as.character(res)
+  # },
+  # list = function(x, process, ..., indent_level = 0, type = "bullet") {
+  #
+  #   type <- xml2::xml_attr(x, attr = "type")
+  #   children <- xml2::xml_children(x)
+  #
+  #   # NOTE: `start`, `delim`, and `tight` attrs are ignored; we also
+  #   # assume there is only `type` values of "ordered" and "bullet" (unordered)
+  #
+  #   paste(
+  #       lapply(
+  #         seq_along(children),
+  #         FUN = function(child_idx) {
+  #
+  #           child <- children[[child_idx]]
+  #
+  #           li_content <- process(child, indent_level = indent_level + 1, type = type)
+  #           li_content <- as_xml_node(li_content, create_ns = TRUE)
+  #
+  #           ## get first pPr tag
+  #           paragraph_style <- xml_find_first(li_content, ".//w:pPr")[[1]]
+  #
+  #           ## check
+  #           list_style_format <- xml_pStyle(val = "ListParagraph")
+  #           list_style_format <- as_xml_node(list_style_format)[[1]]
+  #
+  #           xml_add_child(
+  #             paragraph_style,
+  #             list_style_format
+  #           )
+  #
+  #           list_bullet_style <- xml_numPr(
+  #             xml_ilvl(val = indent_level)#,
+  #             # ifelse(type == "ordered", xml_numId(val = 2), xml_numId(val = 1))
+  #           )
+  #           list_bullet_style <- as_xml_node(list_bullet_style)[[1]]
+  #
+  #           xml_add_child(
+  #             paragraph_style,
+  #             list_bullet_style
+  #           )
+  #
+  #
+  #           list_symbol <- ifelse(type == "bullet", "-", paste0(child_idx, "."))
+  #
+  #             bullet_insert <- xml_r(
+  #                 xml_t(xml_space = "preserve", paste(c(rep("\t", times = indent_level), list_symbol, "\t"), collapse = ""))
+  #               )
+  #             bullet_insert <- as_xml_node(bullet_insert)[[1]]
+  #
+  #             ## must be nodes not nodesets
+  #             xml_add_sibling(
+  #               paragraph_style,
+  #               bullet_insert,
+  #               .where = "after"
+  #             )
+  #
+  #           paste0(li_content, collapse = "")
+  #
+  #         }
+  #       ),
+  #       collapse = ""
+  #   )
+  # },
+  # item = function(x, process, ...) {
+  #
+  #   item_contents <- lapply(
+  #       xml2::xml_children(x),
+  #       process,
+  #       ...
+  #     )
+  #
+  #   unlist(item_contents)
+  #
+  # },
+  #
+  # ## code sections
+  # code = function(x, process, ...) {
+  #   res <- xml_r(xml_rPr(xml_rStyle(val = "Macro Text")),
+  #         xml_t(xml2::xml_text(x), xml_space = "preserve"))
+  #   as.character(res)
+  #
+  # },
+  #
+  # code_block = function(x, process, ...) {
+  #   ##split text up by new line
+  #   text <- strsplit(xml2::xml_text(x), split = "\n")[[1]]
+  #   code_text <- lapply(text, function(line) {
+  #     xml_t(line, xml_space = "preserve")
+  #   })
+  #   res <- xml_p(xml_pPr(xml_pStyle(val = "Macro Text")),
+  #         xml_r(xml_rPr(),
+  #               paste0(
+  #                 vapply(code_text,
+  #                        FUN = paste,
+  #                        FUN.VALUE = character(1L)),
+  #                 collapse = "<w:br/>"
+  #               )))
+  #   as.character(res)
+  # },
+  #
+  # ## line breaks
+  # softbreak = function(x, process, ...) {
+  #   xml_br(clear = "right")
+  # },
+  # linebreak = function(x, process, ...) {
+  #   xml_br()
+  # },
+  #
+  # html_inline = function(x, process, ...) {
+  #
+  #   tag <- xml2::xml_text(x)
+  #
+  #   match <- str_get_match(tag, pattern = "^<(/?)([a-zA-Z0-9\\-]+)")
+  #
+  #   if (!is.na(match[1, 1])) {
+  #
+  #     span_map <-
+  #       c(
+  #         sup = "super",
+  #         sub = "sub",
+  #         strong = "b",
+  #         b = "b",
+  #         em = "i",
+  #         i = "i",
+  #         code = "f1"
+  #       )
+  #
+  #     key_map <- c(br = "line")
+  #
+  #     is_closing <- match[1, 2] == "/"
+  #     tag_name <- match[1, 3]
+  #
+  #     if (!is_closing) {
+  #
+  #       if (tag_name %in% names(key_map)) {
+  #
+  #         return(rtf_key(key_map[tag_name], space = TRUE))
+  #
+  #       } else if (tag_name %in% names(span_map)) {
+  #
+  #         return(
+  #           rtf_paste0(
+  #             rtf_raw("{"),
+  #             rtf_key(span_map[tag_name], space = TRUE)
+  #           )
+  #         )
+  #       }
+  #
+  #     } else {
+  #
+  #       if (tag_name %in% names(span_map)) {
+  #         return(rtf_raw("}"))
+  #       }
+  #     }
+  #   }
+  #
+  #   # Any unrecognized HTML tags are stripped, returning nothing
+  #   return(rtf_raw(""))
+  # },
+  #
+  # html_block = function(x, process, ...) {
+  #   res <- xml_p(
+  #     xml_pPr(),
+  #     xml_r(xml_rPr(),
+  #           xml_t(
+  #             enc2utf8(as.character(xml2::xml_text(x))),
+  #             xml_space = "preserve")
+  #     )
+  #   )
+  #   as.character(res)
+  # },
+  #
+  # link = function(x, process, ...) {
+  #   # NOTE: Links are difficult to insert in OOXML documents because
+  #   # a relationship must be provided in the 'document.xml.rels' file
+  #   res <- xml_hyperlink(
+  #     url = xml_attr(x, "destination"),
+  #     xml_r(xml_rPr(
+  #       xml_rStyle(val = "Hyperlink"),
+  #       xml_color(color = "#0563C1")
+  #       ),
+  #       xml_t(xml2::xml_text(x))
+  #     )
+  #   )
+  #   as.character(res)
+  # },
+  #
+  # block_quote = function(x, process, ...) {
+  #   # TODO: Implement
+  #   process(xml2::xml_children(x))
+  # }
+)
+
 
