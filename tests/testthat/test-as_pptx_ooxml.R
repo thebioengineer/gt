@@ -171,7 +171,7 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
 
   # columns
   expect_equal(
-    xml_text(xml_find_all(xml, "//a:tr[3]/a:tc/a:tcPr/a:solidFill/a:srgbClr")),
+    xml_attr(xml_find_all(xml, "//a:tr[3]/a:tc/a:tcPr/a:solidFill/a:srgbClr"), "val"),
     rep("00FF00", 9)
   )
 

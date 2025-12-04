@@ -122,7 +122,8 @@ ooxml_tbl_grid <- function(ooxml_type, ...) {
       } else
       ooxml_tag(gridCol_tag, "w:w" = width)
     } else {
-      ooxml_tag(gridCol_tag, "w" = width %||% "100000")
+      # TODO: fix width pptx based on width etc ...
+      ooxml_tag(gridCol_tag, "w" = width %||% 9144000 / length(dots))
     }
   })
   ooxml_tag(tblGrid_tag, tag_class = "ooxml_tbl_grid", !!!grid_cols)
