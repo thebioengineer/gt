@@ -205,13 +205,13 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
     expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
   }
   xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:gridSpan"), "val"), "3")
   expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
   expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
   xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:gridSpan"), "val"), "5")
   expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
   expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
@@ -283,10 +283,10 @@ test_that("word ooxml escapes special characters in gt object footer", {
   gt_tbl <- gt(data.frame(num = 1)) |>
     tab_footnote(footnote = "p < .05, ><&\n\r\"'")
 
-  xml <- read_pptx_word_nodes(as_pptx_ooxml(gt_tbl))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl))
   expect_equal(
     as.character(xml_find_all(xml, "//a:tr[last()]//a:t/text()")),
-    "&gt;&lt;&amp; \"'"
+    "p &lt; .05, &gt;&lt;&amp; \"'"
   )
 })
 
