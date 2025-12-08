@@ -306,7 +306,7 @@ test_that("multicolumn stub are supported", {
   triple_stub <- gt(test_data, rowname_col = c("mfr", "model", "trim"))
 
   # The merge cells on the first column
-  xml <- read_xml(as_word_ooxml(triple_stub))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(triple_stub))
   nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
   expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
   expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")
