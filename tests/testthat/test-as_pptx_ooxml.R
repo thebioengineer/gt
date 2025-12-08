@@ -205,13 +205,13 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
     expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
   }
   xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:gridSpan"), "val"), "3")
   expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
   expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
   xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:gridSpan"), "val"), "5")
   expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
   expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
@@ -226,9 +226,7 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
 
 })
 
-skip("in progress")
-
-test_that("word ooxml handles md() and html()", {
+test_that("pptx ooxml handles md() and html()", {
 
   # Create a one-row table for these tests
   exibble_min <- exibble[1, ]
@@ -241,14 +239,14 @@ test_that("word ooxml handles md() and html()", {
       title = md("TABLE <br> TITLE"),
       subtitle = md("table <br> subtitle")
     )
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_linebreaks_md))
   expect_equal(
-    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    xml_text(xml_find_all(xml[[1]], "(.//a:r)[last()]//a:t")),
     "TABLE"
   )
-  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
-  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
-  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//a:r//a:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//a:r//a:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//a:r//a:t")), "subtitle")
 
   ## basic table with linebreak in title
   gt_tbl_linebreaks_html <-
@@ -259,23 +257,25 @@ test_that("word ooxml handles md() and html()", {
       subtitle = html("table <br> subtitle")
     )
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_linebreaks_md))
   expect_equal(
-    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    xml_text(xml_find_all(xml[[1]], "(.//a:r)[last()]//a:t")),
     "TABLE"
   )
-  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
-  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
-  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//a:r//a:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//a:r//a:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//a:r//a:t")), "subtitle")
 })
 
-test_that("word ooxml escapes special characters in gt object", {
+test_that("pptx ooxml escapes special characters in gt object", {
   df <- data.frame(special_characters = "><&\n\r\"'", stringsAsFactors = FALSE)
-  xml <- read_xml_word_nodes(as_word_ooxml(gt(df)))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt(df)))
 
-  expect_snapshot(
-    xml_find_all(xml, "(//w:t)[last()]/text()")
+  expect_equal(
+    as.character(xml_find_all(xml, "(//a:t)[last()]/text()")),
+    "&gt;&lt;&amp; \"'"
   )
+
 })
 
 test_that("word ooxml escapes special characters in gt object footer", {
@@ -283,9 +283,14 @@ test_that("word ooxml escapes special characters in gt object footer", {
   gt_tbl <- gt(data.frame(num = 1)) |>
     tab_footnote(footnote = "p < .05, ><&\n\r\"'")
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl))
-  expect_snapshot(xml_find_all(xml, "//w:tr[last()]//w:t"))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl))
+  expect_equal(
+    as.character(xml_find_all(xml, "//a:tr[last()]//a:t/text()")),
+    "p &lt; .05, &gt;&lt;&amp; \"'"
+  )
 })
+
+skip("in progress")
 
 test_that("multicolumn stub are supported", {
   test_data <- dplyr::tibble(
@@ -301,7 +306,7 @@ test_that("multicolumn stub are supported", {
   triple_stub <- gt(test_data, rowname_col = c("mfr", "model", "trim"))
 
   # The merge cells on the first column
-  xml <- read_xml(as_word_ooxml(triple_stub))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(triple_stub))
   nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
   expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
   expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")

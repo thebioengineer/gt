@@ -23,7 +23,7 @@
     Code
       writeLines(as.character(xml))
     Output
-      <a:tbl xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+      <a:tbl>
         <a:tblPr firstRow="0" lastRow="0" firstCol="0" lastCol="0" bandCol="0" bandRow="0">
           <a:tableW type="auto" w="0"/>
         </a:tblPr>
@@ -809,7 +809,7 @@
         <a:r>
           <a:rPr sz="1200">
             <a:latin typeface="Calibri"/>
-            <a:solidFill xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:solidFill>
               <a:srgbClr val="333333"/>
             </a:solidFill>
           </a:rPr>
@@ -834,7 +834,7 @@
         <a:r>
           <a:rPr sz="800">
             <a:latin typeface="Calibri"/>
-            <a:solidFill xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:solidFill>
               <a:srgbClr val="333333"/>
             </a:solidFill>
           </a:rPr>
