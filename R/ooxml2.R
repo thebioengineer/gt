@@ -434,7 +434,7 @@ ooxml_vMerge <- function(ooxml_type, val = 1) {
 
   switch_ooxml(ooxml_type,
     word = ooxml_tag("w:vMerge" , "val" = if (val > 1) "restart" else "continue"),
-    pptx = ooxml_tag("w:rowSpan", "val" = val)
+    pptx = ooxml_tag("a:rowSpan", "val" = val)
   )
 
 }
