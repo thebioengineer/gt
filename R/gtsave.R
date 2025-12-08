@@ -521,7 +521,68 @@ gt_save_pptx <- function(
     cli::cli_abort("grouped tables are not supported yet")
   }
 
-  tbl_xml <- as_pptx_ooxml(data = data, ...)
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(data = data, ...))
+
+  offset <- 0
+  txt <- character(length(xml))
+
+  # TODO: better adjust offsets, i.e. calculate height of each <p> and <tbl>
+  for(i in seq_along(xml)) {
+    node <- xml[[i]]
+    title <- xml_text(xml_find_first(node, ".//a:t"))
+    txt_cy     <- sprintf("%d", offset + 200000)
+    txt_offset <- sprintf("%d", offset)
+    if (xml_name(node) == "p") {
+      txt[i] <- glue::glue('
+<p:sp>
+  <p:nvSpPr>
+    <p:cNvPr id="{i}" name="{title}"/>
+    <p:cNvSpPr/>
+    <p:nvPr/>
+  </p:nvSpPr>
+  <p:spPr>
+    <a:xfrm>
+      <!-- position + size of the text box -->
+      <a:off x="0" y="{txt_offset}"/>
+      <a:ext cx="9144000" cy="{txt_cy}"/>
+    </a:xfrm>
+  </p:spPr>
+  <p:txBody>
+    <a:bodyPr/>
+    <a:lstStyle/>
+      {as.character(node)}
+  </p:txBody>
+</p:sp>
+      ')
+      offset <- offset + 200000
+    } else if (xml_name(node) == "tbl") {
+      height <- 6858000 - length(xml_find_all(xml, './/a:p')) * 200000 - 100000
+
+      txt_cy <- sprintf("%d", height)
+      txt_offset <- sprintf("%d", offset)
+      txt[i] <- glue::glue('
+<p:graphicFrame>
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="{i}" name="Table 1"/>
+    <p:cNvGraphicFramePr/>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="0" y="{txt_offset}"/>
+    <a:ext cx="9144000" cy="{txt_cy}"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+      { as.character(node) }
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>
+      ')
+      offset <- offset + height
+    }
+
+  }
+
   md_text <- glue::glue('
 ---
 output:
@@ -530,24 +591,8 @@ output:
 ---
 
 ```{{=openxml}}
-<p:graphicFrame>
-  <p:nvGraphicFramePr>
-    <p:cNvPr id="4" name="Table 1"/>
-    <p:cNvGraphicFramePr/>
-    <p:nvPr/>
-  </p:nvGraphicFramePr>
-  <p:xfrm>
-    <a:off x="0" y="0"/>
-    <a:ext cx="9144000" cy="6858000"/>
-  </p:xfrm>
-  <a:graphic>
-    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
-      { tbl_xml }
-    </a:graphicData>
-  </a:graphic>
-</p:graphicFrame>
+{paste(txt, collapse = "\n\n")}
 ```
-
 ')
 
   md_file <- tempfile(fileext = ".md")
@@ -563,6 +608,9 @@ output:
   # }
 
 }
+
+
+
 
 #' Get the lowercase extension from a filename
 #'
