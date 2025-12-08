@@ -838,6 +838,122 @@ test_that("long tables with spans can be added to a word doc", {
   )
 })
 
+test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:4, ] |>
+    gt(rowname_col = "char") |>
+    tab_row_group("My Row Group 1", c(1:2)) |>
+    tab_row_group("My Row Group 2", c(3:4)) |>
+    tab_style(
+      style = cell_fill(color = "orange"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "green",
+        font = "Biome"
+      ),
+      locations = cells_stub()
+    ) |>
+    tab_style(
+      style = cell_text(size = 25, v_align = "middle"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "blue",
+        stretch = "extra-expanded"
+      ),
+      locations = cells_row_groups()
+    ) |>
+    tab_style(
+      style = cell_text(color = "teal"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "green"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "pink"),
+      locations = cells_stubhead()
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tcPr/a:solidFill//a:srgbClr"), "val"),
+    c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:rPr/a:solidFill//a:srgbClr"), "val"),
+    rep("008080", 8)
+  )
+
+  group_rows <- c(2, 5)
+  for (i in group_rows) {
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tcPr/a:solidFill//a:srgbClr")), "val"),
+      character(0)
+    )
+
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      "0000FF"
+    )
+  }
+
+  for (i in c(3, 4, 6, 7)) {
+    col <- character(8)
+    for (j in 1:9) {
+      x <- xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]/a:tc[{j}]/a:tcPr/a:solidFill//a:srgbClr")), "val")
+      col[j] <- if (length(x) == 0) "" else x
+    }
+    expect_equal(
+      col,
+      c("", "FFA500", "FFA500", "", "FFA500", "", "FFA500", "", "FFA500")
+    )
+
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      "00FF00"
+    )
+
+    expect_equal(
+      length(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc//a:rPr/a:solidFill//a:srgbClr"))),
+      1
+    )
+  }
+
+  expected <- list(
+    "My Row Group 2",
+    c("coconut","33.3300","three","2015-03-15","15:45","2018-03-03 03:44","1.39","row_3","grp_a"),
+    c("durian","444.4000","four","2015-04-15","16:50","2018-04-04 15:55","65100.00","row_4","grp_a"),
+    "My Row Group 1",
+    c("apricot","0.1111","one","2015-01-15","13:35","2018-01-01 02:22","49.95","row_1","grp_a"),
+    c("banana","2.2220","two","2015-02-15","14:40","2018-02-02 14:33","17.95","row_2","grp_a")
+  )
+
+  for (i in 1:6) {
+    expect_equal(expected[[i]], xml_text(xml_find_all(slide, glue::glue(".//a:tr[{i + 1}]//a:t"))))
+  }
+
+})
+
 skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
@@ -1153,205 +1269,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       c("", "0.1111", "apricot", "49.95"),
       c("", "2.2220", "banana","17.95"),
       c("", "33.3300", "coconut", "1.39")
-    )
-  )
-})
-
-test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
-
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:4, ] |>
-    gt(rowname_col = "char") |>
-    tab_row_group("My Row Group 1", c(1:2)) |>
-    tab_row_group("My Row Group 2", c(3:4)) |>
-    tab_style(
-      style = cell_fill(color = "orange"),
-      locations = cells_body(columns = c(num, fctr, time, currency, group))
-    ) |>
-    tab_style(
-      style = cell_text(
-        color = "green",
-        font = "Biome"
-      ),
-      locations = cells_stub()
-    ) |>
-    tab_style(
-      style = cell_text(size = 25, v_align = "middle"),
-      locations = cells_body(columns = c(num, fctr, time, currency, group))
-    ) |>
-    tab_style(
-      style = cell_text(
-        color = "blue",
-        stretch = "extra-expanded"
-      ),
-      locations = cells_row_groups()
-    ) |>
-    tab_style(
-      style = cell_text(color = "teal"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "green"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "pink"),
-      locations = cells_stubhead()
-    )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## header
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
-  )
-  expect_equal(
-    lapply(
-      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-    ),
-    list(c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00"))
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-    ),
-    list(c("008080", "008080", "008080", "008080", "008080", "008080", "008080", "008080"))
-  )
-
-  ## cell background styling
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      function(x) {
-        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-          y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-        })
-      }
-    ),
-    list(
-      list(character()),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
-      list(character()),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500"),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500")
-    )
-  )
-
-  ## cell text styling
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      function(x) {
-        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-          y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-        })
-      }
-    ),
-    list(
-      list("0000FF"),
-      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
-      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
-      list("0000FF"),
-      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character()),
-      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character())
-    )
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    list(
-      "My Row Group 2",
-      c(
-        "coconut",
-        "33.3300",
-        "three",
-        "2015-03-15",
-        "15:45",
-        "2018-03-03 03:44",
-        "1.39",
-        "row_3",
-        "grp_a"
-      ),
-      c(
-        "durian",
-        "444.4000",
-        "four",
-        "2015-04-15",
-        "16:50",
-        "2018-04-04 15:55",
-        "65100.00",
-        "row_4",
-        "grp_a"
-      ),
-      "My Row Group 1",
-      c(
-        "apricot",
-        "0.1111",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "banana",
-        "2.2220",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
     )
   )
 })

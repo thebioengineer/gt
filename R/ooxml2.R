@@ -448,7 +448,7 @@ ooxml_vAlign <- function(ooxml_type, align = NULL) {
 
   switch_ooxml(ooxml_type,
     word = ooxml_tag("w:vAlign", "w:val" = arg_match_names(align, values = c("top" = "top", "center" = "center", "middle" = "center", "bottom" = "bottom"))),
-    pptx = ooxml_tag("a:anchor", arg_match_names(align, values = c("top" = "t", "center" = "ctr", "bottom" = "b")))
+    pptx = ooxml_tag("a:anchor", arg_match_names(align, values = c("top" = "t", "center" = "ctr", "middle" = "ctr", "bottom" = "b")))
   )
 }
 
