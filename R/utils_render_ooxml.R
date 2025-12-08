@@ -337,7 +337,7 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
   cell_style <- cell_style[1][[1]]
 
   source_note_rows <- lapply(source_notes, function(note) {
-    source_note_xml <- parse_to_xml(note)
+    source_note_xml <- parse_to_ooxml(note, ooxml_type = ooxml_type)
 
     content <- process_cell_content_ooxml(ooxml_type, source_note_xml,
       cell_style = cell_style,
