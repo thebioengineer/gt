@@ -67,7 +67,7 @@ as_ooxml <- function(ooxml_type,
       xml <- tagList3(!!!xml, !!!heading)
     }
   }
-  gsub('xmlns:[[:alpha:]]="[^"]*"[[:space:]]*', '', sapply(xml, as.character))
+  gsub('xmlns:[[:alnum:]]+="[^"]*"[[:space:]]*', '', sapply(xml, as.character))
 
 }
 
