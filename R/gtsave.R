@@ -521,6 +521,7 @@ gt_save_pptx <- function(
     cli::cli_abort("grouped tables are not supported yet")
   }
 
+  tbl_xml <- as_pptx_ooxml(data = data, ...)
   md_text <- glue::glue('
 ---
 output:
@@ -541,9 +542,7 @@ output:
   </p:xfrm>
   <a:graphic>
     <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
-
-      { enc2utf8(as_pptx_ooxml(data = data)) }
-
+      { tbl_xml }
     </a:graphicData>
   </a:graphic>
 </p:graphicFrame>
