@@ -278,16 +278,19 @@ test_that("pptx ooxml escapes special characters in gt object", {
 
 })
 
-skip("in progress")
-
 test_that("word ooxml escapes special characters in gt object footer", {
 
   gt_tbl <- gt(data.frame(num = 1)) |>
     tab_footnote(footnote = "p < .05, ><&\n\r\"'")
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl))
-  expect_snapshot(xml_find_all(xml, "//w:tr[last()]//w:t"))
+  xml <- read_pptx_word_nodes(as_pptx_ooxml(gt_tbl))
+  expect_equal(
+    as.character(xml_find_all(xml, "//a:tr[last()]//a:t/text()")),
+    "&gt;&lt;&amp; \"'"
+  )
 })
+
+skip("in progress")
 
 test_that("multicolumn stub are supported", {
   test_data <- dplyr::tibble(
