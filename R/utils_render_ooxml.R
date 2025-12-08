@@ -558,7 +558,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
           fill     = cell_style[["cell_fill"]][["color"]],
           v_align  = cell_style[["cell_text"]][["v_align"]],
           col_span = if (n_stub_cols > 1) n_stub_cols,
-          row_span = if (nrow(spanners) > 1) "restart"
+          row_span = nrow(spanners)
         )
       ))
     } else {
@@ -575,7 +575,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
             borders  = borders,
             fill     = cell_style[["cell_fill"]][["color"]],
             v_align  = cell_style[["cell_text"]][["v_align"]],
-            row_span =  if (nrow(spanners) > 1) "restart"
+            row_span = nrow(spanners)
           )
         )
       })
@@ -596,7 +596,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
         ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
           properties = ooxml_tbl_cell_properties(ooxml_type,
             borders = borders,
-            row_span = "continue",
+            row_span = 0,
             col_span = if (n_stub_cols > 1) n_stub_cols
           )
         )
@@ -606,7 +606,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
         ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
           properties = ooxml_tbl_cell_properties(ooxml_type,
             borders = borders,
-            row_span = "continue"
+            row_span = 0
           )
         )
       })
@@ -767,9 +767,11 @@ create_body_row_stub_cells_ooxml <- function(ooxml_type, data, i, keep_with_next
           mask <- hierarchical_stub_info[[j]]$display_mask[i]
 
           if (span > 1) {
-            "restart"
+            span
           } else if (!mask){
-            "continue"
+            0
+          } else {
+            1
           }
         }
       )
