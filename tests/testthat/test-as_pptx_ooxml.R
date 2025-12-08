@@ -492,7 +492,7 @@ test_that("tables with special characters can be added to a pptx doc", {
   )
 })
 
-test_that("tables with embedded titles can be added to a word doc", {
+test_that("tables with embedded titles can be added to a pptx doc", {
   check_suggests()
 
   ## simple table
@@ -532,7 +532,6 @@ test_that("tables with embedded titles can be added to a word doc", {
 })
 
 skip("in progress")
-
 
 test_that("tables with spans can be added to a word doc", {
   check_suggests()
