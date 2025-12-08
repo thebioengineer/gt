@@ -457,7 +457,7 @@ ooxml_gridSpan <- function(ooxml_type, col_span = NULL) {
 
   switch_ooxml(ooxml_type,
     word = ooxml_tag("w:gridSpan", "w:val" = col_span),
-    pptx = splice3("gridSpan" = col_span)
+    pptx = ooxml_tag("a:gridSpan", "val" = col_span)
   )
 }
 
@@ -1233,11 +1233,11 @@ process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next,
     names      <- xml_name(children)
 
     if (!"spcBef" %in% names) {
-      xml_add_child(pPr, as_xml_node('<a:spcBef><a:spcPts val="0"></a:spcBef>', create_ns = TRUE, ooxml_type = "pptx"))
+      xml_add_child(pPr, as_xml_node('<a:spcBef><a:spcPts val="0" /></a:spcBef>', create_ns = TRUE, ooxml_type = "pptx"))
     }
 
     if (!"spcAft" %in% names) {
-      xml_add_child(pPr, as_xml_node('<a:spcAft><a:spcPts val="300"></a:spcAft>', create_ns = TRUE, ooxml_type = "pptx"))
+      xml_add_child(pPr, as_xml_node('<a:spcAft><a:spcPts val="300"/></a:spcAft>', create_ns = TRUE, ooxml_type = "pptx"))
     }
 
     if (!is.null(align)) {
