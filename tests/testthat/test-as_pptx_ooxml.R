@@ -267,16 +267,18 @@ test_that("pptx ooxml handles md() and html()", {
   expect_equal(xml_text(xml_find_all(xml[[4]], ".//a:r//a:t")), "subtitle")
 })
 
-skip("in progress")
-
-test_that("word ooxml escapes special characters in gt object", {
+test_that("pptx ooxml escapes special characters in gt object", {
   df <- data.frame(special_characters = "><&\n\r\"'", stringsAsFactors = FALSE)
-  xml <- read_xml_word_nodes(as_word_ooxml(gt(df)))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt(df)))
 
-  expect_snapshot(
-    xml_find_all(xml, "(//w:t)[last()]/text()")
+  expect_equal(
+    as.character(xml_find_all(xml, "(//a:t)[last()]/text()")),
+    "&gt;&lt;&amp; \"'"
   )
+
 })
+
+skip("in progress")
 
 test_that("word ooxml escapes special characters in gt object footer", {
 
