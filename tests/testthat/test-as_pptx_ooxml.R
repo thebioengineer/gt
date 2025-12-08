@@ -290,8 +290,6 @@ test_that("word ooxml escapes special characters in gt object footer", {
   )
 })
 
-skip("in progress")
-
 test_that("multicolumn stub are supported", {
   test_data <- dplyr::tibble(
     mfr = c("Ford", "Ford", "BMW", "BMW", "Audi"),
@@ -307,45 +305,45 @@ test_that("multicolumn stub are supported", {
 
   # The merge cells on the first column
   xml <- read_xml_pptx_nodes(as_pptx_ooxml(triple_stub))
-  nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")
+  nodes_Ford <- xml_find_all(xml, ".//a:t[. = 'Ford']")
+  expect_equal(length(nodes_Ford), 1)
+  expect_equal(xml_attr(xml_find_all(nodes_Ford, "../../../..//a:rowSpan"), "val"), "2")
 
-  nodes_BMW <- xml_find_all(xml, ".//w:t[. = 'BMW']")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[2]], "../../..//w:vMerge"), "val"), "continue")
+  nodes_BMW <- xml_find_all(xml, ".//a:t[. = 'BMW']")
+  expect_equal(xml_attr(xml_find_all(nodes_BMW, "../../../..//a:rowSpan"), "val"), "2")
+  expect_equal(length(nodes_BMW), 1)
 
-  nodes_Audi <- xml_find_all(xml, ".//w:t[. = 'Audi']")
-  expect_equal(xml_length(xml_find_all(nodes_Audi[[1]], "../../..//w:vMerge")), 0)
+  nodes_Audi <- xml_find_all(xml, ".//a:t[. = 'Audi']")
+  expect_equal(length(xml_find_all(nodes_Audi[[1]], "../../../..//a:rowSpan")), 0)
 
   # no other merge cells
-  expect_equal(length(xml_find_all(xml, ".//w:vMerge")), 4)
+  expect_equal(length(xml_find_all(xml, ".//a:rowSpan")), 2)
 
   # no stub head, i.e. empty text
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("", "year", "hp", "msrp")
   )
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
   for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
   }
 
   # one label: merged
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead("one") |>
-    as_word() %>%
-    read_xml()
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
   for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
   }
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "year", "hp", "msrp")
   )
 
@@ -353,11 +351,11 @@ test_that("multicolumn stub are supported", {
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one", "two", "three")) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "two", "three", "year", "hp", "msrp")
   )
 
@@ -366,51 +364,51 @@ test_that("multicolumn stub are supported", {
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one", "two", "three")) |>
     tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "two", "three", "", "span")
   )
   # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(length(tcPr), 5)
   for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "restart")
+    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//a:rowSpan"), "val"), "2")
   }
-  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//w:gridSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//a:gridSpan"), "val"), "2")
 
   # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "continue")
-  }
+  tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
+  expect_equal(length(tcPr), 3)
+  expect_equal(length(xml_find_all(tcPr, ".//a:rowSpan")), 0)
 
   # spanner - one label
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one")) |>
     tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "", "span")
   )
 
   # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//w:gridSpan"), "val"), "2")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:rowSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
+  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//a:gridSpan"), "val"), "2")
 
   # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "continue")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-
+  tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
+  expect_equal(length(xml_find_all(tcPr[[1]], ".//a:rowSpan")), 0)
 })
+
+skip("in progress")
 
 test_that("tables can be added to a word doc", {
   check_suggests()

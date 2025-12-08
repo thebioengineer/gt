@@ -213,6 +213,9 @@ ooxml_tbl_row_height <- function(ooxml_type, value, ..., error_call = current_en
 # ooxml_tbl_cell ----------------------------------------------------------
 
 ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
+  if (identical(properties, "remove cell")) {
+    return(NULL)
+  }
   properties <- check_inherits(properties, "ooxml_tbl_cell_properties", accept_null = TRUE)
 
   switch_ooxml(ooxml_type,
@@ -234,6 +237,10 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
 
 ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, col_span = NULL, v_align = NULL) {
   rlang::check_dots_empty()
+
+  if (ooxml_type == "pptx" && identical(row_span, 0)) {
+    return("remove cell")
+  }
 
   margins  <- ooxml_tbl_cell_margins(ooxml_type, margins)
   borders  <- ooxml_cell_borders(ooxml_type, borders)
@@ -420,15 +427,16 @@ ooxml_cantSplit <- function(ooxml_type) {
 
 # ooxml_vMerge  ---------------------------------------------------------------
 
-ooxml_vMerge <- function(ooxml_type, val = NULL) {
-  if (is.null(val)) {
+ooxml_vMerge <- function(ooxml_type, val = 1) {
+  if (is.null(val) || val == 1) {
     return(NULL)
   }
 
-  tag <- switch_ooxml_tag(ooxml_type, word = "vMerge")
-  ooxml_tag(tag,
-    "w:val" = rlang::arg_match(val, values = c("restart", "continue"))
+  switch_ooxml(ooxml_type,
+    word = ooxml_tag("w:vMerge" , "val" = if (val > 1) "restart" else "continue"),
+    pptx = ooxml_tag("a:rowSpan", "val" = val)
   )
+
 }
 
 # ooxml_vAlign ------------------------------------------------------------
