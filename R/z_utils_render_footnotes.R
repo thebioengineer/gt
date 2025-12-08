@@ -978,6 +978,6 @@ apply_footnotes_method <-
     grid = paste0,
     latex = paste_footnote_latex,
     word = paste_footnote_xml,
-    "ooxml/word" = paste_footnote_ooxml_word,
-    "ooxml/pptx" = paste_footnote_ooxml_pptx
+    "ooxml/word" = function(...) paste_footnote_ooxml("word", ...),
+    "ooxml/pptx" = function(...) paste_footnote_ooxml("pptx", ...)
   )

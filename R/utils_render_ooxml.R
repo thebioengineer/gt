@@ -337,7 +337,7 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
   cell_style <- cell_style[1][[1]]
 
   source_note_rows <- lapply(source_notes, function(note) {
-    source_note_xml <- parse_to_xml(note)
+    source_note_xml <- parse_to_ooxml(note, ooxml_type = ooxml_type)
 
     content <- process_cell_content_ooxml(ooxml_type, source_note_xml,
       cell_style = cell_style,
@@ -839,6 +839,7 @@ get_col_alignment <- function(data) {
 
 # Transform a footnote mark to an XML representation
 footnote_mark_to_ooxml <- function(ooxml_type, data, mark, location = c("ref", "ftr")) {
+
   switch_ooxml(ooxml_type,
     word = footnote_mark_to_ooxml_word(data, mark = mark, location = location),
     pptx = footnote_mark_to_ooxml_pptx(data, mark = mark, location = location)
@@ -853,8 +854,7 @@ footnote_mark_to_ooxml_word <- function(data, mark, location = c("ref", "ftr")) 
     return("")
   }
 
-  spec <- get_footnote_spec_by_location(data = data, location = location)
-  spec <- spec %||% "^i"
+  spec <- get_footnote_spec_by_location(data = data, location = location) %||% "^i"
 
   if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
   if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
@@ -871,13 +871,34 @@ footnote_mark_to_ooxml_word <- function(data, mark, location = c("ref", "ftr")) 
 }
 
 footnote_mark_to_ooxml_pptx <- function(data, mark, location = c("ref", "ftr")) {
-  cli::cli_abort("footnotes not yet implemented for pptx")
+  location <- match.arg(location)
+
+  if (length(mark) == 1 && is.na(mark)) {
+    return("")
+  }
+
+  spec <- get_footnote_spec_by_location(data = data, location = location) %||% "^i"
+
+  if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
+  if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
+
+  styles <- list()
+  if (grepl("i", spec, fixed = TRUE)) styles[["i"]] <- "1"
+  if (grepl("b", spec, fixed = TRUE)) styles[["b"]] <- "1"
+
+  tags <- ooxml_tag("a:r",
+    ooxml_tag("a:rPr", baseline = if (grepl("^", spec, fixed = TRUE)) "30000" else "-30000",
+      !!!styles
+    ),
+    ooxml_tag("a:t", "xml:space" = "default", mark)
+  )
+  as.character(tags)
 }
 
-paste_footnote_ooxml_word <- function(text, footmark_xml, position = "right") {
-  text_xml <- parse_to_ooxml(text, ooxml_type = "word")
+paste_footnote_ooxml <- function(ooxml_type, text, footmark_xml, position = "right") {
+  text_xml <- parse_to_ooxml(text, ooxml_type = ooxml_type)
 
-  position <- rlang::arg_match(position, values = c("left","right"))
+  position <- rlang::arg_match(position, values = c("left", "right"))
   footmark_xml <- as_xml_node(footmark_xml)[[1L]]
 
   if (position == "right") {
@@ -887,12 +908,3 @@ paste_footnote_ooxml_word <- function(text, footmark_xml, position = "right") {
   }
   paste0("<md_container>", as.character(text_xml), "</md_container>")
 }
-
-paste_footnote_ooxml_pptx <- function(
-    text,
-    footmark_xml,
-    position = "right"
-) {
-  cli::cli_abort("footnotes not yet implemented for pptx")
-}
-
