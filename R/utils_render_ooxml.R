@@ -8,6 +8,7 @@ as_pptx_ooxml <- function(
   if (isTRUE(autonum)) {
     cli::cli_abort("{.arg autonum} is not supported bby pptx")
   }
+
   as_ooxml("pptx", data,
     align = align, caption_location = caption_location,
     caption_align = caption_align,
@@ -66,8 +67,8 @@ as_ooxml <- function(ooxml_type,
       xml <- tagList3(!!!xml, !!!heading)
     }
   }
+  gsub('xmlns:[[:alpha:]]="[^"]*"[[:space:]]*', '', sapply(xml, as.character))
 
-  sapply(xml, as.character)
 }
 
 as_ooxml_tbl <- function(ooxml_type, data,
