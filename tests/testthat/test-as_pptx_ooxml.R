@@ -589,8 +589,6 @@ test_that("tables with spans can be added to a pptx doc", {
 
 })
 
-skip("in progress")
-
 test_that("tables with multi-level spans can be added to a word doc", {
   check_suggests()
 
@@ -616,93 +614,57 @@ test_that("tables with multi-level spans can be added to a word doc", {
       columns = 8:9
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table caption
-  docx_table_caption_text <-
-    docx_contents[1:2] |>
-    xml2::xml_text()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
   expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+    xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
+    "table title"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:sp[2]//a:t")),
+    "table subtitle"
   )
 
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c(
-      "", "My Column Span L2", "", "", "", "", "My 1st Column Span L1", "", "",
-      "My 2nd Column Span L1", "num", "char", "fctr", "date", "time",
-      "datetime", "currency", "row", "group"
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("", "My Column Span L2", "", "", "", "")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:gridSpan"), "val"),
+    "4"
   )
 
   expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("My 1st Column Span L1", "", "", "My 2nd Column Span L1")
   )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:gridSpan"), "val"),
+    c("5", "2")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[3]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[5]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95", "row_2", "grp_a")
+  )
+
 })
+
+skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
   check_suggests()
