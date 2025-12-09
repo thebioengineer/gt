@@ -1470,22 +1470,40 @@ cmark_rules_ooxml_pptx <- list2(
     res <- as_xml_node(process(xml2::xml_children(x)), create_ns = TRUE, ooxml_type = "pptx")
     xml_set_attr(xml_find_all(res, ".//a:rPr"), "sz", fs * 100)
     glue::glue('<a:p><a:pPr/>{as.character(res)}</a:p>')
+  },
+
+  item = function(x, process, ...) {
+    item_contents <- lapply(xml2::xml_children(x), process, ...)
+    unlist(item_contents)
+  },
+
+  list = function(x, process, ..., indent_level = 0, type = "bullet") {
+    type <- xml2::xml_attr(x, attr = "type")
+    children <- xml2::xml_children(x)
+
+    content <- lapply(seq_along(children), function(child_idx) {
+      child <- children[[child_idx]]
+
+      li_content <- process(child, indent_level = indent_level + 1, type = type)
+      li_content <- as_xml_node(li_content, create_ns = TRUE, ooxml_type = "pptx")
+
+      paragraph_style <- xml_find_first(li_content, ".//a:pPr")[[1]]
+      xml_set_attr(paragraph_style, "lvl", indent_level)
+      if (identical(type, "bullet")) {
+        xml_add_child(paragraph_style, "a:buChar", char = "-")
+      } else if (identical(type, "ordered")) {
+        xml_add_child(paragraph_style, "a:buAutoNum", type = "arabicPeriod")
+      }
+      paste0(li_content, collapse = "")
+    })
+    paste(content, collapse = "")
   }
+
 
 
   #------- TODO: later
   #,
 
-  # ## Complex styling
-  # heading = function(x, process, ...) {
-  #   heading_sizes <- c(36, 32, 28, 24, 20, 16)
-  #   fs <- heading_sizes[as.numeric(xml2::xml_attr(x, attr = "level"))]
-  #   x <- process(xml2::xml_children(x))
-  #   res <- add_text_style(x, style = xml_sz(val = fs))
-  #
-  #   as.character(xml_p(xml_pPr(), res))
-  # },
-  #
   # thematic_break = function(x, process, ...) {
   #   res <- xml_p(
   #     xml_pPr(
@@ -1498,81 +1516,7 @@ cmark_rules_ooxml_pptx <- list2(
   #   )
   #   as.character(res)
   # },
-  # list = function(x, process, ..., indent_level = 0, type = "bullet") {
-  #
-  #   type <- xml2::xml_attr(x, attr = "type")
-  #   children <- xml2::xml_children(x)
-  #
-  #   # NOTE: `start`, `delim`, and `tight` attrs are ignored; we also
-  #   # assume there is only `type` values of "ordered" and "bullet" (unordered)
-  #
-  #   paste(
-  #       lapply(
-  #         seq_along(children),
-  #         FUN = function(child_idx) {
-  #
-  #           child <- children[[child_idx]]
-  #
-  #           li_content <- process(child, indent_level = indent_level + 1, type = type)
-  #           li_content <- as_xml_node(li_content, create_ns = TRUE)
-  #
-  #           ## get first pPr tag
-  #           paragraph_style <- xml_find_first(li_content, ".//w:pPr")[[1]]
-  #
-  #           ## check
-  #           list_style_format <- xml_pStyle(val = "ListParagraph")
-  #           list_style_format <- as_xml_node(list_style_format)[[1]]
-  #
-  #           xml_add_child(
-  #             paragraph_style,
-  #             list_style_format
-  #           )
-  #
-  #           list_bullet_style <- xml_numPr(
-  #             xml_ilvl(val = indent_level)#,
-  #             # ifelse(type == "ordered", xml_numId(val = 2), xml_numId(val = 1))
-  #           )
-  #           list_bullet_style <- as_xml_node(list_bullet_style)[[1]]
-  #
-  #           xml_add_child(
-  #             paragraph_style,
-  #             list_bullet_style
-  #           )
-  #
-  #
-  #           list_symbol <- ifelse(type == "bullet", "-", paste0(child_idx, "."))
-  #
-  #             bullet_insert <- xml_r(
-  #                 xml_t(xml_space = "preserve", paste(c(rep("\t", times = indent_level), list_symbol, "\t"), collapse = ""))
-  #               )
-  #             bullet_insert <- as_xml_node(bullet_insert)[[1]]
-  #
-  #             ## must be nodes not nodesets
-  #             xml_add_sibling(
-  #               paragraph_style,
-  #               bullet_insert,
-  #               .where = "after"
-  #             )
-  #
-  #           paste0(li_content, collapse = "")
-  #
-  #         }
-  #       ),
-  #       collapse = ""
-  #   )
-  # },
-  # item = function(x, process, ...) {
-  #
-  #   item_contents <- lapply(
-  #       xml2::xml_children(x),
-  #       process,
-  #       ...
-  #     )
-  #
-  #   unlist(item_contents)
-  #
-  # },
-  #
+
   # ## code sections
   #
   # code_block = function(x, process, ...) {
@@ -1659,21 +1603,6 @@ cmark_rules_ooxml_pptx <- list2(
   #           xml_t(
   #             enc2utf8(as.character(xml2::xml_text(x))),
   #             xml_space = "preserve")
-  #     )
-  #   )
-  #   as.character(res)
-  # },
-  #
-  # link = function(x, process, ...) {
-  #   # NOTE: Links are difficult to insert in OOXML documents because
-  #   # a relationship must be provided in the 'document.xml.rels' file
-  #   res <- xml_hyperlink(
-  #     url = xml_attr(x, "destination"),
-  #     xml_r(xml_rPr(
-  #       xml_rStyle(val = "Hyperlink"),
-  #       xml_color(color = "#0563C1")
-  #       ),
-  #       xml_t(xml2::xml_text(x))
   #     )
   #   )
   #   as.character(res)

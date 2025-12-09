@@ -76,12 +76,46 @@ test_that("process_text() handles ooxml/pptx", {
   expect_equal(length(xml_find_all(xml, ".//a:rPr/a:u")), 1)
   expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr/a:solidFill/a:srgbClr"), "val"), "0563C1")
 
-  #
+  # heading
   txt <- "### This is Markdown."
   xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
   expect_equal(length(xml_find_all(xml, ".//a:p")), 1)
   expect_equal(xml_text(xml_find_all(xml, ".//a:t")), "This is Markdown.")
   expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr"), "sz"), "2800")
+
+  # list
+  txt <- glue::glue('
+  - one
+  - two
+    - indent three
+    - indent four
+')
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 4)
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr"), "lvl"),
+    c("0", "0", "1", "1")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr/a:buChar"), "char"),
+    rep("-", 4)
+  )
+
+  txt <- glue::glue('
+  1. one
+  1. two
+      1. three
+')
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 3)
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr"), "lvl"),
+    c("0", "0", "1")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr/a:buAutoNum"), "type"),
+    rep("arabicPeriod", 3)
+  )
 
 })
 
