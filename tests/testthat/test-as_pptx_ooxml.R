@@ -75,6 +75,14 @@ test_that("process_text() handles ooxml/pptx", {
   )
   expect_equal(length(xml_find_all(xml, ".//a:rPr/a:u")), 1)
   expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr/a:solidFill/a:srgbClr"), "val"), "0563C1")
+
+  #
+  txt <- "### This is Markdown."
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 1)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")), "This is Markdown.")
+  expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr"), "sz"), "2800")
+
 })
 
 test_that("pptx ooxml can be generated from gt object", {

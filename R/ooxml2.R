@@ -1462,6 +1462,14 @@ cmark_rules_ooxml_pptx <- list2(
   <a:t>{destination}</a:t>
 </a:r>
     ')
+  },
+
+  heading = function(x, process, ...) {
+    heading_sizes <- c(36, 32, 28, 24, 20, 16)
+    fs <- heading_sizes[as.numeric(xml2::xml_attr(x, attr = "level"))]
+    res <- as_xml_node(process(xml2::xml_children(x)), create_ns = TRUE, ooxml_type = "pptx")
+    xml_set_attr(xml_find_all(res, ".//a:rPr"), "sz", fs * 100)
+    glue::glue('<a:p><a:pPr/>{as.character(res)}</a:p>')
   }
 
 
