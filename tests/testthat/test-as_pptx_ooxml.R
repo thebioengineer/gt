@@ -1164,6 +1164,49 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 
 })
 
+test_that("footnotes styling gets applied to footer marks", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_footnote("My Footnote") |>
+    tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
+    opt_footnote_spec(spec_ftr = "(b)")
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  # first note
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[last()-1]//a:t")),
+    "My Footnote"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()-1]//a:rPr"), "b"),
+    NA_character_
+  )
+
+  # second note
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[last()]//a:t")),
+    c("(1)", "My Footnote 2")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()]//a:r[1]/a:rPr"), "b"), "1"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()]//a:r[1]/a:rPr"), "baseline"),
+    NA_character_
+  )
+
+})
+
 skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
@@ -1480,102 +1523,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       c("", "2.2220", "banana","17.95"),
       c("", "33.3300", "coconut", "1.39")
     )
-  )
-})
-
-test_that("footnotes styling gets applied to footer marks", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_footnote("My Footnote") |>
-    tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
-    opt_footnote_spec(spec_ftr = "(b)")
-
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-
-  # first note
-  expect_equal(
-    xml_text(xml_find_all(xml, ".//w:tr[last()-1]//w:t")),
-    "My Footnote"
-  )
-  expect_equal(length(xml_find_all(xml, ".//w:tr[last()-1]//w:b")), 0)
-
-  # second note
-  expect_equal(
-    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
-    c("(1)", "My Footnote 2")
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:vertAlign"), "val"),
-    "baseline"
-  )
-  expect_equal(
-    length(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:b")),
-    1
-  )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_meta_info <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header) |>
-    tail(2)
-
-  ## footer
-  expect_equal(
-    docx_table_meta_info |> lapply(function(x) x |> xml2::xml_find_all(".//w:t") |> xml2::xml_text()),
-    list(
-      c("My Footnote"),
-      c("(1)", "My Footnote 2")
-    )
-  )
-
-  # Styling applied to bold text of footnote mark
-  style_bold <-
-    xml2::xml_find_all(
-      docx_table_meta_info[[2]],
-      ".//w:tc")[[1]]
-  style_bold <- as.character(
-    xml2::xml_find_all(style_bold, ".//w:rPr")[[1]]
-  )
-
-  expect_equal(
-    style_bold,
-    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
   )
 })
 
