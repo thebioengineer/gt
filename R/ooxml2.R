@@ -1395,7 +1395,8 @@ markdown_to_ooxml <- function(text, ooxml_type = c("word", "pptx")) {
 
           if (is.null(rule)) {
 
-            rlang::warn(
+            # rlang::warn(
+            cli::cli_abort(
               "Unknown commonmark element encountered: {.val {xml2::xml_name(x)}}",
               .frequency = "once",
               .frequency_id = "gt_commonmark_unknown_element"
@@ -1440,6 +1441,10 @@ cmark_rules_ooxml_pptx <- list2(
   },
   image = function(x, process, ...) {
     cli::cli_abort("image is not yet supported in pptx")
+  },
+  code = function(x, process, ...) {
+    txt <- xml2::xml_text(x)
+    glue::glue('<a:r><a:rPr><a:latin typeface="Consolas"/></a:rPr><a:t xml:space = "preserve">{txt}</a:t></a:r>')
   },
 
 
@@ -1544,12 +1549,6 @@ cmark_rules_ooxml_pptx <- list2(
   # },
   #
   # ## code sections
-  # code = function(x, process, ...) {
-  #   res <- xml_r(xml_rPr(xml_rStyle(val = "Macro Text")),
-  #         xml_t(xml2::xml_text(x), xml_space = "preserve"))
-  #   as.character(res)
-  #
-  # },
   #
   # code_block = function(x, process, ...) {
   #   ##split text up by new line
