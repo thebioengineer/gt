@@ -1447,13 +1447,10 @@ cmark_rules_ooxml_pptx <- list2(
     glue::glue('<a:r><a:rPr><a:latin typeface="Consolas"/></a:rPr><a:t xml:space = "preserve">{txt}</a:t></a:r>')
   },
   link = function(x, process, ...) {
-    return(
-      cmark_rules_ooxml_pptx[["text"]](x, process, ...)
-    )
-
-    # TODO: later, this needs modifying the .rels file ...
+    # TODO: later: use hlinkClick rel= and update the .rels file
     destination <- xml_attr(x, "destination") %||% ""
     text <- xml2::xml_text(x) %||% ""
+
     glue::glue('
 <a:r>
   <a:rPr>
@@ -1461,9 +1458,8 @@ cmark_rules_ooxml_pptx <- list2(
       <a:srgbClr val="0563C1"/>
     </a:solidFill>
     <a:u/>
-    <a:hlinkClick r:id="{destination}"/>
   </a:rPr>
-  <a:t>{text}</a:t>
+  <a:t>{destination}</a:t>
 </a:r>
     ')
   }
