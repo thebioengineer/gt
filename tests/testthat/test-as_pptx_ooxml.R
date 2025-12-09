@@ -1067,6 +1067,103 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
 
 })
 
+test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_source_note("My Source Note") |>
+    tab_footnote("My Footnote") |>
+    tab_footnote(
+      "My Footnote 2",
+      locations = cells_column_labels(1)
+    ) |>
+    tab_style(
+      style = cell_text(color = "orange"),
+      locations = cells_source_notes()
+    ) |>
+    tab_style(
+      style = cell_text(color = "purple"),
+      locations = cells_footnotes()
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("num", "1", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[3]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95","row_2", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[4]//a:t")),
+    "My Footnote"
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[5]//a:t")),
+    c("1", "My Footnote 2")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[6]//a:t")),
+    "My Source Note"
+  )
+
+  # note marks
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[1]//a:r[2]//a:rPr"), "baseline"),
+    "30000"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[1]//a:r[2]//a:rPr"), "i"),
+    "1"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc[1]//a:r[1]//a:rPr"), "baseline"),
+    "30000"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc[1]//a:r[1]//a:rPr"), "i"),
+    "1"
+  )
+
+
+  # footnote colors
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[4]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "A020F0"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "A020F0"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[6]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "FFA500"
+  )
+
+})
+
 skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
@@ -1383,89 +1480,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       c("", "2.2220", "banana","17.95"),
       c("", "33.3300", "coconut", "1.39")
     )
-  )
-})
-
-test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_source_note("My Source Note") |>
-    tab_footnote("My Footnote") |>
-    tab_footnote(
-      "My Footnote 2",
-      locations = cells_column_labels(1)
-    ) |>
-    tab_style(
-      style = cell_text(color = "orange"),
-      locations = cells_source_notes()
-    ) |>
-    tab_style(
-      style = cell_text(color = "purple"),
-      locations = cells_footnotes()
-    )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_meta_info <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header) |>
-    tail(3)
-
-  ## header
-  expect_equal(
-    docx_table_meta_info |> lapply(function(x) x |> xml2::xml_find_all(".//w:t") |> xml2::xml_text()),
-    list(
-      c("My Footnote"),
-      c("1", "My Footnote 2"),
-      c("My Source Note")
-    )
-  )
-
-  # TODO: fails due to PR#1268
-  expect_equal(
-    lapply(docx_table_meta_info, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-        y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-      })}),
-    list(
-      list("A020F0"),
-      list(c("A020F0", "A020F0")),
-      list("FFA500")
-      )
   )
 })
 
