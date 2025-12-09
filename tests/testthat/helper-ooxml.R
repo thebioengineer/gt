@@ -40,14 +40,6 @@ read_xml_word_nodes <- function(x) {
   ))))
 }
 
-read_xml_pptx_nodes <- function(x) {
-  xml2::xml_children(suppressWarnings(xml2::read_xml(paste0(
-    '<w:wrapper xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
-    paste(x, collapse = ""),
-    "</w:wrapper>"
-  ))))
-}
-
 expect_xml_snapshot <- function(xml) {
   expect_snapshot(writeLines(as.character(xml)))
 }

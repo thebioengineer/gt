@@ -8,6 +8,7 @@ as_pptx_ooxml <- function(
   if (isTRUE(autonum)) {
     cli::cli_abort("{.arg autonum} is not supported bby pptx")
   }
+
   as_ooxml("pptx", data,
     align = align, caption_location = caption_location,
     caption_align = caption_align,
@@ -66,8 +67,8 @@ as_ooxml <- function(ooxml_type,
       xml <- tagList3(!!!xml, !!!heading)
     }
   }
+  gsub('xmlns:[[:alnum:]]+="[^"]*"[[:space:]]*', '', sapply(xml, as.character))
 
-  sapply(xml, as.character)
 }
 
 as_ooxml_tbl <- function(ooxml_type, data,
@@ -336,7 +337,7 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
   cell_style <- cell_style[1][[1]]
 
   source_note_rows <- lapply(source_notes, function(note) {
-    source_note_xml <- parse_to_xml(note)
+    source_note_xml <- parse_to_ooxml(note, ooxml_type = ooxml_type)
 
     content <- process_cell_content_ooxml(ooxml_type, source_note_xml,
       cell_style = cell_style,
@@ -557,7 +558,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
           fill     = cell_style[["cell_fill"]][["color"]],
           v_align  = cell_style[["cell_text"]][["v_align"]],
           col_span = if (n_stub_cols > 1) n_stub_cols,
-          row_span = if (nrow(spanners) > 1) "restart"
+          row_span = nrow(spanners)
         )
       ))
     } else {
@@ -574,7 +575,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
             borders  = borders,
             fill     = cell_style[["cell_fill"]][["color"]],
             v_align  = cell_style[["cell_text"]][["v_align"]],
-            row_span =  if (nrow(spanners) > 1) "restart"
+            row_span = nrow(spanners)
           )
         )
       })
@@ -595,7 +596,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
         ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
           properties = ooxml_tbl_cell_properties(ooxml_type,
             borders = borders,
-            row_span = "continue",
+            row_span = 0,
             col_span = if (n_stub_cols > 1) n_stub_cols
           )
         )
@@ -605,7 +606,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
         ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
           properties = ooxml_tbl_cell_properties(ooxml_type,
             borders = borders,
-            row_span = "continue"
+            row_span = 0
           )
         )
       })
@@ -766,9 +767,11 @@ create_body_row_stub_cells_ooxml <- function(ooxml_type, data, i, keep_with_next
           mask <- hierarchical_stub_info[[j]]$display_mask[i]
 
           if (span > 1) {
-            "restart"
+            span
           } else if (!mask){
-            "continue"
+            0
+          } else {
+            1
           }
         }
       )
@@ -836,6 +839,7 @@ get_col_alignment <- function(data) {
 
 # Transform a footnote mark to an XML representation
 footnote_mark_to_ooxml <- function(ooxml_type, data, mark, location = c("ref", "ftr")) {
+
   switch_ooxml(ooxml_type,
     word = footnote_mark_to_ooxml_word(data, mark = mark, location = location),
     pptx = footnote_mark_to_ooxml_pptx(data, mark = mark, location = location)
@@ -850,8 +854,7 @@ footnote_mark_to_ooxml_word <- function(data, mark, location = c("ref", "ftr")) 
     return("")
   }
 
-  spec <- get_footnote_spec_by_location(data = data, location = location)
-  spec <- spec %||% "^i"
+  spec <- get_footnote_spec_by_location(data = data, location = location) %||% "^i"
 
   if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
   if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
@@ -868,13 +871,34 @@ footnote_mark_to_ooxml_word <- function(data, mark, location = c("ref", "ftr")) 
 }
 
 footnote_mark_to_ooxml_pptx <- function(data, mark, location = c("ref", "ftr")) {
-  cli::cli_abort("footnotes not yet implemented for pptx")
+  location <- match.arg(location)
+
+  if (length(mark) == 1 && is.na(mark)) {
+    return("")
+  }
+
+  spec <- get_footnote_spec_by_location(data = data, location = location) %||% "^i"
+
+  if (grepl("\\(|\\[", spec)) mark <- paste0("(", mark)
+  if (grepl("\\)|\\]", spec)) mark <- paste0(mark, ")")
+
+  styles <- list()
+  if (grepl("i", spec, fixed = TRUE)) styles[["i"]] <- "1"
+  if (grepl("b", spec, fixed = TRUE)) styles[["b"]] <- "1"
+
+  tags <- ooxml_tag("a:r",
+    ooxml_tag("a:rPr", baseline = if (grepl("^", spec, fixed = TRUE)) "30000" else "-30000",
+      !!!styles
+    ),
+    ooxml_tag("a:t", "xml:space" = "default", mark)
+  )
+  as.character(tags)
 }
 
-paste_footnote_ooxml_word <- function(text, footmark_xml, position = "right") {
-  text_xml <- parse_to_ooxml(text, ooxml_type = "word")
+paste_footnote_ooxml <- function(ooxml_type, text, footmark_xml, position = "right") {
+  text_xml <- parse_to_ooxml(text, ooxml_type = ooxml_type)
 
-  position <- rlang::arg_match(position, values = c("left","right"))
+  position <- rlang::arg_match(position, values = c("left", "right"))
   footmark_xml <- as_xml_node(footmark_xml)[[1L]]
 
   if (position == "right") {
@@ -884,12 +908,3 @@ paste_footnote_ooxml_word <- function(text, footmark_xml, position = "right") {
   }
   paste0("<md_container>", as.character(text_xml), "</md_container>")
 }
-
-paste_footnote_ooxml_pptx <- function(
-    text,
-    footmark_xml,
-    position = "right"
-) {
-  cli::cli_abort("footnotes not yet implemented for pptx")
-}
-

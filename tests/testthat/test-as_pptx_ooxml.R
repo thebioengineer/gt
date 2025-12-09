@@ -205,13 +205,13 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
     expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
   }
   xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr"), "gridSpan"), "3")
+  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:gridSpan"), "val"), "3")
   expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
   expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
   xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr"), "gridSpan"), "5")
+  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:gridSpan"), "val"), "5")
   expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
   expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
@@ -226,9 +226,7 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
 
 })
 
-skip("in progress")
-
-test_that("word ooxml handles md() and html()", {
+test_that("pptx ooxml handles md() and html()", {
 
   # Create a one-row table for these tests
   exibble_min <- exibble[1, ]
@@ -241,14 +239,14 @@ test_that("word ooxml handles md() and html()", {
       title = md("TABLE <br> TITLE"),
       subtitle = md("table <br> subtitle")
     )
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_linebreaks_md))
   expect_equal(
-    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    xml_text(xml_find_all(xml[[1]], "(.//a:r)[last()]//a:t")),
     "TABLE"
   )
-  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
-  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
-  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//a:r//a:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//a:r//a:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//a:r//a:t")), "subtitle")
 
   ## basic table with linebreak in title
   gt_tbl_linebreaks_html <-
@@ -259,23 +257,25 @@ test_that("word ooxml handles md() and html()", {
       subtitle = html("table <br> subtitle")
     )
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl_linebreaks_md))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_linebreaks_md))
   expect_equal(
-    xml_text(xml_find_all(xml[[1]], "(.//w:r)[last()]//w:t")),
+    xml_text(xml_find_all(xml[[1]], "(.//a:r)[last()]//a:t")),
     "TABLE"
   )
-  expect_equal(xml_text(xml_find_all(xml[[2]], ".//w:r//w:t")), "TITLE")
-  expect_equal(xml_text(xml_find_all(xml[[3]], ".//w:r//w:t")), "table")
-  expect_equal(xml_text(xml_find_all(xml[[4]], ".//w:r//w:t")), "subtitle")
+  expect_equal(xml_text(xml_find_all(xml[[2]], ".//a:r//a:t")), "TITLE")
+  expect_equal(xml_text(xml_find_all(xml[[3]], ".//a:r//a:t")), "table")
+  expect_equal(xml_text(xml_find_all(xml[[4]], ".//a:r//a:t")), "subtitle")
 })
 
-test_that("word ooxml escapes special characters in gt object", {
+test_that("pptx ooxml escapes special characters in gt object", {
   df <- data.frame(special_characters = "><&\n\r\"'", stringsAsFactors = FALSE)
-  xml <- read_xml_word_nodes(as_word_ooxml(gt(df)))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt(df)))
 
-  expect_snapshot(
-    xml_find_all(xml, "(//w:t)[last()]/text()")
+  expect_equal(
+    as.character(xml_find_all(xml, "(//a:t)[last()]/text()")),
+    "&gt;&lt;&amp; \"'"
   )
+
 })
 
 test_that("word ooxml escapes special characters in gt object footer", {
@@ -283,8 +283,11 @@ test_that("word ooxml escapes special characters in gt object footer", {
   gt_tbl <- gt(data.frame(num = 1)) |>
     tab_footnote(footnote = "p < .05, ><&\n\r\"'")
 
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_tbl))
-  expect_snapshot(xml_find_all(xml, "//w:tr[last()]//w:t"))
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl))
+  expect_equal(
+    as.character(xml_find_all(xml, "//a:tr[last()]//a:t/text()")),
+    "p &lt; .05, &gt;&lt;&amp; \"'"
+  )
 })
 
 test_that("multicolumn stub are supported", {
@@ -301,46 +304,46 @@ test_that("multicolumn stub are supported", {
   triple_stub <- gt(test_data, rowname_col = c("mfr", "model", "trim"))
 
   # The merge cells on the first column
-  xml <- read_xml(as_word_ooxml(triple_stub))
-  nodes_Ford <- xml_find_all(xml, ".//w:t[. = 'Ford']")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_Ford[[2]], "../../..//w:vMerge"), "val"), "continue")
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(triple_stub))
+  nodes_Ford <- xml_find_all(xml, ".//a:t[. = 'Ford']")
+  expect_equal(length(nodes_Ford), 1)
+  expect_equal(xml_attr(xml_find_all(nodes_Ford, "../../../..//a:rowSpan"), "val"), "2")
 
-  nodes_BMW <- xml_find_all(xml, ".//w:t[. = 'BMW']")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[1]], "../../..//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(nodes_BMW[[2]], "../../..//w:vMerge"), "val"), "continue")
+  nodes_BMW <- xml_find_all(xml, ".//a:t[. = 'BMW']")
+  expect_equal(xml_attr(xml_find_all(nodes_BMW, "../../../..//a:rowSpan"), "val"), "2")
+  expect_equal(length(nodes_BMW), 1)
 
-  nodes_Audi <- xml_find_all(xml, ".//w:t[. = 'Audi']")
-  expect_equal(xml_length(xml_find_all(nodes_Audi[[1]], "../../..//w:vMerge")), 0)
+  nodes_Audi <- xml_find_all(xml, ".//a:t[. = 'Audi']")
+  expect_equal(length(xml_find_all(nodes_Audi[[1]], "../../../..//a:rowSpan")), 0)
 
   # no other merge cells
-  expect_equal(length(xml_find_all(xml, ".//w:vMerge")), 4)
+  expect_equal(length(xml_find_all(xml, ".//a:rowSpan")), 2)
 
   # no stub head, i.e. empty text
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("", "year", "hp", "msrp")
   )
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
   for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
   }
 
   # one label: merged
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead("one") |>
-    as_word() %>%
-    read_xml()
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
   for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//w:gridSpan")), 0)
+    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
   }
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "year", "hp", "msrp")
   )
 
@@ -348,11 +351,11 @@ test_that("multicolumn stub are supported", {
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one", "two", "three")) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "two", "three", "year", "hp", "msrp")
   )
 
@@ -361,53 +364,51 @@ test_that("multicolumn stub are supported", {
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one", "two", "three")) |>
     tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "two", "three", "", "span")
   )
   # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(length(tcPr), 5)
   for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "restart")
+    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//a:rowSpan"), "val"), "2")
   }
-  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//w:gridSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//a:gridSpan"), "val"), "2")
 
   # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  for (i in 1:3) {
-    expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//w:vMerge"), "val"), "continue")
-  }
+  tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
+  expect_equal(length(tcPr), 3)
+  expect_equal(length(xml_find_all(tcPr, ".//a:rowSpan")), 0)
 
   # spanner - one label
   xml <- test_data |>
     gt(rowname_col = c("mfr", "model", "trim")) |>
     tab_stubhead(c("one")) |>
     tab_spanner(label = "span", columns = c(hp, msrp)) |>
-    as_word() %>%
-    read_xml()
+    as_pptx_ooxml() %>%
+    read_xml_pptx_nodes()
 
   expect_equal(
-    xml_text(xml_find_all(xml, "(.//w:tr)[1]//w:t")),
+    xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "", "span")
   )
 
   # first row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[1]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "restart")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//w:gridSpan"), "val"), "2")
+  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:rowSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
+  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//a:gridSpan"), "val"), "2")
 
   # second row
-  tcPr <- xml_find_all(xml, "(.//w:tr)[2]/w:tc/w:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:vMerge"), "val"), "continue")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//w:gridSpan"), "val"), "3")
-
+  tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
+  expect_equal(length(xml_find_all(tcPr[[1]], ".//a:rowSpan")), 0)
 })
 
-test_that("tables can be added to a word doc", {
+test_that("tables can be added to a pptx doc", {
   check_suggests()
 
   ## simple table
@@ -419,175 +420,79 @@ test_that("tables can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <- officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file)
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table caption
-  docx_table_caption_text <- xml2::xml_text(docx_contents[1:2])
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
   expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+    xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
+    "table title"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:sp[2]//a:t")),
+    "table subtitle"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
   )
 
   expect_equal(
-    xml2::xml_text(xml2::xml_find_all(docx_table_body_header, ".//w:p")),
-    c(
-      "num", "char", "fctr", "date", "time",
-      "datetime", "currency", "row", "group"
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
   )
-
   expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
-    ),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[3]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95", "row_2", "grp_a")
   )
 })
 
-test_that("tables with special characters can be added to a word doc", {
+test_that("tables with special characters can be added to a pptx doc", {
 
   skip_on_ci()
   check_suggests()
 
   ## simple table
   gt_exibble_min <-
-    exibble[1, ] |>
-    dplyr::mutate(special_characters = "><&\"'") |>
+    data.frame(special_characters = "><&\"'", stringsAsFactors = FALSE) |>
     gt() |>
     tab_header(
       title = "table title",
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
   ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table caption
-  docx_table_caption_text <- xml2::xml_text(docx_contents[1:2])
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
 
   expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+    xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
+    "table title"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:sp[2]//a:t")),
+    "table subtitle"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("special_characters")
   )
 
   expect_equal(
-    xml2::xml_text(xml2::xml_find_all(docx_table_body_header, ".//w:p")),
-    c(
-      "num", "char", "fctr", "date", "time",
-      "datetime", "currency", "row", "group",
-      "special_characters"
-    )
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
-    ),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a",
-        "><&\"'"
-      )
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("><&\"'")
   )
 })
 
-test_that("tables with embedded titles can be added to a word doc", {
-
+test_that("tables with embedded titles can be added to a pptx doc", {
   check_suggests()
 
   ## simple table
@@ -599,81 +504,34 @@ test_that("tables with embedded titles can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      caption_location = "embed",
-      align = "center"
-    )
-
   ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, caption_location = "embed", align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:t") |>
-      xml2::xml_text(),
-    c(
-      "table title", "table subtitle", "num", "char", "fctr",
-      "date", "time", "datetime", "currency", "row", "group"
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("table title", "table subtitle")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
   )
 
   expect_equal(
-    lapply(docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[3]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95", "row_2", "grp_a")
   )
 })
 
-test_that("tables with spans can be added to a word doc", {
+test_that("tables with spans can be added to a pptx doc", {
   check_suggests()
 
   ## simple table
@@ -690,90 +548,45 @@ test_that("tables with spans can be added to a word doc", {
       columns = 3:5
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table caption
-  docx_table_caption_text <-
-    docx_contents[1:2] |>
-    xml2::xml_text()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
   expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+    xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
+    "table title"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:sp[2]//a:t")),
+    "table subtitle"
   )
 
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c(
-      "", "", "My Column Span", "", "", "", "", "num", "char", "fctr",
-      "date", "time", "datetime", "currency", "row", "group"
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    rep(c("", "My Column Span", ""), c(2L, 1L, 4L))
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:gridSpan"), "val"),
+    "3"
   )
 
   expect_equal(
-    lapply(docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
   )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[3]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95", "row_2", "grp_a")
+  )
+
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
@@ -801,93 +614,231 @@ test_that("tables with multi-level spans can be added to a word doc", {
       columns = 8:9
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table caption
-  docx_table_caption_text <-
-    docx_contents[1:2] |>
-    xml2::xml_text()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[3] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
   expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: table title", "table subtitle")
+    xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
+    "table title"
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:sp[2]//a:t")),
+    "table subtitle"
   )
 
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c(
-      "", "My Column Span L2", "", "", "", "", "My 1st Column Span L1", "", "",
-      "My 2nd Column Span L1", "num", "char", "fctr", "date", "time",
-      "datetime", "currency", "row", "group"
-    )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("", "My Column Span L2", "", "", "", "")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:gridSpan"), "val"),
+    "4"
   )
 
   expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:t")),
+    c("My 1st Column Span L1", "", "", "My 2nd Column Span L1")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:gridSpan"), "val"),
+    c("5", "2")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[3]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[5]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95", "row_2", "grp_a")
+  )
+
+})
+
+test_that("tables with footnotes can be added to a pptx doc", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_footnote(
+      footnote = md("this is a footer example"),
+      locations = cells_column_labels(columns = num )
+    ) |>
+    tab_footnote(
+      footnote = md("this is a second footer example"),
+      locations = cells_column_labels(columns = char )
     )
+
+  # check the xml
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+  xml_note_num <- xml_find_all(xml, './/a:t[text() = "num"]/../../a:r[last()]')
+  expect_true(as.numeric(xml_attr(xml_find_all(xml_note_num, ".//a:rPr"), "baseline")) > 0)
+  expect_equal(xml_text(xml_find_all(xml_note_num, ".//a:t")), "1")
+
+  xml_note_char <- xml_find_all(xml, './/a:t[text() = "char"]/../../a:r[last()]')
+  expect_true(as.numeric(xml_attr(xml_find_all(xml_note_num, ".//a:rPr"), "baseline")) > 0)
+  expect_equal(xml_text(xml_find_all(xml_note_char, ".//a:t")), "2")
+
+  expect_equal(
+    xml_text(xml_find_all(xml, './/a:tr[last()]//a:r/a:t')),
+    c("2", "this is a second footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/a:tr[last()]//a:rPr'), "baseline"),
+    c("30000", NA)
+  )
+  expect_equal(
+    xml_text(xml_find_all(xml, './/a:tr[last() - 1]//a:r/a:t')),
+    c("1", "this is a footer example")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, './/a:tr[last() - 1]//a:rPr'), "baseline"),
+    c("30000", NA)
+  )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("num", "1", "char", "2", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("1", "this is a footer example")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[5]//a:t")),
+    c("2", "this is a second footer example")
   )
 })
+
+test_that("tables with source notes can be added to a pptx doc", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_source_note(source_note = "this is a source note example")
+
+  # check the xml
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//a:tr[last()]")),
+    "this is a source note example"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:tr[last()]//a:gridSpan"), "val"),
+    "9"
+  )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
+    c("num", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[4]//a:t")),
+    c("this is a source note example")
+  )
+
+})
+
+test_that("long tables can be added to a pptx doc", {
+  check_suggests()
+
+  ## simple table
+  gt_letters <-
+    dplyr::tibble(
+      upper_case = c(LETTERS,LETTERS),
+      lower_case = c(letters,letters)
+    ) |>
+    gt() |>
+    tab_header(title = "LETTERS")
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_letters, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr//a:tc[1]//a:t")),
+    c("upper_case", LETTERS, LETTERS)
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr//a:tc[2]//a:t")),
+    c("lower_case", letters, letters)
+  )
+})
+
+test_that("long tables with spans can be added to a word doc", {
+  check_suggests()
+
+  ## simple table
+  gt_letters <-
+    dplyr::tibble(
+      upper_case = c(LETTERS,LETTERS),
+      lower_case = c(letters,letters)
+    ) |>
+    gt() |>
+    tab_header(title = "LETTERS") |>
+    tab_spanner(
+      "LETTERS",
+      columns = 1:2
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_letters, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("LETTERS")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[position() > 1]//a:tc[1]//a:t")),
+    c("upper_case", LETTERS, LETTERS)
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[position() > 1]//a:tc[2]//a:t")),
+    c("lower_case", letters, letters)
+  )
+})
+
+skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
   check_suggests()
@@ -1203,386 +1154,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       c("", "2.2220", "banana","17.95"),
       c("", "33.3300", "coconut", "1.39")
     )
-  )
-})
-
-test_that("tables with footnotes can be added to a word doc", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_footnote(
-      footnote = md("this is a footer example"),
-      locations = cells_column_labels(columns = num )
-    ) |>
-    tab_footnote(
-      footnote = md("this is a second footer example"),
-      locations = cells_column_labels(columns = char )
-    )
-
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-  xml_note_num <- xml_find_all(xml, './/w:t[text() = "num"]/../../w:r[last()]')
-  expect_equal(xml_attr(xml_find_all(xml_note_num, ".//w:rPr/w:vertAlign"), "val"), "superscript")
-  expect_equal(xml_text(xml_find_all(xml_note_num, ".//w:t")), "1")
-
-  xml_note_char <- xml_find_all(xml, './/w:t[text() = "char"]/../../w:r[last()]')
-  expect_equal(xml_attr(xml_find_all(xml_note_char, ".//w:rPr/w:vertAlign"), "val"), "superscript")
-  expect_equal(xml_text(xml_find_all(xml_note_char, ".//w:t")), "2")
-
-  expect_equal(
-    xml_text(xml_find_all(xml, './/w:tr[last()]//w:r/w:t')),
-    c("2", "this is a second footer example")
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, './/w:tr[last()]//w:vertAlign'), "val"),
-    "superscript"
-  )
-  expect_equal(
-    xml_text(xml_find_all(xml, './/w:tr[last() - 1]//w:r/w:t')),
-    c("1", "this is a footer example")
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, './/w:tr[last() - 1]//w:vertAlign'), "val"),
-    "superscript"
-  )
-
-  # ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## superscripts will display as "true#false" due to
-  ## xml being:
-  ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t><w:i>false</w:i>,
-  ## and being converted to TRUE due to italic being true, then the superscript, then turning off italics
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c(
-      "num1", "char2", "fctr", "date", "time",
-      "datetime", "currency", "row", "group"
-    )
-  )
-
-  ## superscripts will display as "true##" due to
-  ## xml being:
-  ## <w:vertAlign w:val="superscript"/><w:i>true</w:i><w:t xml:space="default">1</w:t>,
-  ## and being converted to TRUE due to italic being true, then the superscript,
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      ),
-      c("1this is a footer example"),
-      c("2this is a second footer example")
-    )
-  )
-})
-
-test_that("tables with source notes can be added to a word doc", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_source_note(source_note = "this is a source note example")
-
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-  expect_equal(
-    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
-    "this is a source note example"
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:gridSpan"), "val"),
-    "9"
-  )
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c(
-      "num",
-      "char",
-      "fctr",
-      "date",
-      "time",
-      "datetime",
-      "currency",
-      "row",
-      "group"
-    )
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    list(
-      c(
-        "0.1111",
-        "apricot",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "2.2220",
-        "banana",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      ),
-      c("this is a source note example")
-    )
-  )
-})
-
-test_that("long tables can be added to a word doc", {
-  check_suggests()
-
-  ## simple table
-  gt_letters <-
-    dplyr::tibble(
-      upper_case = c(LETTERS,LETTERS),
-      lower_case = c(letters,letters)
-    ) |>
-    gt() |>
-    tab_header(title = "LETTERS")
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table caption
-  docx_table_caption_text <-
-    docx_contents[1] |>
-    xml2::xml_text()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[2] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[2] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: LETTERS")
-  )
-
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("upper_case", "lower_case")
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    lapply(c(1:26,1:26), function(i) c(LETTERS[i], letters[i]))
-  )
-})
-
-test_that("long tables with spans can be added to a word doc", {
-  check_suggests()
-
-  ## simple table
-  gt_letters <-
-    dplyr::tibble(
-      upper_case = c(LETTERS,LETTERS),
-      lower_case = c(letters,letters)
-    ) |>
-    gt() |>
-    tab_header(title = "LETTERS") |>
-    tab_spanner(
-      "LETTERS",
-      columns = 1:2
-    )
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table caption
-  docx_table_caption_text <-
-    docx_contents[1] |>
-    xml2::xml_text()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[2] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[2] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  expect_equal(
-    docx_table_caption_text,
-    c("Table  SEQ Table \\* ARABIC 1: LETTERS")
-  )
-
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("LETTERS", "upper_case", "lower_case")
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    lapply(c(1:26,1:26), function(i) c(LETTERS[i], letters[i]))
   )
 })
 
