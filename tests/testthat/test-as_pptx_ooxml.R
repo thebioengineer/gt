@@ -59,11 +59,19 @@ test_that("process_text() handles ooxml/pptx", {
   xml <- read_xml_pptx_nodes(process_text(md("can `be found` at"), context = "ooxml/pptx"))
   expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
   expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
-    c("can ", "be found", "at")
+    c("can ", "be found", " at")
   )
   expect_equal(
     xml_attr(xml_find_all(xml, ".//a:r[2]/a:rPr/a:latin"), "typeface"),
     "Consolas"
+  )
+
+  # link
+  txt <- "[a website](https://daringfireball.net/projects/markdown/)"
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 1)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("a website")
   )
 
 })

@@ -1446,6 +1446,27 @@ cmark_rules_ooxml_pptx <- list2(
     txt <- xml2::xml_text(x)
     glue::glue('<a:r><a:rPr><a:latin typeface="Consolas"/></a:rPr><a:t xml:space = "preserve">{txt}</a:t></a:r>')
   },
+  link = function(x, process, ...) {
+    return(
+      cmark_rules_ooxml_pptx[["text"]](x, process, ...)
+    )
+
+    # TODO: later, this needs modifying the .rels file ...
+    destination <- xml_attr(x, "destination") %||% ""
+    text <- xml2::xml_text(x) %||% ""
+    glue::glue('
+<a:r>
+  <a:rPr>
+    <a:solidFill>
+      <a:srgbClr val="0563C1"/>
+    </a:solidFill>
+    <a:u/>
+    <a:hlinkClick r:id="{destination}"/>
+  </a:rPr>
+  <a:t>{text}</a:t>
+</a:r>
+    ')
+  }
 
 
   #------- TODO: later
@@ -1659,5 +1680,13 @@ cmark_rules_ooxml_pptx <- list2(
   #   process(xml2::xml_children(x))
   # }
 )
+
+needs_gt_as_pptx_post_processing <- function(x) {
+  any(grepl("a:hlinkClick", x, fixed = TRUE))
+}
+
+gt_as_pptx_post_processing <- function(path) {
+
+}
 
 
