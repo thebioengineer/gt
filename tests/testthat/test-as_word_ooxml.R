@@ -2906,6 +2906,14 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
     sub_small_vals() |>
     sub_large_vals(threshold = 100)
 
-  xml <- as_word_ooxml(tbl)
-  expect_xml_snapshot(xml)
+  xml <- read_xml_word_nodes(as_word_ooxml(tbl))
+
+  expect_xml_snapshot(
+    xml_find_all(xml, ".//w:tc[1]//w:t")
+  )
+
+  expect_xml_snapshot(
+    xml_find_all(xml, ".//w:tc[2]//w:t")
+  )
+
 })

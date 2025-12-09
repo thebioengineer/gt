@@ -739,6 +739,25 @@ sub_large_vals <- function(
           context = "word"
         )
       },
+      "ooxml/pptx" = function(x) {
+        sub_replace_large_vals(
+          x,
+          threshold = threshold,
+          sign = sign,
+          large_pattern = large_pattern,
+          context = "ooxml/pptx"
+        )
+      },
+      "ooxml/word" = function(x) {
+        sub_replace_large_vals(
+          x,
+          threshold = threshold,
+          sign = sign,
+          large_pattern = large_pattern,
+          context = "ooxml/word"
+        )
+      },
+
       default = function(x) {
 
         sub_replace_large_vals(

@@ -1242,6 +1242,99 @@ test_that("tables preserves spaces in text & can be added to a pptx doc", {
   )
 })
 
+test_that("tables respects column and cell alignment and can be added to a word doc", {
+
+  skip_on_ci()
+  check_suggests()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1:2, 1:4] |>
+    `colnames<-`(c(
+      "wide column number 1",
+      "wide column number 2",
+      "wide column number 3",
+      "tcn4" #thin column number 4
+    )) |>
+    gt() |>
+    cols_align(
+      "right", columns = `wide column number 1`
+    ) |>
+    cols_align(
+      "left", columns = c(`wide column number 2`, `wide column number 3`)
+    ) |>
+    tab_style(
+      style = cell_text(align = "right"),
+      locations = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
+    ) |>
+    tab_style(
+      style = cell_text(align = "left"),
+      locations = cells_body(columns = c(`wide column number 1`), rows = 2)
+    ) |>
+    tab_style(
+      cell_text(align = "right"),
+      locations = cells_column_labels(columns = c(tcn4))
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("wide column number 1", "wide column number 2", "wide column number 3","tcn4")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    c("0.1111", "apricot", "one","2015-01-15")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[3]//a:t")),
+    c("2.2220", "banana", "two","2015-02-15")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:pPr"), "algn"),
+    c("r", "l", "l", "r")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[2]//a:pPr"), "algn"),
+    c("r", "l", "l", "r")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:pPr"), "algn"),
+    c("l", "r", "r", "r")
+  )
+
+})
+
+test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
+
+  data <- dplyr::tibble(x = c(0.001, 0.01, 150), y = c("<", "%", ">"))
+
+  tbl <-
+    data |>
+    gt() |>
+    sub_small_vals() |>
+    sub_large_vals(threshold = 100)
+
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(tbl))
+
+  expect_xml_snapshot(
+    xml_find_all(xml, ".//a:tc[1]//a:t")
+  )
+
+  expect_xml_snapshot(
+    xml_find_all(xml, ".//a:tc[2]//a:t")
+  )
+
+})
 
 skip("in progress")
 
@@ -1741,101 +1834,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
   )
 })
 
-test_that("tables respects column and cell alignment and can be added to a word doc", {
-
-  skip_on_ci()
-  check_suggests()
-
-  ## simple table
-  gt_exibble <-
-    exibble[1:2, 1:4] |>
-    `colnames<-`(c(
-      "wide column number 1",
-      "wide column number 2",
-      "wide column number 3",
-      "tcn4" #thin column number 4
-    )) |>
-    gt() |>
-    cols_align(
-      "right", columns = `wide column number 1`
-    ) |>
-    cols_align(
-      "left", columns = c(`wide column number 2`, `wide column number 3`)
-    ) |>
-    tab_style(
-      style = cell_text(align = "right"),
-      locations = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
-    ) |>
-    tab_style(
-      style = cell_text(align = "left"),
-      locations = cells_body(columns = c(`wide column number 1`), rows = 2)
-    ) |>
-    tab_style(
-      cell_text(align = "right"),
-      locations = cells_column_labels(columns = c(tcn4))
-    )
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr")
-
-  ## text is preserved
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
-    ),
-    list(
-      c(
-        "wide column number 1",
-        "wide column number 2",
-        "wide column number 3",
-        "tcn4"
-      ),
-      c("0.1111", "apricot", "one","2015-01-15"),
-      c("2.2220", "banana", "two","2015-02-15")
-    )
-  )
-
-  ## text "space" is set to preserve only for last 2 body cols
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x)
-        x |>
-        xml2::xml_find_all(".//w:pPr") |>
-        lapply(FUN = function(y) xml2::xml_attr(xml2::xml_find_all(y,".//w:jc"),"val"))
-    ),
-    list(
-      ## styling only on 1st and 4th column of header (stub and 3rd column) is right aligned
-      list("end", "start", "start", "end"),
-
-      ## styling as applied or as default from gt
-      list("end", "start", "start", "end"),
-      list("start", "end", "end", "end"))
-  )
-})
 
 test_that("markdown in the tables works out", {
   skip_on_ci()
@@ -2322,18 +2320,4 @@ test_that("table with image refs work - local only - setting image widths and he
         list(height = "571500", width = "914400", ratio = 0.625)
       )
     )
-})
-
-test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
-
-  data <- dplyr::tibble(x = c(0.001, 0.01, 150), y = c("<", "%", ">"))
-
-  tbl <-
-    data |>
-    gt() |>
-    sub_small_vals() |>
-    sub_large_vals(threshold = 100)
-
-  xml <- as_word_ooxml(tbl)
-  expect_xml_snapshot(xml)
 })
