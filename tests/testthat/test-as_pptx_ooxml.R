@@ -55,6 +55,72 @@ test_that("process_text() handles ooxml/pptx", {
     c(NA, "1", NA)
   )
 
+  # code
+  xml <- read_xml_pptx_nodes(process_text(md("can `be found` at"), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 3)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("can ", "be found", " at")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:r[2]/a:rPr/a:latin"), "typeface"),
+    "Consolas"
+  )
+
+  # link
+  txt <- "[a website](https://daringfireball.net/projects/markdown/)"
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r")), 1)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")),
+    c("https://daringfireball.net/projects/markdown/")
+  )
+  expect_equal(length(xml_find_all(xml, ".//a:rPr/a:u")), 1)
+  expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr/a:solidFill/a:srgbClr"), "val"), "0563C1")
+
+  # heading
+  txt <- "### This is Markdown."
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 1)
+  expect_equal(xml_text(xml_find_all(xml, ".//a:t")), "This is Markdown.")
+  expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr"), "sz"), "1400")
+
+  # list
+  txt <- glue::glue('
+  - one
+  - two
+    - indent three
+    - indent four
+')
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 4)
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr"), "lvl"),
+    c("0", "0", "1", "1")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr/a:buChar"), "char"),
+    rep("-", 4)
+  )
+
+  txt <- glue::glue('
+  1. one
+  1. two
+      1. three
+')
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:p")), 3)
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr"), "lvl"),
+    c("0", "0", "1")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(xml, ".//a:pPr/a:buAutoNum"), "type"),
+    rep("arabicPeriod", 3)
+  )
+
+  # softbreak
+  txt <- 'yada\nyada\nyada'
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r/a:t[text() = ' ']")), 2)
 })
 
 test_that("pptx ooxml can be generated from gt object", {
@@ -838,6 +904,730 @@ test_that("long tables with spans can be added to a word doc", {
   )
 })
 
+test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:4, ] |>
+    gt(rowname_col = "char") |>
+    tab_row_group("My Row Group 1", c(1:2)) |>
+    tab_row_group("My Row Group 2", c(3:4)) |>
+    tab_style(
+      style = cell_fill(color = "orange"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "green",
+        font = "Biome"
+      ),
+      locations = cells_stub()
+    ) |>
+    tab_style(
+      style = cell_text(size = 25, v_align = "middle"),
+      locations = cells_body(columns = c(num, fctr, time, currency, group))
+    ) |>
+    tab_style(
+      style = cell_text(
+        color = "blue",
+        stretch = "extra-expanded"
+      ),
+      locations = cells_row_groups()
+    ) |>
+    tab_style(
+      style = cell_text(color = "teal"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "green"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "pink"),
+      locations = cells_stubhead()
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tcPr/a:solidFill//a:srgbClr"), "val"),
+    c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:rPr/a:solidFill//a:srgbClr"), "val"),
+    rep("008080", 8)
+  )
+
+  group_rows <- c(2, 5)
+  for (i in group_rows) {
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tcPr/a:solidFill//a:srgbClr")), "val"),
+      character(0)
+    )
+
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      "0000FF"
+    )
+  }
+
+  for (i in c(3, 4, 6, 7)) {
+    col <- character(8)
+    for (j in 1:9) {
+      x <- xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]/a:tc[{j}]/a:tcPr/a:solidFill//a:srgbClr")), "val")
+      col[j] <- if (length(x) == 0) "" else x
+    }
+    expect_equal(
+      col,
+      c("", "FFA500", "FFA500", "", "FFA500", "", "FFA500", "", "FFA500")
+    )
+
+    expect_equal(
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      "00FF00"
+    )
+
+    expect_equal(
+      length(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc//a:rPr/a:solidFill//a:srgbClr"))),
+      1
+    )
+  }
+
+  expected <- list(
+    "My Row Group 2",
+    c("coconut","33.3300","three","2015-03-15","15:45","2018-03-03 03:44","1.39","row_3","grp_a"),
+    c("durian","444.4000","four","2015-04-15","16:50","2018-04-04 15:55","65100.00","row_4","grp_a"),
+    "My Row Group 1",
+    c("apricot","0.1111","one","2015-01-15","13:35","2018-01-01 02:22","49.95","row_1","grp_a"),
+    c("banana","2.2220","two","2015-02-15","14:40","2018-02-02 14:33","17.95","row_2","grp_a")
+  )
+
+  for (i in 1:6) {
+    expect_equal(expected[[i]], xml_text(xml_find_all(slide, glue::glue(".//a:tr[{i + 1}]//a:t"))))
+  }
+
+})
+
+test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:4, ] |>
+    gt(rowname_col = "char") |>
+    tab_row_group("My Row Group 1", c(1:2)) |>
+    tab_row_group("My Row Group 2", c(3:4)) |>
+    tab_spanner("My Span Label", columns = 1:5) |>
+    tab_spanner("My Span Label top", columns = 2:4, level = 2) |>
+    tab_style(
+      style = cell_text(color = "purple"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "green"),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "orange"),
+      locations = cells_column_spanners("My Span Label")
+    ) |>
+    tab_style(
+      style = cell_fill(color = "red"),
+      locations = cells_column_spanners("My Span Label top")
+    ) |>
+    tab_style(
+      style = cell_fill(color = "pink"),
+      locations = cells_stubhead()
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    rep(c("", "My Span Label top", ""), c(2L, 1L, 5L))
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    rep(c("My Span Label", ""), c(1L, 4L))
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[3]//a:t")),
+    c("num", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[4]//a:t")),
+    "My Row Group 2"
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[5]//a:t")),
+    c("coconut", "33.3300", "three", "2015-03-15", "15:45", "2018-03-03 03:44","1.39", "row_3", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[6]//a:t")),
+    c("durian", "444.4000", "four", "2015-04-15", "16:50", "2018-04-04 15:55","65100.00", "row_4", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[7]//a:t")),
+    "My Row Group 1"
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[8]//a:t")),
+    c("apricot", "0.1111", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[9]//a:t")),
+    c("banana", "2.2220", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95","row_2", "grp_a")
+  )
+
+  # stub cell
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[1]//a:tcPr/a:solidFill/a:srgbClr"), "val"),
+    "FFC0CB"
+  )
+
+  # My Span Label top
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[3]//a:tcPr/a:solidFill/a:srgbClr"), "val"),
+    "FF0000"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[2]//a:tc[1]//a:tcPr/a:solidFill/a:srgbClr"), "val"),
+    "FFA500"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:tc//a:tcPr/a:solidFill/a:srgbClr"), "val"),
+    rep("00FF00", 8L)
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    rep("A020F0", 8L)
+  )
+
+})
+
+test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_source_note("My Source Note") |>
+    tab_footnote("My Footnote") |>
+    tab_footnote(
+      "My Footnote 2",
+      locations = cells_column_labels(1)
+    ) |>
+    tab_style(
+      style = cell_text(color = "orange"),
+      locations = cells_source_notes()
+    ) |>
+    tab_style(
+      style = cell_text(color = "purple"),
+      locations = cells_footnotes()
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("num", "1", "char", "fctr", "date", "time", "datetime", "currency", "row", "group")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    c("0.1111", "apricot", "one", "2015-01-15", "13:35", "2018-01-01 02:22","49.95", "row_1", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[3]//a:t")),
+    c("2.2220", "banana", "two", "2015-02-15", "14:40", "2018-02-02 14:33", "17.95","row_2", "grp_a")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[4]//a:t")),
+    "My Footnote"
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[5]//a:t")),
+    c("1", "My Footnote 2")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[6]//a:t")),
+    "My Source Note"
+  )
+
+  # note marks
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[1]//a:r[2]//a:rPr"), "baseline"),
+    "30000"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tc[1]//a:r[2]//a:rPr"), "i"),
+    "1"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc[1]//a:r[1]//a:rPr"), "baseline"),
+    "30000"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc[1]//a:r[1]//a:rPr"), "i"),
+    "1"
+  )
+
+
+  # footnote colors
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[4]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "A020F0"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "A020F0"
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[6]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    "FFA500"
+  )
+
+})
+
+test_that("footnotes styling gets applied to footer marks", {
+  check_suggests()
+
+  ## simple table
+  gt_exibble_min <-
+    exibble[1:2, ] |>
+    gt() |>
+    tab_footnote("My Footnote") |>
+    tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
+    opt_footnote_spec(spec_ftr = "(b)")
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  # first note
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[last()-1]//a:t")),
+    "My Footnote"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()-1]//a:rPr"), "b"),
+    NA_character_
+  )
+
+  # second note
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[last()]//a:t")),
+    c("(1)", "My Footnote 2")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()]//a:r[1]/a:rPr"), "b"), "1"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[last()]//a:r[1]/a:rPr"), "baseline"),
+    NA_character_
+  )
+
+})
+
+test_that("tables preserves spaces in text & can be added to a pptx doc", {
+  skip_on_ci()
+  check_suggests()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1, 1] |>
+    dplyr::mutate(
+      `5 Spaces Before` = "     Preserve",
+      `5 Spaces After` = "Preserve     ",
+      `5 Spaces Before - preserve` = "     Preserve",
+      `5 Spaces After - preserve` = "Preserve     ") |>
+    gt() |>
+    tab_style(
+      style = cell_text(whitespace = "pre"),
+      locations = cells_body(columns = contains("preserve"))
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("num","5 Spaces Before","5 Spaces After","5 Spaces Before - preserve","5 Spaces After - preserve")
+  )
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    c("0.1111", " Preserve", "Preserve ", "     Preserve", "Preserve     ")
+  )
+})
+
+test_that("tables respects column and cell alignment and can be added to a word doc", {
+
+  skip_on_ci()
+  check_suggests()
+
+  ## simple table
+  gt_exibble <-
+    exibble[1:2, 1:4] |>
+    `colnames<-`(c(
+      "wide column number 1",
+      "wide column number 2",
+      "wide column number 3",
+      "tcn4" #thin column number 4
+    )) |>
+    gt() |>
+    cols_align(
+      "right", columns = `wide column number 1`
+    ) |>
+    cols_align(
+      "left", columns = c(`wide column number 2`, `wide column number 3`)
+    ) |>
+    tab_style(
+      style = cell_text(align = "right"),
+      locations = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
+    ) |>
+    tab_style(
+      style = cell_text(align = "left"),
+      locations = cells_body(columns = c(`wide column number 1`), rows = 2)
+    ) |>
+    tab_style(
+      cell_text(align = "right"),
+      locations = cells_column_labels(columns = c(tcn4))
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(gt_exibble, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
+    c("wide column number 1", "wide column number 2", "wide column number 3","tcn4")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[2]//a:t")),
+    c("0.1111", "apricot", "one","2015-01-15")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(slide, ".//a:tr[3]//a:t")),
+    c("2.2220", "banana", "two","2015-02-15")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:pPr"), "algn"),
+    c("r", "l", "l", "r")
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[2]//a:pPr"), "algn"),
+    c("r", "l", "l", "r")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:pPr"), "algn"),
+    c("l", "r", "r", "r")
+  )
+
+})
+
+test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
+
+  data <- dplyr::tibble(x = c(0.001, 0.01, 150), y = c("<", "%", ">"))
+
+  tbl <-
+    data |>
+    gt() |>
+    sub_small_vals() |>
+    sub_large_vals(threshold = 100)
+
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(tbl))
+
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//a:tc[1]//a:t")),
+    c("x", "<0.01", "0.01", "\U{2265}100")
+  )
+
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//a:tc[2]//a:t")),
+    c("y", "<", "%", ">")
+  )
+
+})
+
+test_that("markdown in the tables works out", {
+  skip_on_ci()
+  check_suggests()
+
+  text_1a <- "
+### This is Markdown.
+
+Markdown's syntax is comprised entirely of
+punctuation characters, which punctuation
+characters have been carefully chosen so as
+to look like what they mean... assuming
+you've ever used email.
+
+
+this is a line break test
+
+"
+
+  text_1b <- "
+Info on **Markdown** _syntax_ can `be found` at [a website](https://daringfireball.net/projects/markdown/).
+"
+
+  text_2a <- "
+- `countrypops`
+- `sza`
+    - indented col
+
+
+1. newval
+2. another val
+3. will this work
+"
+
+  text_2b <- "
+There's a quick reference [here](https://commonmark.org/help/).
+"
+
+  markdown_gt <- dplyr::tribble(
+    ~Markdown, ~md,
+    text_1a,   text_2a,
+    text_1b,   text_2b
+  ) |>
+    gt() |>
+    fmt_markdown(columns = everything()) |>
+    tab_footnote(
+      "This is text",
+      locations = cells_column_labels(columns = md)
+    )
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  res <- lapply(xml_find_all(slide, ".//a:tc"), function(tc) {
+    xml_text(xml_find_all(tc, ".//a:p"))
+  })
+  expected <- list(
+      "Markdown",
+      "md1",
+      c("This is Markdown.",
+        "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
+        "this is a line break test"
+      ),
+      c("countrypops", "sza", "indented col", "newval", "another val", "will this work"),
+      "Info on Markdown syntax can be found at https://daringfireball.net/projects/markdown/.",
+      "There's a quick reference https://commonmark.org/help/.",
+      "1This is text"
+    )
+  expect_equal(res, expected)
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "i"),
+    rep(c(NA, "1", NA, "1", NA, "1", NA), c(2L, 1L, 16L, 1L, 8L, 1L, 1L))
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "b"),
+    rep(c(NA, "1", NA), c(17L, 1L, 12L))
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "sz"),
+    rep(c("1000", "1400", "1000", NA, "1000"), c(3L, 1L, 24L, 1L, 1L))
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr/a:latin"), "typeface"),
+    rep(
+      c("Calibri", "Consolas", "Calibri", "Consolas", "Calibri", "Consolas", "Calibri"),
+      c(10L, 1L, 1L, 1L, 10L, 1L, 8L)
+    )
+  )
+})
+
+test_that("markdown with urls work", {
+  skip_on_ci()
+  check_suggests()
+
+  text_sample <- "Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)"
+
+  markdown_gt <-
+    dplyr::tribble(
+      ~url,
+      text_sample
+    ) |>
+    gt() |>
+    fmt_markdown(columns = everything())
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  # For now hyperlink are just styled
+  expect_equal(length(xml_find_all(xml_find_all(slide, ".//a:r")[c(3, 5)], ".//a:u")), 2)
+  expect_equal(xml_attr(xml_find_all(slide, ".//a:r//a:srgbClr"), "val"), c("0563C1", "0563C1"))
+})
+
+test_that("markdown with img refs work", {
+  skip_on_ci()
+  check_suggests()
+
+  ref_png <- system.file("graphics", "test_image.png", package = "gt")
+  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
+
+  temp_png <- file.path(tempdir(),"test_image.png")
+  temp_svg <- file.path(tempdir(),"test_image.svg")
+
+  file.copy(ref_png, temp_png)
+  file.copy(ref_svg, temp_svg)
+
+  markdown_gt <- dplyr::tribble(
+    ~md,
+    paste0(" ![test image from gt package](",temp_png,")"),
+    paste0(" ![test image from gt package2](",temp_svg,")")
+    ) |>
+    gt() |>
+    fmt_markdown(columns = everything())
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    gsub("(^image:)(.*)/(test_image[.].*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:3]),
+    c("image: test_image.png","image: test_image.svg")
+  )
+
+})
+
+test_that("table with image refs work - local only", {
+  skip_on_ci()
+  check_suggests()
+
+  ref_png <- system.file("graphics", "test_image.png", package = "gt")
+  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
+  ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
+
+  temp_png <- file.path(tempdir(),"test_image.png")
+  temp_svg <- file.path(tempdir(),"test_image.svg")
+  temp_wide_svg <- file.path(tempdir(),"gt_parts_of_a_table.svg")
+
+  file.copy(ref_png, temp_png)
+  file.copy(ref_svg, temp_svg)
+  file.copy(ref_wide_svg, temp_wide_svg)
+
+  image_gt <- dplyr::tribble(
+    ~md,
+    paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
+    temp_svg, # single image, square
+    ref_wide_svg # a wide image is respected
+  ) |>
+    gt() |>
+    fmt_image(columns = everything(), sep = ",", height = "2in")
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(image_gt, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    gsub("(^image:)(.*)/.*/([^/]*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:5]),
+    c("image: test_image.png", "image: test_image.svg", "image: test_image.svg","image: gt_parts_of_a_table.svg")
+  )
+})
+
+test_that("table with image refs work - https", {
+
+  skip_on_ci()
+  check_suggests()
+
+  https_image_gt <-
+    dplyr::tribble(
+      ~https_image,
+      "https://gt.rstudio.com/reference/figures/logo.svg"
+    ) |>
+    gt() |>
+    fmt_image(columns = everything(), sep = ",", height = "2in")
+
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(https_image_gt, temp_pptx_file, align = "center")
+
+  ## Programmatic Review
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
+
+  expect_equal(
+    gsub("(^image:) (.*)$", "\\1 \\2", xml_text(xml_find_all(slide, ".//a:t")))[2],
+    "image: https://gt.rstudio.com/reference/figures/logo.svg"
+  )
+
+})
+
+# skipped -----------------------------------------------------------------
+
 skip("in progress")
 
 test_that("tables with summaries can be added to a word doc", {
@@ -1157,484 +1947,6 @@ test_that("tables with grand summaries but no rownames can be added to a word do
   )
 })
 
-test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
-
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:4, ] |>
-    gt(rowname_col = "char") |>
-    tab_row_group("My Row Group 1", c(1:2)) |>
-    tab_row_group("My Row Group 2", c(3:4)) |>
-    tab_style(
-      style = cell_fill(color = "orange"),
-      locations = cells_body(columns = c(num, fctr, time, currency, group))
-    ) |>
-    tab_style(
-      style = cell_text(
-        color = "green",
-        font = "Biome"
-      ),
-      locations = cells_stub()
-    ) |>
-    tab_style(
-      style = cell_text(size = 25, v_align = "middle"),
-      locations = cells_body(columns = c(num, fctr, time, currency, group))
-    ) |>
-    tab_style(
-      style = cell_text(
-        color = "blue",
-        stretch = "extra-expanded"
-      ),
-      locations = cells_row_groups()
-    ) |>
-    tab_style(
-      style = cell_text(color = "teal"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "green"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "pink"),
-      locations = cells_stubhead()
-    )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## header
-  expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
-  )
-  expect_equal(
-    lapply(
-      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-    ),
-    list(c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00"))
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_header, function(x) x |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-    ),
-    list(c("008080", "008080", "008080", "008080", "008080", "008080", "008080", "008080"))
-  )
-
-  ## cell background styling
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      function(x) {
-        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-          y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-        })
-      }
-    ),
-    list(
-      list(character()),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(), "FFA500", character(), "FFA500"),
-      list(character()),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500"),
-      list(character(), "FFA500", "FFA500", character(), "FFA500", character(),"FFA500", character(), "FFA500")
-    )
-  )
-
-  ## cell text styling
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      function(x) {
-        x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-          y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-        })
-      }
-    ),
-    list(
-      list("0000FF"),
-      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
-      list("00FF00",character(), character(), character(), character(), character(), character(), character(), character()),
-      list("0000FF"),
-      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character()),
-      list("00FF00", character(), character(), character(), character(), character(), character(), character(), character())
-    )
-  )
-
-  expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    list(
-      "My Row Group 2",
-      c(
-        "coconut",
-        "33.3300",
-        "three",
-        "2015-03-15",
-        "15:45",
-        "2018-03-03 03:44",
-        "1.39",
-        "row_3",
-        "grp_a"
-      ),
-      c(
-        "durian",
-        "444.4000",
-        "four",
-        "2015-04-15",
-        "16:50",
-        "2018-04-04 15:55",
-        "65100.00",
-        "row_4",
-        "grp_a"
-      ),
-      "My Row Group 1",
-      c(
-        "apricot",
-        "0.1111",
-        "one",
-        "2015-01-15",
-        "13:35",
-        "2018-01-01 02:22",
-        "49.95",
-        "row_1",
-        "grp_a"
-      ),
-      c(
-        "banana",
-        "2.2220",
-        "two",
-        "2015-02-15",
-        "14:40",
-        "2018-02-02 14:33",
-        "17.95",
-        "row_2",
-        "grp_a"
-      )
-    )
-  )
-})
-
-test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:4, ] |>
-    gt(rowname_col = "char") |>
-    tab_row_group("My Row Group 1", c(1:2)) |>
-    tab_row_group("My Row Group 2", c(3:4)) |>
-    tab_spanner("My Span Label", columns = 1:5) |>
-    tab_spanner("My Span Label top", columns = 2:4, level = 2) |>
-    tab_style(
-      style = cell_text(color = "purple"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "green"),
-      locations = cells_column_labels()
-    ) |>
-    tab_style(
-      style = cell_fill(color = "orange"),
-      locations = cells_column_spanners("My Span Label")
-    ) |>
-    tab_style(
-      style = cell_fill(color = "red"),
-      locations = cells_column_spanners("My Span Label top")
-    ) |>
-    tab_style(
-      style = cell_fill(color = "pink"),
-      locations = cells_stubhead()
-    )
-
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  ## header
-  expect_equal(
-    docx_table_body_header |> xml2::xml_find_all(".//w:p") |> xml2::xml_text(),
-    c("", "", "My Span Label top", "", "", "", "", "",
-      "", "My Span Label", "", "", "", "",
-      "", "num", "fctr", "date", "time", "datetime", "currency", "row", "group")
-  )
-
-  expect_equal(
-    lapply(docx_table_body_header, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-        y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-      })}),
-    list(
-      list("FFC0CB", character(0L), "FF0000", character(0L), character(0L), character(0L), character(0L), character(0L)),
-      list(character(0L), "FFA500", character(0L), character(0L), character(0L), character(0L)),
-      list(character(0L), "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00")
-      )
-  )
-
-  expect_equal(
-    lapply(docx_table_body_header, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-        y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-      })}),
-    list(
-      list(character(0L), character(0L), character(0L), character(0L),character(0L), character(0L), character(0L), character(0L)),
-      list(character(0L), character(0L), character(0L), character(0L),character(0L), character(0L)),
-      list(character(0L), "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0", "A020F0")
-      )
-  )
-})
-
-test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_source_note("My Source Note") |>
-    tab_footnote("My Footnote") |>
-    tab_footnote(
-      "My Footnote 2",
-      locations = cells_column_labels(1)
-    ) |>
-    tab_style(
-      style = cell_text(color = "orange"),
-      locations = cells_source_notes()
-    ) |>
-    tab_style(
-      style = cell_text(color = "purple"),
-      locations = cells_footnotes()
-    )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_meta_info <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header) |>
-    tail(3)
-
-  ## header
-  expect_equal(
-    docx_table_meta_info |> lapply(function(x) x |> xml2::xml_find_all(".//w:t") |> xml2::xml_text()),
-    list(
-      c("My Footnote"),
-      c("1", "My Footnote 2"),
-      c("My Source Note")
-    )
-  )
-
-  # TODO: fails due to PR#1268
-  expect_equal(
-    lapply(docx_table_meta_info, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> lapply(function(y) {
-        y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-      })}),
-    list(
-      list("A020F0"),
-      list(c("A020F0", "A020F0")),
-      list("FFA500")
-      )
-  )
-})
-
-test_that("footnotes styling gets applied to footer marks", {
-  check_suggests()
-
-  ## simple table
-  gt_exibble_min <-
-    exibble[1:2, ] |>
-    gt() |>
-    tab_footnote("My Footnote") |>
-    tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
-    opt_footnote_spec(spec_ftr = "(b)")
-
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-
-  # first note
-  expect_equal(
-    xml_text(xml_find_all(xml, ".//w:tr[last()-1]//w:t")),
-    "My Footnote"
-  )
-  expect_equal(length(xml_find_all(xml, ".//w:tr[last()-1]//w:b")), 0)
-
-  # second note
-  expect_equal(
-    xml_text(xml_find_all(xml, ".//w:tr[last()]//w:t")),
-    c("(1)", "My Footnote 2")
-  )
-  expect_equal(
-    xml_attr(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:vertAlign"), "val"),
-    "baseline"
-  )
-  expect_equal(
-    length(xml_find_all(xml, ".//w:tr[last()]//w:p//w:r[1]/w:rPr/w:b")),
-    1
-  )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_meta_info <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header) |>
-    tail(2)
-
-  ## footer
-  expect_equal(
-    docx_table_meta_info |> lapply(function(x) x |> xml2::xml_find_all(".//w:t") |> xml2::xml_text()),
-    list(
-      c("My Footnote"),
-      c("(1)", "My Footnote 2")
-    )
-  )
-
-  # Styling applied to bold text of footnote mark
-  style_bold <-
-    xml2::xml_find_all(
-      docx_table_meta_info[[2]],
-      ".//w:tc")[[1]]
-  style_bold <- as.character(
-    xml2::xml_find_all(style_bold, ".//w:rPr")[[1]]
-  )
-
-  expect_equal(
-    style_bold,
-    "<w:rPr>\n  <w:vertAlign w:val=\"baseline\"/>\n  <w:b/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
-  )
-})
-
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
   check_suggests()
   skip("summaries not implemented yet")
@@ -1812,675 +2124,4 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
          c("FFFF00", "", "", "")
          )
   )
-})
-
-test_that("tables preserves spaces in text & can be added to a word doc", {
-  skip_on_ci()
-  check_suggests()
-
-  ## simple table
-  gt_exibble <-
-    exibble[1, 1] |>
-    dplyr::mutate(
-      `5 Spaces Before` = "     Preserve",
-      `5 Spaces After` = "Preserve     ",
-      `5 Spaces Before - preserve` = "     Preserve",
-      `5 Spaces After - preserve` = "Preserve     ") |>
-    gt() |>
-    tab_style(
-      style = cell_text(whitespace = "pre"),
-      locations = cells_body(columns = contains("preserve"))
-    )
-
-  ## Add table to empty word document
-  word_doc_normal <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc_normal,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr")
-
-  ## text is preserved
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
-    ),
-    list(
-      c(
-        "num",
-        "5 Spaces Before",
-        "5 Spaces After",
-        "5 Spaces Before - preserve",
-        "5 Spaces After - preserve"
-      ),
-      c("0.1111", " Preserve", "Preserve ", "     Preserve", "Preserve     ")
-    )
-  )
-
-  ## text "space" is set to preserve only for last 2 body cols
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_attr((xml2::xml_find_all(x, ".//w:t")),"space")
-    ),
-    list(
-      c("default", "default", "default", "default", "default"),
-      c("default", "default", "default", "preserve","preserve")
-    )
-  )
-})
-
-test_that("tables respects column and cell alignment and can be added to a word doc", {
-
-  skip_on_ci()
-  check_suggests()
-
-  ## simple table
-  gt_exibble <-
-    exibble[1:2, 1:4] |>
-    `colnames<-`(c(
-      "wide column number 1",
-      "wide column number 2",
-      "wide column number 3",
-      "tcn4" #thin column number 4
-    )) |>
-    gt() |>
-    cols_align(
-      "right", columns = `wide column number 1`
-    ) |>
-    cols_align(
-      "left", columns = c(`wide column number 2`, `wide column number 3`)
-    ) |>
-    tab_style(
-      style = cell_text(align = "right"),
-      locations = cells_body(columns = c(`wide column number 2`, `wide column number 3`), rows = 2)
-    ) |>
-    tab_style(
-      style = cell_text(align = "left"),
-      locations = cells_body(columns = c(`wide column number 1`), rows = 2)
-    ) |>
-    tab_style(
-      cell_text(align = "right"),
-      locations = cells_column_labels(columns = c(tcn4))
-    )
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr")
-
-  ## text is preserved
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) xml2::xml_text(xml2::xml_find_all(x, ".//w:p"))
-    ),
-    list(
-      c(
-        "wide column number 1",
-        "wide column number 2",
-        "wide column number 3",
-        "tcn4"
-      ),
-      c("0.1111", "apricot", "one","2015-01-15"),
-      c("2.2220", "banana", "two","2015-02-15")
-    )
-  )
-
-  ## text "space" is set to preserve only for last 2 body cols
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x)
-        x |>
-        xml2::xml_find_all(".//w:pPr") |>
-        lapply(FUN = function(y) xml2::xml_attr(xml2::xml_find_all(y,".//w:jc"),"val"))
-    ),
-    list(
-      ## styling only on 1st and 4th column of header (stub and 3rd column) is right aligned
-      list("end", "start", "start", "end"),
-
-      ## styling as applied or as default from gt
-      list("end", "start", "start", "end"),
-      list("start", "end", "end", "end"))
-  )
-})
-
-test_that("markdown in the tables works out", {
-  skip_on_ci()
-  check_suggests()
-
-  text_1a <- "
-### This is Markdown.
-
-Markdown's syntax is comprised entirely of
-punctuation characters, which punctuation
-characters have been carefully chosen so as
-to look like what they mean... assuming
-you've ever used email.
-
-
-this is a line break test
-
-"
-
-  text_1b <- "
-Info on **Markdown** _syntax_ can `be found` at [a website](https://daringfireball.net/projects/markdown/).
-"
-
-  text_2a <- "
-- `countrypops`
-- `sza`
-    - indented col
-
-
-1. newval
-2. another val
-3. will this work
-"
-
-  text_2b <- "
-There's a quick reference [here](https://commonmark.org/help/).
-"
-
-  markdown_gt <- dplyr::tribble(
-    ~Markdown, ~md,
-    text_1a,   text_2a,
-    text_1b,   text_2b
-  ) |>
-    gt() |>
-    fmt_markdown(columns = everything()) |>
-    tab_footnote(
-      "This is text",
-      locations = cells_column_labels(columns = md)
-    )
-
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr")
-
-  ## text is preserved
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) {xml2::xml_find_all(x, ".//w:tc") |>
-        lapply(function(x) {xml2::xml_text(xml2::xml_find_all(x,".//w:p"))})
-      }
-    ),
-    list(
-      list("Markdown", "md1"),
-      list(c("This is Markdown.",
-             "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
-             "this is a line break test"),
-           c("- countrypops",
-             "- sza",
-             "  -   indented col",
-             "1.    newval",
-             "2.    another val",
-             "3.    will this work")
-           ),
-      list(
-        "Info on Markdown syntax can be found at a website.",
-        "There's a quick reference here."),
-      list(
-        "1This is text"))
-  )
-
-  ## check styling in first row first column (Header)
-  styling_cell_text <-
-    (
-      docx_table_body_contents[[2]] |>
-      xml2::xml_find_all(".//w:tc")
-    )[[1]] |>
-    xml2::xml_find_all(".//w:rPr")
-
-  expect_equal(
-    as.character(styling_cell_text),
-    c(
-      "<w:rPr>\n  <w:sz w:val=\"28\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
-    )
-  )
-
-  ## check styling in second row first column (bold, italics, code, and website url styling)
-  styling_cell_text <-
-    (
-      docx_table_body_contents[[3]] |>
-      xml2::xml_find_all(".//w:tc")
-    )[[1]] |>
-    xml2::xml_find_all(".//w:rPr")
-
-  expect_equal(
-    as.character(styling_cell_text),
-    c(
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:i/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rStyle w:val=\"Macro Text\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rStyle w:val=\"Hyperlink\"/>\n  <w:color w:val=\"0563C1\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
-    )
-  )
-})
-
-test_that("markdown with urls work", {
-  skip_on_ci()
-  check_suggests()
-
-  text_sample <- "
-  Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
-  "
-
-  markdown_gt <-
-    dplyr::tribble(
-      ~url,
-      text_sample
-    ) |>
-    gt() |>
-    fmt_markdown(columns = everything())
-
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_hyperlinks <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:hyperlink")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_hyperlinks, 2)
-  expect_match(xml_attr(docx_table_hyperlinks, "id"), "^rId\\d+$")
-
-  # first should be commonmark URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[1], "id")],
-    "https://commonmark.org/help/"
-  )
-
-  # second should be google URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[2], "id")],
-    "https://www.google.com"
-  )
-})
-
-test_that("markdown with img refs work", {
-  skip_on_ci()
-  check_suggests()
-
-  ref_png <- system.file("graphics", "test_image.png", package = "gt")
-  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
-
-  temp_png <- file.path(tempdir(),"test_image.png")
-  temp_svg <- file.path(tempdir(),"test_image.svg")
-
-  file.copy(ref_png, temp_png)
-  file.copy(ref_svg, temp_svg)
-
-  markdown_gt <- dplyr::tribble(
-    ~md,
-    paste0(" ![test image from gt package](",temp_png,")"),
-    paste0(" ![test image from gt package2](",temp_svg,")")
-    ) |>
-    gt() |>
-    fmt_markdown(columns = everything())
-
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 2)
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be a png
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
-  )
-
-  # second should be an svg
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
-})
-
-test_that("table with image refs work - local only", {
-
-  skip_on_ci()
-  check_suggests()
-
-  ref_png <- system.file("graphics", "test_image.png", package = "gt")
-  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
-  ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
-
-  temp_png <- file.path(tempdir(),"test_image.png")
-  temp_svg <- file.path(tempdir(),"test_image.svg")
-  temp_wide_svg <- file.path(tempdir(),"gt_parts_of_a_table.svg")
-
-  file.copy(ref_png, temp_png)
-  file.copy(ref_svg, temp_svg)
-  file.copy(ref_wide_svg, temp_wide_svg)
-
-  image_gt <- dplyr::tribble(
-    ~md,
-    paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-    temp_svg, # single image, square
-    ref_wide_svg # a wide image is respected
-  ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "2in")
-
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 4)
-
-  # Expect match has all = TRUE as a default
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be a png
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
-  )
-
-  # second should be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
-
-  # third should also be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[3], "embed")],
-    "media/testimage.svg"
-  )
-
-  # foruth should be an svg of gtpartsofatable
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[4], "embed")],
-    "media/gtpartsofatable.svg"
-  )
-
-  ## Check that the image h/w ratios are preserved
-  docx$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    sapply(function(x) {as.numeric(x[["cy"]])/as.numeric(x[["cx"]])}) |>
-    expect_equal(
-      c(1,1,1,0.627451),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
-})
-
-test_that("table with image refs work - https", {
-
-  skip_on_ci()
-  check_suggests()
-
-  https_image_gt <-
-    dplyr::tribble(
-      ~https_image,
-      "https://gt.rstudio.com/reference/figures/logo.svg"
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "2in")
-
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 1)
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be the logo.svg with some random numbers ahead of it
-  expect_length(
-    obj <- docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    1
-  )
-  expect_match(obj, "^media/.+?logo[.]svg$")
-})
-
-test_that("table with image refs work - local only - setting image widths and heights", {
-
-  skip_on_ci()
-  check_suggests()
-
-  ref_png <- system.file("graphics", "test_image.png", package = "gt")
-  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
-  ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
-
-  temp_png <- file.path(tempdir(),"test_image.png")
-  temp_svg <- file.path(tempdir(),"test_image.svg")
-  temp_wide_svg <- file.path(tempdir(),"gt_parts_of_a_table.svg")
-
-  file.copy(ref_png, temp_png)
-  file.copy(ref_svg, temp_svg)
-  file.copy(ref_wide_svg, temp_wide_svg)
-
-  image_gt_height_and_width <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "1in", width = "2in")
-
-  image_gt_height <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "2in")
-
-  image_gt_width <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", width = "1in")
-
-  temp_docx_1 <- tempfile(fileext = ".docx")
-  temp_docx_2 <- tempfile(fileext = ".docx")
-  temp_docx_3 <- tempfile(fileext = ".docx")
-
-  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
-  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
-  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx_1)
-    shell.exec(temp_docx_2)
-    shell.exec(temp_docx_3)
-  }
-
-  ## Check that the image h/w ratios are overwritten when both height and width are set
-  docx1 <- officer::read_docx(temp_docx_1)
-
-  docx1$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5)
-      ),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
-
-  ## Check that the image h/w ratios are preserved
-  docx2 <- officer::read_docx(temp_docx_2)
-
-  docx2$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "2914650", ratio = 0.627451)
-      ),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
-
-  ## Check that the image h/w ratios are preserved
-  docx3 <- officer::read_docx(temp_docx_3)
-
-  docx3$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]]) / as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "571500", width = "914400", ratio = 0.625)
-      )
-    )
-})
-
-test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
-
-  data <- dplyr::tibble(x = c(0.001, 0.01, 150), y = c("<", "%", ">"))
-
-  tbl <-
-    data |>
-    gt() |>
-    sub_small_vals() |>
-    sub_large_vals(threshold = 100)
-
-  xml <- as_word_ooxml(tbl)
-  expect_xml_snapshot(xml)
 })

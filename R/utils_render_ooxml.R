@@ -813,7 +813,6 @@ create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align
     keep_with_next = keep_with_next,
     align          = align
   )
-
   ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
     properties = ooxml_tbl_cell_properties(ooxml_type,
       borders  = list(
@@ -885,11 +884,10 @@ footnote_mark_to_ooxml_pptx <- function(data, mark, location = c("ref", "ftr")) 
   styles <- list()
   if (grepl("i", spec, fixed = TRUE)) styles[["i"]] <- "1"
   if (grepl("b", spec, fixed = TRUE)) styles[["b"]] <- "1"
+  if (grepl("^", spec, fixed = TRUE)) styles[["baseline"]] <- "30000"
 
   tags <- ooxml_tag("a:r",
-    ooxml_tag("a:rPr", baseline = if (grepl("^", spec, fixed = TRUE)) "30000" else "-30000",
-      !!!styles
-    ),
+    ooxml_tag("a:rPr", !!!styles),
     ooxml_tag("a:t", "xml:space" = "default", mark)
   )
   as.character(tags)

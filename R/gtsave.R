@@ -611,14 +611,11 @@ output:
     output = filename
   )
 
-  # if (needs_gt_as_word_post_processing(word_md_text)) {
-  #   gt_as_word_post_processing(path = filename)
-  # }
+  if (needs_gt_as_pptx_post_processing(md_text)) {
+    gt_as_pptx_post_processing(path = filename)
+  }
 
 }
-
-
-
 
 #' Get the lowercase extension from a filename
 #'
