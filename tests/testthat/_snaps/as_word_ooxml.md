@@ -601,7 +601,7 @@
       writeLines(as.character(xml))
     Output
       <w:t xml:space="default">x</w:t>
-      <w:t xml:space="default">&amp;lt;0.01</w:t>
+      <w:t xml:space="default">&lt;0.01</w:t>
       <w:t xml:space="default">0.01</w:t>
       <w:t xml:space="default">≥100</w:t>
 
