@@ -496,14 +496,31 @@ sub_small_vals <- function(
           context = "grid"
         )
       },
-      word = function(x) {
-
+      "ooxml/word" = function(x) {
         sub_replace_small_vals(
           x,
           threshold = threshold,
           sign = sign,
           small_pattern = small_pattern,
           context = "word"
+        )
+      },
+      "ooxml/pptx" = function(x) {
+        sub_replace_small_vals(
+          x,
+          threshold = threshold,
+          sign = sign,
+          small_pattern = small_pattern,
+          context = "ooxml/pptx"
+        )
+      },
+      word = function(x) {
+        sub_replace_small_vals(
+          x,
+          threshold = threshold,
+          sign = sign,
+          small_pattern = small_pattern,
+          context = "ooxml/word"
         )
       },
       default = function(x) {

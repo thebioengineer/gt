@@ -813,7 +813,6 @@ create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align
     keep_with_next = keep_with_next,
     align          = align
   )
-
   ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
     properties = ooxml_tbl_cell_properties(ooxml_type,
       borders  = list(
