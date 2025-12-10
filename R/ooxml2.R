@@ -940,8 +940,6 @@ process_ooxml__white_space_br_word <- function(x,
   x
 }
 
-# TODO: if this remains the same as the word version,
-#       modulo the a/w prefix, then merge them
 process_ooxml__white_space_br_pptx <- function(x,
   whitespace = NULL,
 
@@ -1122,6 +1120,7 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
       # add styles if not already present
       children <- xml_children(run_style)
       names    <- xml_name(children, ns = xml_ns(nodes))
+      attrs_names <- names(xml_attrs(run_style))
 
       if (!"latin" %in% names) {
         xml_add_child(run_style, "a:latin", "typeface" = font)
@@ -1135,19 +1134,19 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
         )
       }
 
-      if (identical(style, "italic")) {
+      if (!"i" %in% attrs_names && identical(style, "italic")) {
         xml_set_attr(run_style, "i", "1")
       }
 
-      if (identical(weight, "bold")) {
+      if (!"b" %in% attrs_names && identical(weight, "bold")) {
         xml_set_attr(run_style, "b", "1")
       }
 
       if (!is.null(stretch)) {
-        xml_set_attr(run_style, "spc", stretch_to_xml_stretch(stretch) * 1000 / 20)
+        xml_set_attr(run_style, "spc", stretch_to_xml_stretch(stretch) * 50)
       }
 
-      if (!is.null(size)) {
+      if (!"sz" %in% attrs_names && !is.null(size)) {
         xml_set_attr(run_style, "sz", size * 50)
       }
 
@@ -1468,7 +1467,7 @@ cmark_rules_ooxml_pptx <- list2(
     heading_sizes <- c(36, 32, 28, 24, 20, 16)
     fs <- heading_sizes[as.numeric(xml2::xml_attr(x, attr = "level"))]
     res <- as_xml_node(process(xml2::xml_children(x)), create_ns = TRUE, ooxml_type = "pptx")
-    xml_set_attr(xml_find_all(res, ".//a:rPr"), "sz", fs * 100)
+    xml_set_attr(xml_find_all(res, ".//a:rPr"), "sz", fs * 50)
     glue::glue('<a:p><a:pPr/>{as.character(res)}</a:p>')
   },
 
@@ -1497,9 +1496,10 @@ cmark_rules_ooxml_pptx <- list2(
       paste0(li_content, collapse = "")
     })
     paste(content, collapse = "")
+  },
+  softbreak = function(x, process, ...) {
+    glue::glue('<a:r><a:t xml:space="preserve"> </a:t></a:r>')
   }
-
-
 
   #------- TODO: later
   #,
@@ -1537,9 +1537,6 @@ cmark_rules_ooxml_pptx <- list2(
   # },
   #
   # ## line breaks
-  # softbreak = function(x, process, ...) {
-  #   xml_br(clear = "right")
-  # },
   # linebreak = function(x, process, ...) {
   #   xml_br()
   # },

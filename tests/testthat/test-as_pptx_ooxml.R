@@ -81,7 +81,7 @@ test_that("process_text() handles ooxml/pptx", {
   xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
   expect_equal(length(xml_find_all(xml, ".//a:p")), 1)
   expect_equal(xml_text(xml_find_all(xml, ".//a:t")), "This is Markdown.")
-  expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr"), "sz"), "2800")
+  expect_equal(xml_attr(xml_find_all(xml, ".//a:rPr"), "sz"), "1400")
 
   # list
   txt <- glue::glue('
@@ -117,6 +117,10 @@ test_that("process_text() handles ooxml/pptx", {
     rep("arabicPeriod", 3)
   )
 
+  # softbreak
+  txt <- 'yada\nyada\nyada'
+  xml <- read_xml_pptx_nodes(process_text(md(txt), context = "ooxml/pptx"))
+  expect_equal(length(xml_find_all(xml, ".//a:r/a:t[text() = ' ']")), 2)
 })
 
 test_that("pptx ooxml can be generated from gt object", {
@@ -1447,93 +1451,49 @@ There's a quick reference [here](https://commonmark.org/help/).
       locations = cells_column_labels(columns = md)
     )
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table contents
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr")
-
-  ## text is preserved
-  expect_equal(
-    lapply(
-      docx_table_body_contents,
-      FUN = function(x) {xml2::xml_find_all(x, ".//w:tc") |>
-        lapply(function(x) {xml2::xml_text(xml2::xml_find_all(x,".//w:p"))})
-      }
-    ),
-    list(
-      list("Markdown", "md1"),
-      list(c("This is Markdown.",
-             "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
-             "this is a line break test"),
-           c("- countrypops",
-             "- sza",
-             "  -   indented col",
-             "1.    newval",
-             "2.    another val",
-             "3.    will this work")
-           ),
-      list(
-        "Info on Markdown syntax can be found at a website.",
-        "There's a quick reference here."),
-      list(
-        "1This is text"))
-  )
-
-  ## check styling in first row first column (Header)
-  styling_cell_text <-
-    (
-      docx_table_body_contents[[2]] |>
-      xml2::xml_find_all(".//w:tc")
-    )[[1]] |>
-    xml2::xml_find_all(".//w:rPr")
-
-  expect_equal(
-    as.character(styling_cell_text),
-    c(
-      "<w:rPr>\n  <w:sz w:val=\"28\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+  res <- lapply(xml_find_all(slide, ".//a:tc"), function(tc) {
+    xml_text(xml_find_all(tc, ".//a:p"))
+  })
+  expected <- list(
+      "Markdown",
+      "md1",
+      c("This is Markdown.",
+        "Markdown's syntax is comprised entirely of punctuation characters, which punctuation characters have been carefully chosen so as to look like what they mean... assuming you've ever used email.",
+        "this is a line break test"
+      ),
+      c("countrypops", "sza", "indented col", "newval", "another val", "will this work"),
+      "Info on Markdown syntax can be found at https://daringfireball.net/projects/markdown/.",
+      "There's a quick reference https://commonmark.org/help/.",
+      "1This is text"
     )
-  )
-
-  ## check styling in second row first column (bold, italics, code, and website url styling)
-  styling_cell_text <-
-    (
-      docx_table_body_contents[[3]] |>
-      xml2::xml_find_all(".//w:tc")
-    )[[1]] |>
-    xml2::xml_find_all(".//w:rPr")
+  expect_equal(res, expected)
 
   expect_equal(
-    as.character(styling_cell_text),
-    c(
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:b w:val=\"true\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:i/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rStyle w:val=\"Macro Text\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rStyle w:val=\"Hyperlink\"/>\n  <w:color w:val=\"0563C1\"/>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>",
-      "<w:rPr>\n  <w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\"/>\n  <w:sz w:val=\"20\"/>\n</w:rPr>"
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "i"),
+    rep(c(NA, "1", NA, "1", NA, "1", NA), c(2L, 1L, 16L, 1L, 8L, 1L, 1L))
+  )
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "b"),
+    rep(c(NA, "1", NA), c(17L, 1L, 12L))
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr"), "sz"),
+    rep(c("1000", "1400", "1000", NA, "1000"), c(3L, 1L, 24L, 1L, 1L))
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(slide, ".//a:tc//a:rPr/a:latin"), "typeface"),
+    rep(
+      c("Calibri", "Consolas", "Calibri", "Consolas", "Calibri", "Consolas", "Calibri"),
+      c(10L, 1L, 1L, 1L, 10L, 1L, 8L)
     )
   )
 })
@@ -1884,6 +1844,9 @@ test_that("table with image refs work - local only - setting image widths and he
       )
     )
 })
+
+
+# skipped -----------------------------------------------------------------
 
 skip("in progress")
 
