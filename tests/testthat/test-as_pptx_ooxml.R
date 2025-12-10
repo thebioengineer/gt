@@ -1502,9 +1502,7 @@ test_that("markdown with urls work", {
   skip_on_ci()
   check_suggests()
 
-  text_sample <- "
-  Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
-  "
+  text_sample <- "Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)"
 
   markdown_gt <-
     dplyr::tribble(
@@ -1514,36 +1512,16 @@ test_that("markdown with urls work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_hyperlinks <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:hyperlink")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_hyperlinks, 2)
-  expect_match(xml_attr(docx_table_hyperlinks, "id"), "^rId\\d+$")
-
-  # first should be commonmark URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[1], "id")],
-    "https://commonmark.org/help/"
-  )
-
-  # second should be google URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[2], "id")],
-    "https://www.google.com"
-  )
+  # For now hyperlink are just styled
+  expect_equal(length(xml_find_all(xml_find_all(slide, ".//a:r")[c(3, 5)], ".//a:u")), 2)
+  expect_equal(xml_attr(xml_find_all(slide, ".//a:r//a:srgbClr"), "val"), c("0563C1", "0563C1"))
 })
 
 test_that("markdown with img refs work", {
@@ -1567,44 +1545,21 @@ test_that("markdown with img refs work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(markdown_gt, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 2)
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be a png
   expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
+    gsub("(^image:)(.*)/(test_image[.].*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:3]),
+    c("image: test_image.png","image: test_image.svg")
   )
 
-  # second should be an svg
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
 })
 
 test_that("table with image refs work - local only", {
-
   skip_on_ci()
   check_suggests()
 
@@ -1629,64 +1584,17 @@ test_that("table with image refs work - local only", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(image_gt, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 4)
-
-  # Expect match has all = TRUE as a default
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be a png
   expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
+    gsub("(^image:)(.*)/.*/([^/]*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:5]),
+    c("image: test_image.png", "image: test_image.svg", "image: test_image.svg","image: gt_parts_of_a_table.svg")
   )
-
-  # second should be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
-
-  # third should also be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[3], "embed")],
-    "media/testimage.svg"
-  )
-
-  # foruth should be an svg of gtpartsofatable
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[4], "embed")],
-    "media/gtpartsofatable.svg"
-  )
-
-  ## Check that the image h/w ratios are preserved
-  docx$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    sapply(function(x) {as.numeric(x[["cy"]])/as.numeric(x[["cx"]])}) |>
-    expect_equal(
-      c(1,1,1,0.627451),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
 })
 
 test_that("table with image refs work - https", {
@@ -1702,149 +1610,19 @@ test_that("table with image refs work - https", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
+  temp_pptx_file <- tempfile(fileext = ".pptx")
+  gtsave(https_image_gt, temp_pptx_file, align = "center")
 
   ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
+  pptx <- officer::read_pptx(temp_pptx_file)
+  slide <- pptx$slide$get_slide(1)$get()
 
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
-
-  ## extract table hyperlinks
-  docx_table_image <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//a:blip")
-
-  ## hyperlinks are preserved and updated to be rId
-  expect_length(docx_table_image, 1)
-  expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
-
-  # first should be the logo.svg with some random numbers ahead of it
-  expect_length(
-    obj <- docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    1
+  expect_equal(
+    gsub("(^image:) (.*)$", "\\1 \\2", xml_text(xml_find_all(slide, ".//a:t")))[2],
+    "image: https://gt.rstudio.com/reference/figures/logo.svg"
   )
-  expect_match(obj, "^media/.+?logo[.]svg$")
+
 })
-
-test_that("table with image refs work - local only - setting image widths and heights", {
-
-  skip_on_ci()
-  check_suggests()
-
-  ref_png <- system.file("graphics", "test_image.png", package = "gt")
-  ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
-  ref_wide_svg <- system.file("graphics", "gt_parts_of_a_table.svg", package = "gt")
-
-  temp_png <- file.path(tempdir(),"test_image.png")
-  temp_svg <- file.path(tempdir(),"test_image.svg")
-  temp_wide_svg <- file.path(tempdir(),"gt_parts_of_a_table.svg")
-
-  file.copy(ref_png, temp_png)
-  file.copy(ref_svg, temp_svg)
-  file.copy(ref_wide_svg, temp_wide_svg)
-
-  image_gt_height_and_width <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "1in", width = "2in")
-
-  image_gt_height <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", height = "2in")
-
-  image_gt_width <-
-    dplyr::tribble(
-      ~md,
-      paste0(c(temp_png,temp_svg), collapse = ", "), ## two images next to each other
-      temp_svg, # single image, square
-      ref_wide_svg # a wide image is respected
-    ) |>
-    gt() |>
-    fmt_image(columns = everything(), sep = ",", width = "1in")
-
-  temp_docx_1 <- tempfile(fileext = ".docx")
-  temp_docx_2 <- tempfile(fileext = ".docx")
-  temp_docx_3 <- tempfile(fileext = ".docx")
-
-  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
-  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
-  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx_1)
-    shell.exec(temp_docx_2)
-    shell.exec(temp_docx_3)
-  }
-
-  ## Check that the image h/w ratios are overwritten when both height and width are set
-  docx1 <- officer::read_docx(temp_docx_1)
-
-  docx1$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5),
-        list(height = "914400", width = "1828800", ratio = 0.5)
-      ),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
-
-  ## Check that the image h/w ratios are preserved
-  docx2 <- officer::read_docx(temp_docx_2)
-
-  docx2$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "1828800", ratio = 1),
-        list(height = "1828800", width = "2914650", ratio = 0.627451)
-      ),
-      tolerance = .0000001 ## check out to 6 decimals for the ratio
-    )
-
-  ## Check that the image h/w ratios are preserved
-  docx3 <- officer::read_docx(temp_docx_3)
-
-  docx3$doc_obj$get() |>
-    xml2::xml_find_all(".//wp:extent") |>
-    xml2::xml_attrs() |>
-    lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]]) / as.numeric(x[["cx"]]))}) |>
-    expect_equal(
-      list(
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "914400", width = "914400", ratio = 1),
-        list(height = "571500", width = "914400", ratio = 0.625)
-      )
-    )
-})
-
 
 # skipped -----------------------------------------------------------------
 

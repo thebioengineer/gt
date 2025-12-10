@@ -1266,7 +1266,8 @@ to_tags <- function(nodeset) {
 
 fmt_image_ooxml <- function(ooxml_type, x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
   switch_ooxml(ooxml_type,
-    word = fmt_image_ooxml_word(x, height = height, width = width, file_pattern = file_pattern, path = path)
+    word = fmt_image_ooxml_word(x, height = height, width = width, file_pattern = file_pattern, path = path),
+    pptx = fmt_image_ooxml_pptx(x, height = height, width = width, file_pattern = file_pattern, path = path)
   )
 }
 
@@ -1362,6 +1363,67 @@ fmt_image_ooxml_word <- function(x, height = NULL, width = NULL, file_pattern = 
   x_str
 }
 
+fmt_image_ooxml_pptx <- function(x, height = NULL, width = NULL, file_pattern = NULL, path = NULL) {
+  x_str <- character(length(x))
+  x_str_non_missing <- x[!is.na(x)]
+
+  x_str_non_missing <-
+    vapply(
+      seq_along(x_str_non_missing),
+      FUN.VALUE = character(1L),
+      USE.NAMES = FALSE,
+      FUN = function(x) {
+
+        if (grepl(",", x_str_non_missing[x], fixed = TRUE)) {
+          files <- unlist(strsplit(x_str_non_missing[x], ",\\s*"))
+        } else {
+          files <- x_str_non_missing[x]
+        }
+
+        # Handle formatting of `file_pattern`
+        files <- apply_pattern_fmt_x(pattern = file_pattern, values = files)
+
+        out <- list()
+
+        out <- lapply(seq_along(files), function(y) {
+          # Handle case where the image is online
+          if ((!is.null(path) && grepl("https?://", path)) || grepl("https?://", files[y])) {
+
+            if (!is.null(path)) {
+
+              # Normalize ending of `path`
+              path <- gsub("/\\s+$", "", path)
+              uri <- paste0(path, "/", files[y])
+
+            } else {
+              uri <- files[y]
+            }
+
+            filename <- uri
+
+          } else {
+
+            # Compose and normalize the local file path
+            filename <- gtsave_filename(path = path, filename = files[y])
+            filename <- path_expand(filename)
+          }
+
+          ooxml_tag("a:r",
+            ooxml_tag("a:rPr"),
+            ooxml_tag("a:t", paste0("image: ", filename))
+          )
+        })
+
+        p <- ooxml_tag("a:p", ooxml_tag("a:pPr"), !!!out)
+        paste0("<md_container>", as.character(p), "</md_container>")
+      }
+    )
+
+  x_str[!is.na(x)] <- x_str_non_missing
+  x_str[is.na(x)] <- NA_character_
+
+  x_str
+}
 
 # markdown to ooxml ----------------------------------------------------
 
@@ -1439,7 +1501,8 @@ cmark_rules_ooxml_pptx <- list2(
     as.character(res)
   },
   image = function(x, process, ...) {
-    cli::cli_abort("image is not yet supported in pptx")
+    destination <- xml_attr(x, "destination")
+    glue::glue('<a:r><a:rPr/><a:t xml:space = "preserve">image: {destination}</a:t></a:r>')
   },
   code = function(x, process, ...) {
     txt <- xml2::xml_text(x)
