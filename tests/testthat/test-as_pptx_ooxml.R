@@ -1392,12 +1392,14 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
 
   xml <- read_xml_pptx_nodes(as_pptx_ooxml(tbl))
 
-  expect_xml_snapshot(
-    xml_find_all(xml, ".//a:tc[1]//a:t")
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//a:tc[1]//a:t")),
+    c("x", "<0.01", "0.01", "\U{2265}100")
   )
 
-  expect_xml_snapshot(
-    xml_find_all(xml, ".//a:tc[2]//a:t")
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//a:tc[2]//a:t")),
+    c("y", "<", "%", ">")
   )
 
 })

@@ -842,23 +842,3 @@
         </a:r>
       </a:p>
 
-# sub_small_vals() and sub_large_vals() are properly encoded
-
-    Code
-      writeLines(as.character(xml))
-    Output
-      <a:t xml:space="default">x</a:t>
-      <a:t xml:space="default">&lt;0.01</a:t>
-      <a:t xml:space="default">0.01</a:t>
-      <a:t xml:space="default">≥100</a:t>
-
----
-
-    Code
-      writeLines(as.character(xml))
-    Output
-      <a:t xml:space="default">y</a:t>
-      <a:t xml:space="default">&lt;</a:t>
-      <a:t xml:space="default">%</a:t>
-      <a:t xml:space="default">&gt;</a:t>
-
