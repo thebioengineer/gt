@@ -2412,14 +2412,15 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
 
   xml <- read_xml_word_nodes(as_word_ooxml(tbl))
 
-  expect_xml_snapshot(
-    xml_find_all(xml, ".//w:tc[1]//w:t")
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tc[1]//w:t")),
+    c("x", "<0.01", "0.01", "\U{2265}100")
   )
 
-  expect_xml_snapshot(
-    xml_find_all(xml, ".//w:tc[2]//w:t")
+  expect_equal(
+    xml_text(xml_find_all(xml, ".//w:tc[2]//w:t")),
+    c("y", "<", "%", ">")
   )
-
 })
 
 test_that("tables with summaries can be added to a word doc", {

@@ -595,23 +595,3 @@
       {xml_nodeset (1)}
       [1] <w:t xml:space="default">p &lt; .05, &gt;&lt;&amp; "'</w:t>
 
-# sub_small_vals() and sub_large_vals() are properly encoded
-
-    Code
-      writeLines(as.character(xml))
-    Output
-      <w:t xml:space="default">x</w:t>
-      <w:t xml:space="default">&lt;0.01</w:t>
-      <w:t xml:space="default">0.01</w:t>
-      <w:t xml:space="default">≥100</w:t>
-
----
-
-    Code
-      writeLines(as.character(xml))
-    Output
-      <w:t xml:space="default">y</w:t>
-      <w:t xml:space="default">&lt;</w:t>
-      <w:t xml:space="default">%</w:t>
-      <w:t xml:space="default">&gt;</w:t>
-
