@@ -314,8 +314,7 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_wit
     )
   })
 
-  tagList(!!!footnote_rows)
-
+  tagList3(!!!footnote_rows)
 }
 
 
@@ -628,9 +627,9 @@ create_table_rows_ooxml <- function(ooxml_type, data, split = FALSE, keep_with_n
   for (i in seq_len(nrow(body))) {
     rows <- list3(
       create_group_heading_row_ooxml(ooxml_type, data, i, split = split, keep_with_next = keep_with_next),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "top", keep_with_next = keep_with_next),
+      create_summary_section_row_ooxml(ooxml_type, data, i, "top", split = split, keep_with_next = keep_with_next),
       create_body_row_ooxml(ooxml_type, data, i, split = split, keep_with_next = keep_with_next, hierarchical_stub_info = hierarchical_stub_info),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom", keep_with_next = keep_with_next)
+      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom", split = split, keep_with_next = keep_with_next)
     )
     out <- append(out, rows)
   }
@@ -681,7 +680,7 @@ create_group_heading_row_ooxml <- function(ooxml_type, data, i, split = FALSE, k
   )
 }
 
-create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top", "bottom"), keep_with_next = TRUE) {
+create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top", "bottom"), keep_with_next = TRUE, split = FALSE) {
   styles_tbl <- dt_styles_get(data = data)
   summaries_present <- dt_summary_exists(data = data)
   groups_rows_df <- dt_groups_rows_get(data = data)
@@ -703,27 +702,68 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
     return(NULL)
   }
 
+  boxh <- dt_boxhead_get(data = data)
+
+  list_of_summaries <- dt_summary_df_get(data = data)
+  table_body_hlines_color <- dt_options_get_value(data = data, option = "table_body_hlines_color")
+  table_body_vlines_color <- dt_options_get_value(data = data, option = "table_body_vlines_color")
+
   summary_styles <- vctrs::vec_slice(styles_tbl,
     styles_tbl$locname %in% c("summary_cells") &
     styles_tbl$grpname %in% group_info[["group_id"]]
   )
   summary_styles$rownum <- ceiling(summary_styles$rownum * 100 - i * 100)
 
-  # summary_section <- summary_rows_xml(
-  #   list_of_summaries = list_of_summaries,
-  #   boxh = boxh,
-  #   group_id = group_info[["group_id"]],
-  #   locname = "summary_cells",
-  #   col_alignment = col_alignment,
-  #   table_body_hlines_color = table_body_hlines_color,
-  #   table_body_vlines_color = table_body_vlines_color,
-  #   styles = summary_styles,
-  #   split = split,
-  #   keep_with_next = keep_with_next
-  # )
-  # summary_section
+  # Obtain all of the visible (`"default"`), non-stub column names
+  # for the table from the `boxh` object
+  default_vars <- boxh[boxh$type == "default", "var", drop = TRUE]
 
-  NULL
+  group_id <- group_info[["group_id"]]
+  if (!group_id %in% names(list_of_summaries$summary_df_display_list)) {
+    return(NULL)
+  }
+
+  summary_df <- dplyr::select(
+    list_of_summaries$summary_df_display_list[[group_id]],
+    dplyr::all_of(c(rowname_col_private, default_vars))
+  )
+
+  rows <- lapply(seq_len(nrow(summary_df)), function(j) {
+
+    df_row_j <- unname(unlist(summary_df[j, ]))
+    cells <- lapply(seq_along(df_row_j), function(y) {
+
+      cell_style <- dplyr::filter(
+        summary_styles,
+        rownum == j, colnum == y - 1
+      )
+      cell_style <- cell_style$styles[1L][[1L]]
+
+      content <- process_cell_content_ooxml(ooxml_type, df_row_j[y],
+        cell_style     = cell_style,
+        keep_with_next = keep_with_next
+      )
+      ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+        properties = ooxml_tbl_cell_properties(ooxml_type,
+          borders  = list(
+            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            left   = list(color = table_body_vlines_color),
+            right  = list(color = table_body_vlines_color)
+          ),
+          fill     = cell_style[["cell_fill"]][["color"]],
+          v_align  = cell_style[["cell_text"]][["v_align"]],
+          margins  = list(
+            top = list(width = 50)
+          )
+        )
+      )
+    })
+    ooxml_tbl_row(ooxml_type, split = split, is_header = FALSE, !!!cells)
+  })
+
+  tagList3(!!!rows)
+
 }
 
 

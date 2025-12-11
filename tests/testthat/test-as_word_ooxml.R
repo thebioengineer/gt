@@ -2422,11 +2422,8 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
 
 })
 
-skip("in progress")
-
 test_that("tables with summaries can be added to a word doc", {
   check_suggests()
-  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -2444,77 +2441,51 @@ test_that("tables with summaries can be added to a word doc", {
       fmt = list(~ fmt_number(.))
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
 
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## "" at beginning for stubheader
+  avg_row <- xml_find_all(xml, './/w:t[text() = "avg"]/../../../..')
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("", "num", "char", "currency")
+    xml_text(xml_find_all(avg_row, './/w:t')),
+    c("avg", "120.02", "\U{2014}", "\U{2014}", "avg", "3,220,850.00", "\U{2014}","\U{2014}")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row, './/w:tcBorders/w:top'), "sz"),
+    rep("16", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("2", 8)
   )
 
+  total_row <- xml_find_all(xml, './/w:t[text() = "total"]/../../../..')
   expect_equal(
-    lapply(
-      docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
-    list(
-      "grp_a",
-      c("row_1", "1.111e-01", "apricot", "49.950"),
-      c("row_2", "2.222e+00", "banana", "17.950"),
-      c("row_3", "3.333e+01", "coconut", "1.390"),
-      c("row_4", "4.444e+02", "durian", "65100.000"),
-      c("avg", "120.02", "—", "—"),
-      c("total", "480.06", "—", "—"),
-      c("s.d.", "216.79", "—", "—"),
-      "grp_b",
-      c("row_5", "5.550e+03", "NA", "1325.810"),
-      c("row_6", "NA", "fig", "13.255"),
-      c("row_7", "7.770e+05", "grapefruit", "NA"),
-      c("row_8", "8.880e+06", "honeydew", "0.440"),
-      c("avg", "3,220,850.00", "—", "—"),
-      c("total", "9,662,550.00", "—", "—"),
-      c("s.d.", "4,916,123.25", "—", "—")
-    )
+    xml_text(xml_find_all(total_row, './/w:t')),
+    c("total", "480.06", "\U{2014}", "\U{2014}", "total", "9,662,550.00","\U{2014}", "\U{2014}")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row, './/w:tcBorders/w:top'), "sz"),
+    rep("2", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("2", 8)
+  )
+
+  sd_row <- xml_find_all(xml, './/w:t[text() = "s.d."]/../../../..')
+  expect_equal(
+    xml_text(xml_find_all(sd_row, './/w:t')),
+    c("s.d.", "216.79", "\U{2014}", "\U{2014}", "s.d.", "4,916,123.25", "\U{2014}","\U{2014}")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row, './/w:tcBorders/w:top'), "sz"),
+    rep("2", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("16", 8)
   )
 
   ## Now place the summary on the top
-
-  ## simple table
   gt_exibble_min_top <-
     exibble |>
     dplyr::select(-c(fctr, date, time, datetime)) |>
@@ -2530,76 +2501,55 @@ test_that("tables with summaries can be added to a word doc", {
       fmt = list(~ fmt_number(.)),
       side = "top"
     )
+  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min_top))
 
-  ## Add table to empty word document
-  word_doc_top <-
-    officer::read_docx() |>
-    body_add_gt(
-      gt_exibble_min_top,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file_top <- tempfile(fileext = ".docx")
-  print(word_doc_top,target = temp_word_file_top)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file_top)
-  }
-
-  ## Programmatic Review
-  docx_top <- officer::read_docx(temp_word_file_top)
-
-  ## get docx table contents
-  docx_contents_top <-
-    docx_top$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header_top <-
-    docx_contents_top[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents_top <-
-    docx_contents_top[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header_top)
-
-  ## "" at beginning for stub header
+  avg_row <- xml_find_all(xml, './/w:t[text() = "avg"]/../../../..')
   expect_equal(
-    docx_table_body_header_top |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c( "", "num", "char", "currency")
+    xml_text(xml_find_all(avg_row, './/w:t')),
+    c("avg", "120.02", "\U{2014}", "\U{2014}", "avg", "3,220,850.00", "\U{2014}","\U{2014}")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row, './/w:tcBorders/w:top'), "sz"),
+    rep("16", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("2", 8)
   )
 
+  total_row <- xml_find_all(xml, './/w:t[text() = "total"]/../../../..')
   expect_equal(
-    lapply(
-      docx_table_body_contents_top, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
-    list(
-      "grp_a",
-      c("avg", "120.02", "—", "—"),
-      c("total", "480.06", "—", "—"),
-      c("s.d.", "216.79", "—", "—"),
-      c("row_1", "1.111e-01", "apricot", "49.950"),
-      c("row_2", "2.222e+00", "banana", "17.950"),
-      c("row_3", "3.333e+01", "coconut", "1.390"),
-      c("row_4", "4.444e+02", "durian", "65100.000"),
-      "grp_b",
-      c("avg", "3,220,850.00", "—", "—"),
-      c("total", "9,662,550.00", "—", "—"),
-      c("s.d.", "4,916,123.25", "—", "—"),
-      c("row_5", "5.550e+03", "NA", "1325.810"),
-      c("row_6", "NA", "fig", "13.255"),
-      c("row_7", "7.770e+05", "grapefruit", "NA"),
-      c("row_8", "8.880e+06", "honeydew", "0.440")
-    )
+    xml_text(xml_find_all(total_row, './/w:t')),
+    c("total", "480.06", "\U{2014}", "\U{2014}", "total", "9,662,550.00","\U{2014}", "\U{2014}")
   )
+  expect_equal(
+    xml_attr(xml_find_all(total_row, './/w:tcBorders/w:top'), "sz"),
+    rep("2", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("2", 8)
+  )
+
+  sd_row <- xml_find_all(xml, './/w:t[text() = "s.d."]/../../../..')
+  expect_equal(
+    xml_text(xml_find_all(sd_row, './/w:t')),
+    c("s.d.", "216.79", "\U{2014}", "\U{2014}", "s.d.", "4,916,123.25", "\U{2014}","\U{2014}")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row, './/w:tcBorders/w:top'), "sz"),
+    rep("2", 8)
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row, './/w:tcBorders/w:bottom'), "sz"),
+    rep("16", 8)
+  )
+
 })
+
+# skipped tests -----------------------------------------------------------
+
+skip("in progress")
 
 test_that("tables with grand summaries but no rownames can be added to a word doc", {
   check_suggests()
