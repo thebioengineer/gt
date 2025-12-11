@@ -1753,7 +1753,6 @@ test_that("tables with summaries can be added to a pptx doc", {
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
   check_suggests()
-  skip("summaries not implemented yet")
 
   ## simple table
   gt_exibble_min <-
@@ -1874,13 +1873,8 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 
 })
 
-# skipped -----------------------------------------------------------------
-
-skip("in progress")
-
-test_that("tables with grand summaries but no rownames can be added to a word doc", {
+test_that("tables with grand summaries but no rownames can be added to a pptx doc", {
   check_suggests()
-  skip("grand summaries not yet implemented")
 
   ## simple table
   gt_exibble_min <-
@@ -1893,53 +1887,17 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       fns = c("Total" = ~length(.))
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
 
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## "" at beginning for stubheader
   expect_equal(
-    docx_table_body_header |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
+    xml_text(xml_find_all(xml, ".//a:tr[1]//a:p")),
     c( "", "num", "char", "currency")
   )
 
   expect_equal(
-    lapply(docx_table_body_contents, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()),
+    lapply(2: 5, function(i) {
+      xml_text(xml_find_all(xml, glue::glue(".//a:tr[{i}]//a:p")))
+    }),
     list(
       c("", "0.1111", "apricot", "49.95"),
       c("", "2.2220", "banana", "17.95"),
@@ -1959,60 +1917,21 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       fns = c("Total" = ~length(.)),
       side = "top"
     )
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min_top))
 
-  ## Add table to empty word document
-  word_doc_top <-
-    officer::read_docx() |>
-    body_add_gt(
-      gt_exibble_min_top,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file_top <- tempfile(fileext = ".docx")
-  print(word_doc_top, target = temp_word_file_top)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file_top)
-  }
-
-  ## Programmatic Review
-  docx_top <- officer::read_docx(temp_word_file_top)
-
-  ## get docx table contents
-  docx_contents_top <-
-    docx_top$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  ## extract table contents
-  docx_table_body_header_top <-
-    docx_contents_top[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents_top <-
-    docx_contents_top[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header_top)
-
-  ## "" at beginning for stubheader
   expect_equal(
-    docx_table_body_header_top |>
-      xml2::xml_find_all(".//w:p") |>
-      xml2::xml_text(),
-    c("", "num", "char", "currency")
+    xml_text(xml_find_all(xml, ".//a:tr[1]//a:p")),
+    c( "", "num", "char", "currency")
   )
 
   expect_equal(
-    lapply(
-      docx_table_body_contents_top, function(x)
-      x |> xml2::xml_find_all(".//w:p") |> xml2::xml_text()
-    ),
+    lapply(2: 5, function(i) {
+      xml_text(xml_find_all(xml, glue::glue(".//a:tr[{i}]//a:p")))
+    }),
     list(
-      c("Total", "3","—", "3"),
+      c("Total", "3", "—", "3"),
       c("", "0.1111", "apricot", "49.95"),
-      c("", "2.2220", "banana","17.95"),
+      c("", "2.2220", "banana", "17.95"),
       c("", "33.3300", "coconut", "1.39")
     )
   )
