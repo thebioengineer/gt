@@ -1751,6 +1751,129 @@ test_that("tables with summaries can be added to a pptx doc", {
 
 })
 
+test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
+  check_suggests()
+  skip("summaries not implemented yet")
+
+  ## simple table
+  gt_exibble_min <-
+    exibble |>
+    dplyr::select(-c(fctr, date, time, datetime)) |>
+    gt(rowname_col = "row", groupname_col = "group") |>
+    summary_rows(
+      groups = everything(),
+      columns = num,
+      fns = list(
+        avg = ~mean(., na.rm = TRUE),
+        total = ~sum(., na.rm = TRUE),
+        s.d. = ~sd(., na.rm = TRUE)
+      ),
+      fmt = list(~ fmt_number(.))
+    ) |>
+    grand_summary_rows(
+      columns = num,
+      fns = list(
+        avg = ~mean(., na.rm = TRUE),
+        total = ~sum(., na.rm = TRUE),
+        s.d. = ~sd(., na.rm = TRUE)
+      ),
+      fmt = list(~ fmt_number(.))
+    ) |>
+    tab_style(
+      style = cell_text(color = "orange"),
+      locations = cells_summary(groups = "grp_a", columns = char)
+    ) |>
+    tab_style(
+      style = cell_text(color = "green"),
+      locations = cells_stub_summary()
+    ) |>
+    tab_style(
+      style = cell_text(color = "purple"),
+      locations = cells_grand_summary(columns = num, rows = 3)
+    ) |>
+    tab_style(
+      style = cell_fill(color = "yellow"),
+      locations = cells_stub_grand_summary()
+    )
+
+  xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+
+  avg_row <- xml_find_all(xml, './/a:t[text() = "avg"]/../../../../..')
+  expect_equal(
+    xml_attr(xml_find_all(avg_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("00FF00", "00FF00")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row[3], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(avg_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("FFA500")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+  expect_equal(
+    xml_attr(xml_find_all(avg_row[3], './/a:tc[1]//a:tcPr/a:solidFill/a:srgbClr'), "val"),
+    "FFFF00"
+  )
+
+  total_row <- xml_find_all(xml, './/a:t[text() = "total"]/../../../../..')
+  expect_equal(
+    xml_attr(xml_find_all(total_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("00FF00", "00FF00")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row[3], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(total_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("FFA500")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+  expect_equal(
+    xml_attr(xml_find_all(total_row[3], './/a:tc[1]//a:tcPr/a:solidFill/a:srgbClr'), "val"),
+    "FFFF00"
+  )
+
+
+  sd_row <- xml_find_all(xml, './/a:t[text() = "s.d."]/../../../../..')
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("00FF00", "00FF00")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[3], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    c("FFA500")
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    character()
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[3], './/a:tc[1]//a:tcPr/a:solidFill/a:srgbClr'), "val"),
+    "FFFF00"
+  )
+  expect_equal(
+    xml_attr(xml_find_all(sd_row[3], './/a:tc[2]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    "A020F0"
+  )
+
+})
+
 # skipped -----------------------------------------------------------------
 
 skip("in progress")
@@ -1892,184 +2015,5 @@ test_that("tables with grand summaries but no rownames can be added to a word do
       c("", "2.2220", "banana","17.95"),
       c("", "33.3300", "coconut", "1.39")
     )
-  )
-})
-
-test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
-  check_suggests()
-  skip("summaries not implemented yet")
-
-  ## simple table
-  gt_exibble_min <-
-    exibble |>
-    dplyr::select(-c(fctr, date, time, datetime)) |>
-    gt(rowname_col = "row", groupname_col = "group") |>
-    summary_rows(
-      groups = everything(),
-      columns = num,
-      fns = list(
-        avg = ~mean(., na.rm = TRUE),
-        total = ~sum(., na.rm = TRUE),
-        s.d. = ~sd(., na.rm = TRUE)
-      ),
-      fmt = list(~ fmt_number(.))
-    ) |>
-    grand_summary_rows(
-      columns = num,
-      fns = list(
-        avg = ~mean(., na.rm = TRUE),
-        total = ~sum(., na.rm = TRUE),
-        s.d. = ~sd(., na.rm = TRUE)
-      ),
-      fmt = list(~ fmt_number(.))
-    ) |>
-    tab_style(
-      style = cell_text(color = "orange"),
-      locations = cells_summary(groups = "grp_a", columns = char)
-    ) |>
-    tab_style(
-      style = cell_text(color = "green"),
-      locations = cells_stub_summary()
-    ) |>
-    tab_style(
-      style = cell_text(color = "purple"),
-      locations = cells_grand_summary(columns = num, rows = 3)
-    ) |>
-    tab_style(
-      style = cell_fill(color = "yellow"),
-      locations = cells_stub_grand_summary()
-    )
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
-
-  docx_table_body_header <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tblHeader/ancestor::w:tr")
-
-  docx_table_body_contents <-
-    docx_contents[1] |>
-    xml2::xml_find_all(".//w:tr") |>
-    setdiff(docx_table_body_header)
-
-  ## body text
-  expect_equal(
-    docx_table_body_contents |> lapply(function(x) x |> xml2::xml_find_all(".//w:t") |> xml2::xml_text()),
-    list(
-      "grp_a",
-      c("row_1", "1.111e-01", "apricot", "49.950"),
-      c("row_2","2.222e+00", "banana", "17.950"),
-      c("row_3", "3.333e+01", "coconut", "1.390"),
-      c("row_4", "4.444e+02", "durian", "65100.000"),
-      c("avg", "120.02", "—", "—"),
-      c("total",  "480.06", "—", "—"),
-      c("s.d.", "216.79", "—", "—"),
-      "grp_b",
-      c("row_5", "5.550e+03", "NA", "1325.810"),
-      c("row_6", "NA", "fig", "13.255"),
-      c("row_7", "7.770e+05", "grapefruit", "NA"),
-      c("row_8", "8.880e+06", "honeydew", "0.440"),
-      c("avg", "3,220,850.00", "—", "—"),
-      c("total", "9,662,550.00", "—", "—"),
-      c("s.d.", "4,916,123.25", "—", "—"),
-      c("avg", "1,380,432.87", "—", "—"),
-      c("total", "9,663,030.06", "—", "—"),
-      c("s.d.", "3,319,613.32", "—", "—")
-    )
-  )
-
-  ## the summaries for group a and b are green,
-  ## the 2nd column of the group a summary is orange,
-  ## the 1st col, 3rd value in the grand total is purple
-  expect_equal(
-    lapply(docx_table_body_contents, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> sapply(function(y) {
-        val <- y |> xml2::xml_find_all(".//w:color") |> xml2::xml_attr(attr = "val")
-        if (identical(val, character())) {
-          ""
-        } else {
-          val
-        }
-      })}),
-    list("",
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "",""),
-         c("", "", "", ""),
-         c("00FF00", "", "FFA500", ""),
-         c("00FF00", "", "FFA500", ""),
-         c("00FF00", "", "FFA500", ""),
-         "",
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("00FF00", "", "", ""),
-         c("00FF00", "", "", ""),
-         c("00FF00", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "A020F0", "", "")
-         )
-  )
-
-  ## the grand total row names fill is is yellow
-  expect_equal(
-    lapply(docx_table_body_contents, function(x) {
-      x |> xml2::xml_find_all(".//w:tc") |> sapply(function(y) {
-        val <- y |> xml2::xml_find_all(".//w:shd") |> xml2::xml_attr(attr = "fill")
-        if (identical(val, character())) {
-          ""
-        } else {
-          val
-        }
-      })}),
-    list("",
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         "",
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("", "", "", ""),
-         c("FFFF00", "", "", ""),
-         c("FFFF00", "", "", ""),
-         c("FFFF00", "", "", "")
-         )
   )
 })

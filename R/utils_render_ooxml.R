@@ -82,11 +82,6 @@ as_ooxml_tbl <- function(ooxml_type, data,
   stop_if_not_gt_tbl(data = data)
 
   tbl_properties <- create_table_properties_ooxml(ooxml_type, data = data, align = align)
-
-  # <a:tblGrid> is not optional in pptx, so create_table_grid must set it
-  #
-  # things are different in word where we can have w:tblLayoutType="autofit" and then
-  # not have a <w:tblGrid> node
   tbl_grid            <- create_table_grid_ooxml(ooxml_type, data = data)
   tbl_spanner_rows    <- create_spanner_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
   tbl_table_rows      <- create_table_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
@@ -101,14 +96,19 @@ as_ooxml_tbl <- function(ooxml_type, data,
     )
   }
 
+  tbl_grand_summary_top_rows <- create_table_grand_summary_rows(ooxml_type, data = data, split = split, keep_with_next = keep_with_next, loc = "top")
+  tbl_grand_summary_bottom_rows <- create_table_grand_summary_rows(ooxml_type, data = data, split = split, keep_with_next = keep_with_next, loc = "bottom")
+
   ooxml_tbl(ooxml_type,
     properties = tbl_properties,
     grid       = tbl_grid,
     tbl_heading_row,
     !!!tbl_spanner_rows,
+    !!!tbl_grand_summary_top_rows,
     !!!tbl_table_rows,
     !!!tbl_footnote_rows,
-    !!!tbl_sourcenote_rows
+    !!!tbl_sourcenote_rows,
+    !!!tbl_grand_summary_bottom_rows
   )
 }
 
@@ -257,9 +257,85 @@ create_heading_row_subtitle_paragraph <- function(ooxml_type, data, keep_with_ne
 }
 
 
+# grand summary rows ------------------------------------------------------
+
+create_table_grand_summary_rows <- function(ooxml_type, data, split, keep_with_next, loc = "top") {
+  if (!dt_summary_exists(data = data)) {
+    return(NULL)
+  }
+
+  list_of_summaries <- dt_summary_df_get(data = data)
+  if (!grand_summary_col %in% names(list_of_summaries$summary_df_display_list)) {
+    return(NULL)
+  }
+
+  grand_summary_loc <- unique(list_of_summaries$summary_df_display_list[[grand_summary_col]][["::side::"]])
+  if (grand_summary_loc != loc) {
+    return(NULL)
+  }
+
+  styles_tbl <- dt_styles_get(data = data)
+  summary_styles <- vctrs::vec_slice(styles_tbl,
+    styles_tbl$locname %in% "grand_summary_cells" &
+      styles_tbl$grpname %in% c("::GRAND_SUMMARY")
+  )
+
+  boxh <- dt_boxhead_get(data = data)
+
+  list_of_summaries <- dt_summary_df_get(data = data)
+  table_body_hlines_color <- dt_options_get_value(data = data, option = "table_body_hlines_color")
+  table_body_vlines_color <- dt_options_get_value(data = data, option = "table_body_vlines_color")
+
+  # Obtain all of the visible (`"default"`), non-stub column names
+  # for the table from the `boxh` object
+  default_vars <- boxh[boxh$type == "default", "var", drop = TRUE]
+
+  summary_df <- dplyr::select(
+    list_of_summaries$summary_df_display_list[[grand_summary_col]],
+    dplyr::all_of(c(rowname_col_private, default_vars))
+  )
+
+  rows <- lapply(seq_len(nrow(summary_df)), function(j) {
+
+    df_row_j <- unname(unlist(summary_df[j, ]))
+    cells <- lapply(seq_along(df_row_j), function(y) {
+
+      cell_style <- dplyr::filter(
+        summary_styles,
+        rownum == j, colnum == y - 1
+      )
+      cell_style <- cell_style$styles[1L][[1L]]
+
+      content <- process_cell_content_ooxml(ooxml_type, df_row_j[y],
+        cell_style     = cell_style,
+        keep_with_next = keep_with_next
+      )
+      ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+        properties = ooxml_tbl_cell_properties(ooxml_type,
+          borders  = list(
+            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            left   = list(color = table_body_vlines_color),
+            right  = list(color = table_body_vlines_color)
+          ),
+          fill     = cell_style[["cell_fill"]][["color"]],
+          v_align  = cell_style[["cell_text"]][["v_align"]],
+          margins  = list(
+            top = list(width = 50)
+          )
+        )
+      )
+    })
+    ooxml_tbl_row(ooxml_type, split = split, is_header = FALSE, !!!cells)
+  })
+
+  tagList3(!!!rows)
+}
+
+
 # footnote rows -----------------------------------------------------------
 
-create_footnote_rows_ooxml <- function(ooxml_type, data, split = split, keep_with_next = keep_with_next) {
+create_footnote_rows_ooxml <- function(ooxml_type, data, split, keep_with_next) {
   footnotes_tbl <- dt_footnotes_get(data = data)
   if (nrow(footnotes_tbl) == 0L) {
     return(NULL)
