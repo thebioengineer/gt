@@ -184,7 +184,7 @@ gtsave <- function(
       "*" = "`.tex`, `.rnw`  (LaTeX file)",
       "*" = "`.rtf`          (RTF file)",
       "*" = "`.docx`         (Word file)",
-      "*" = "`.pptx`         (PowerPoint file)",
+      "*" = "`.pptx`         (PowerPoint file)"
     ))
   }
 
