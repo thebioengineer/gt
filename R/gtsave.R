@@ -544,7 +544,7 @@ gt_save_pptx <- function(
       txt[i] <- glue::glue('
 <p:sp>
   <p:nvSpPr>
-    <p:cNvPr id="{i}" name="{title}"/>
+    <p:cNvPr id="{i + 1}" name="{title}"/>
     <p:cNvSpPr/>
     <p:nvPr/>
   </p:nvSpPr>
@@ -571,7 +571,7 @@ gt_save_pptx <- function(
       txt[i] <- glue::glue('
 <p:graphicFrame>
   <p:nvGraphicFramePr>
-    <p:cNvPr id="{i}" name="Table 1"/>
+    <p:cNvPr id="{i + 1}" name="Table 1"/>
     <p:cNvGraphicFramePr/>
     <p:nvPr/>
   </p:nvGraphicFramePr>
