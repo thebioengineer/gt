@@ -1,9 +1,5 @@
 skip_on_cran()
 
-check_suggests <- function() {
-  skip_if_not_installed("officer")
-}
-
 test_that("parse_to_ooxml(word) creates the correct nodes", {
   expect_xml_snapshot(parse_to_ooxml("hello", "word"))
 })
@@ -404,8 +400,6 @@ test_that("multicolumn stub are supported", {
 })
 
 test_that("tables can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -415,27 +409,7 @@ test_that("tables can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <- officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table caption
   docx_table_caption_text <- xml2::xml_text(docx_contents[1:2])
@@ -496,9 +470,7 @@ test_that("tables can be added to a word doc", {
 })
 
 test_that("tables with special characters can be added to a word doc", {
-
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -510,28 +482,7 @@ test_that("tables with special characters can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table caption
   docx_table_caption_text <- xml2::xml_text(docx_contents[1:2])
@@ -584,8 +535,6 @@ test_that("tables with special characters can be added to a word doc", {
 
 test_that("tables with embedded titles can be added to a word doc", {
 
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -595,29 +544,7 @@ test_that("tables with embedded titles can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      caption_location = "embed",
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center", caption_location = "embed")
 
   ## extract table contents
   docx_table_body_header <-
@@ -670,8 +597,6 @@ test_that("tables with embedded titles can be added to a word doc", {
 })
 
 test_that("tables with spans can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -686,31 +611,7 @@ test_that("tables with spans can be added to a word doc", {
       columns = 3:5
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table caption
   docx_table_caption_text <-
@@ -773,8 +674,6 @@ test_that("tables with spans can be added to a word doc", {
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -797,31 +696,7 @@ test_that("tables with multi-level spans can be added to a word doc", {
       columns = 8:9
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table caption
   docx_table_caption_text <-
@@ -886,8 +761,6 @@ test_that("tables with multi-level spans can be added to a word doc", {
 })
 
 test_that("tables with footnotes can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -928,31 +801,7 @@ test_that("tables with footnotes can be added to a word doc", {
     "superscript"
   )
 
-  # ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table contents
   docx_table_body_header <-
@@ -1017,8 +866,6 @@ test_that("tables with footnotes can be added to a word doc", {
 })
 
 test_that("tables with source notes can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -1036,28 +883,7 @@ test_that("tables with source notes can be added to a word doc", {
     "9"
   )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table contents
   docx_table_body_header <-
@@ -1120,8 +946,6 @@ test_that("tables with source notes can be added to a word doc", {
 })
 
 test_that("long tables can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_letters <-
     dplyr::tibble(
@@ -1131,28 +955,7 @@ test_that("long tables can be added to a word doc", {
     gt() |>
     tab_header(title = "LETTERS")
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_letters, align = "center")
 
   ## extract table caption
   docx_table_caption_text <-
@@ -1191,7 +994,6 @@ test_that("long tables can be added to a word doc", {
 })
 
 test_that("long tables with spans can be added to a word doc", {
-  check_suggests()
 
   ## simple table
   gt_letters <-
@@ -1206,28 +1008,7 @@ test_that("long tables with spans can be added to a word doc", {
       columns = 1:2
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_letters, align = "center")
 
   ## extract table caption
   docx_table_caption_text <-
@@ -1266,8 +1047,6 @@ test_that("long tables with spans can be added to a word doc", {
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
-
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -1310,32 +1089,7 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
       locations = cells_stubhead()
     )
 
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table contents
   docx_table_body_header <-
@@ -1465,8 +1219,6 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:4, ] |>
@@ -1496,35 +1248,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
       locations = cells_stubhead()
     )
 
-  # check the xml
-  xml <- read_xml_word_nodes(as_word_ooxml(gt_exibble_min))
-
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   ## extract table contents
   docx_table_body_header <-
@@ -1565,8 +1289,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -1586,32 +1308,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
       locations = cells_footnotes()
     )
 
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   docx_table_body_header <-
     docx_contents[1] |>
@@ -1648,8 +1345,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 })
 
 test_that("footnotes styling gets applied to footer marks", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -1682,32 +1377,7 @@ test_that("footnotes styling gets applied to footer marks", {
     1
   )
 
-  if (!testthat::is_testing() && interactive()) {
-    print(gt_exibble_min)
-  }
-
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <-
-    docx$doc_obj$get() |>
-    xml2::xml_children() |>
-    xml2::xml_children()
+  docx_contents <- gt_to_word_contents(gt_exibble_min, align = "center")
 
   docx_table_body_header <-
     docx_contents[1] |>
@@ -1745,7 +1415,6 @@ test_that("footnotes styling gets applied to footer marks", {
 
 test_that("tables preserves spaces in text & can be added to a word doc", {
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble <-
@@ -1761,25 +1430,7 @@ test_that("tables preserves spaces in text & can be added to a word doc", {
       locations = cells_body(columns = contains("preserve"))
     )
 
-  ## Add table to empty word document
-  word_doc_normal <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc_normal,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(gt_exibble, align = "center")
 
   ## extract table contents
   docx_table_body_contents <-
@@ -1818,9 +1469,7 @@ test_that("tables preserves spaces in text & can be added to a word doc", {
 })
 
 test_that("tables respects column and cell alignment and can be added to a word doc", {
-
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble <-
@@ -1851,25 +1500,7 @@ test_that("tables respects column and cell alignment and can be added to a word 
       locations = cells_column_labels(columns = c(tcn4))
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
-  temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_word_file)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(gt_exibble, align = "center")
 
   ## extract table contents
   docx_table_body_contents <-
@@ -1915,7 +1546,6 @@ test_that("tables respects column and cell alignment and can be added to a word 
 
 test_that("markdown in the tables works out", {
   skip_on_ci()
-  check_suggests()
 
   text_1a <- "
 ### This is Markdown.
@@ -1962,15 +1592,7 @@ There's a quick reference [here](https://commonmark.org/help/).
       locations = cells_column_labels(columns = md)
     )
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(markdown_gt)
 
   ## extract table contents
   docx_table_body_contents <-
@@ -2055,7 +1677,6 @@ There's a quick reference [here](https://commonmark.org/help/).
 
 test_that("markdown with urls work", {
   skip_on_ci()
-  check_suggests()
 
   text_sample <- "
   Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)
@@ -2069,15 +1690,7 @@ test_that("markdown with urls work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx table contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(markdown_gt)
 
   ## extract table hyperlinks
   docx_table_hyperlinks <-
@@ -2088,22 +1701,14 @@ test_that("markdown with urls work", {
   expect_length(docx_table_hyperlinks, 2)
   expect_match(xml_attr(docx_table_hyperlinks, "id"), "^rId\\d+$")
 
-  # first should be commonmark URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[1], "id")],
-    "https://commonmark.org/help/"
-  )
+  rels <- attr(docx_contents, "rels")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_hyperlinks[1], "id")], "https://commonmark.org/help/")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_hyperlinks[2], "id")], "https://www.google.com")
 
-  # second should be google URL
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_hyperlinks[2], "id")],
-    "https://www.google.com"
-  )
 })
 
 test_that("markdown with img refs work", {
   skip_on_ci()
-  check_suggests()
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2122,19 +1727,7 @@ test_that("markdown with img refs work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(markdown_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(markdown_gt)
 
   ## extract table hyperlinks
   docx_table_image <-
@@ -2145,23 +1738,13 @@ test_that("markdown with img refs work", {
   expect_length(docx_table_image, 2)
   expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
 
-  # first should be a png
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
-  )
-
-  # second should be an svg
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
+  rels <- attr(docx_contents, "rels")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[1], "embed")], "media/testimage.png")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[2], "embed")], "media/testimage.svg")
 })
 
 test_that("table with image refs work - local only", {
-
   skip_on_ci()
-  check_suggests()
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2184,19 +1767,7 @@ test_that("table with image refs work - local only", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(image_gt)
 
   ## extract table hyperlinks
   docx_table_image <-
@@ -2209,32 +1780,14 @@ test_that("table with image refs work - local only", {
   # Expect match has all = TRUE as a default
   expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
 
-  # first should be a png
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    "media/testimage.png"
-  )
-
-  # second should be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[2], "embed")],
-    "media/testimage.svg"
-  )
-
-  # third should also be an svg of testimage
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[3], "embed")],
-    "media/testimage.svg"
-  )
-
-  # foruth should be an svg of gtpartsofatable
-  expect_equal(
-    docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[4], "embed")],
-    "media/gtpartsofatable.svg"
-  )
+  rels <- attr(docx_contents, "rels")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[1], "embed")], "media/testimage.png")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[2], "embed")], "media/testimage.svg")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[3], "embed")], "media/testimage.svg")
+  expect_equal(rels$Target[rels$Id == xml_attr(docx_table_image[4], "embed")], "media/gtpartsofatable.svg")
 
   ## Check that the image h/w ratios are preserved
-  docx$doc_obj$get() |>
+  docx_contents |>
     xml2::xml_find_all(".//wp:extent") |>
     xml2::xml_attrs() |>
     sapply(function(x) {as.numeric(x[["cy"]])/as.numeric(x[["cx"]])}) |>
@@ -2245,9 +1798,7 @@ test_that("table with image refs work - local only", {
 })
 
 test_that("table with image refs work - https", {
-
   skip_on_ci()
-  check_suggests()
 
   https_image_gt <-
     dplyr::tribble(
@@ -2257,19 +1808,7 @@ test_that("table with image refs work - https", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_docx <- tempfile(fileext = ".docx")
-
-  gtsave(https_image_gt, filename = temp_docx, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx)
-  }
-
-  ## Programmatic Review
-  docx <- officer::read_docx(temp_docx)
-
-  ## get docx contents
-  docx_contents <- xml2::xml_children(xml2::xml_children(docx$doc_obj$get()))
+  docx_contents <- gt_to_word_contents(https_image_gt)
 
   ## extract table hyperlinks
   docx_table_image <-
@@ -2281,17 +1820,13 @@ test_that("table with image refs work - https", {
   expect_match(xml_attr(docx_table_image, "embed"), "^rId\\d+$")
 
   # first should be the logo.svg with some random numbers ahead of it
-  expect_length(
-    obj <- docx$doc_obj$rel_df()$target[ docx$doc_obj$rel_df()$id == xml_attr(docx_table_image[1], "embed")],
-    1
-  )
+  rels <- attr(docx_contents, "rels")
+  expect_length(obj <- rels$Target[rels$Id == xml_attr(docx_table_image[1], "embed")], 1)
   expect_match(obj, "^media/.+?logo[.]svg$")
 })
 
 test_that("table with image refs work - local only - setting image widths and heights", {
-
   skip_on_ci()
-  check_suggests()
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -2335,24 +1870,11 @@ test_that("table with image refs work - local only - setting image widths and he
     gt() |>
     fmt_image(columns = everything(), sep = ",", width = "1in")
 
-  temp_docx_1 <- tempfile(fileext = ".docx")
-  temp_docx_2 <- tempfile(fileext = ".docx")
-  temp_docx_3 <- tempfile(fileext = ".docx")
+  docx_contents_1 <- gt_to_word_contents(image_gt_height_and_width)
+  docx_contents_2 <- gt_to_word_contents(image_gt_height)
+  docx_contents_3 <- gt_to_word_contents(image_gt_width)
 
-  gtsave(image_gt_height_and_width, filename = temp_docx_1, as_word_func = as_word_ooxml)
-  gtsave(image_gt_height, filename = temp_docx_2, as_word_func = as_word_ooxml)
-  gtsave(image_gt_width, filename = temp_docx_3, as_word_func = as_word_ooxml)
-
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_docx_1)
-    shell.exec(temp_docx_2)
-    shell.exec(temp_docx_3)
-  }
-
-  ## Check that the image h/w ratios are overwritten when both height and width are set
-  docx1 <- officer::read_docx(temp_docx_1)
-
-  docx1$doc_obj$get() |>
+  docx_contents_1 |>
     xml2::xml_find_all(".//wp:extent") |>
     xml2::xml_attrs() |>
     lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
@@ -2366,10 +1888,7 @@ test_that("table with image refs work - local only - setting image widths and he
       tolerance = .0000001 ## check out to 6 decimals for the ratio
     )
 
-  ## Check that the image h/w ratios are preserved
-  docx2 <- officer::read_docx(temp_docx_2)
-
-  docx2$doc_obj$get() |>
+  docx_contents_2 |>
     xml2::xml_find_all(".//wp:extent") |>
     xml2::xml_attrs() |>
     lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]])/as.numeric(x[["cx"]]))}) |>
@@ -2384,9 +1903,7 @@ test_that("table with image refs work - local only - setting image widths and he
     )
 
   ## Check that the image h/w ratios are preserved
-  docx3 <- officer::read_docx(temp_docx_3)
-
-  docx3$doc_obj$get() |>
+  docx_contents_3 |>
     xml2::xml_find_all(".//wp:extent") |>
     xml2::xml_attrs() |>
     lapply(function(x) {list(height = x[["cy"]], width = x[["cx"]], ratio = as.numeric(x[["cy"]]) / as.numeric(x[["cx"]]))}) |>
@@ -2424,7 +1941,6 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
 })
 
 test_that("tables with summaries can be added to a word doc", {
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -2549,7 +2065,6 @@ test_that("tables with summaries can be added to a word doc", {
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -2671,7 +2186,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 })
 
 test_that("tables with grand summaries but no rownames can be added to a word doc", {
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-

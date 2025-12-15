@@ -1,36 +1,38 @@
-ooxml_body_add_gt <- function(
-    x,
-    value,
-    align = "center",
-    pos = c("after","before","on"),
-    caption_location = c("top","bottom","embed"),
-    caption_align = "left",
-    split = FALSE,
-    keep_with_next = TRUE
-) {
+gt_to_word_contents <- function(gt, ..., as_word_func = as_word_ooxml) {
+  temp_word_file <- withr::local_tempfile(fileext = ".docx")
+  gtsave(gt, temp_word_file, ..., as_word_func = as_word_func)
 
-  ## check that officer is available
-  rlang::check_installed("officer", "to add gt tables to word documents.")
+  temp_dir <- withr::local_tempfile()
+  unzip(temp_word_file, exdir = temp_dir)
+  doc <- xml2::read_xml(file.path(temp_dir, "word", "document.xml"))
 
-  ## check that inputs are an officer rdocx and gt tbl
-  stopifnot(inherits(x, "rdocx"))
+  out <- xml_children(xml_children(doc))
+  rels <- xml2::read_xml(file.path(temp_dir, "word", "_rels", "document.xml.rels"))
 
-  pos <- rlang::arg_match(pos)
-
-  xml <- as_word_ooxml(value,
-    align = align,
-    caption_location = caption_location,
-    caption_align = caption_align,
-    split = split,
-    keep_with_next = keep_with_next
+  attr(out, "rels") <- data.frame(
+    Type   = xml_attr(xml_children(rels), "Type"),
+    Id     = xml_attr(xml_children(rels), "Id"),
+    Target = xml_attr(xml_children(rels), "Target"),
+    stringsAsFactors = FALSE
   )
-  suppressWarnings({
-    for (i in seq_along(xml)) {
-      x <- officer::body_add_xml(x, xml[[i]], pos)
-    }
-  })
-  x
+
+  out
 }
+
+gt_to_pptx_slide <- function(gt, ...) {
+  temp_pptx_file <- withr::local_tempfile(fileext = ".pptx")
+  gtsave(gt, temp_pptx_file, ...)
+
+  temp_dir <- withr::local_tempfile()
+  unzip(temp_pptx_file, exdir = temp_dir)
+
+  path_slides <- dir(file.path(temp_dir, "ppt", "slides"), pattern = "^slide", full.names = TRUE)
+  lapply(path_slides, function(file) {
+    xml2::read_xml(file)
+  })
+
+}
+
 
 read_xml_word_nodes <- function(x) {
   xml2::xml_children(suppressWarnings(xml2::read_xml(paste0(

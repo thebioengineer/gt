@@ -1,9 +1,5 @@
 skip_on_cran()
 
-check_suggests <- function() {
-  skip_if_not_installed("officer")
-}
-
 test_that("parse_to_ooxml(pptx) creates the correct nodes", {
   expect_xml_snapshot(parse_to_ooxml("hello", "pptx"))
 })
@@ -475,8 +471,6 @@ test_that("multicolumn stub are supported", {
 })
 
 test_that("tables can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -486,12 +480,7 @@ test_that("tables can be added to a pptx doc", {
       subtitle = "table subtitle"
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file)
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
@@ -517,9 +506,7 @@ test_that("tables can be added to a pptx doc", {
 })
 
 test_that("tables with special characters can be added to a pptx doc", {
-
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -530,14 +517,7 @@ test_that("tables with special characters can be added to a pptx doc", {
       subtitle = "table subtitle"
     )
 
-  ## save word doc to temporary file
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
-
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
@@ -559,8 +539,6 @@ test_that("tables with special characters can be added to a pptx doc", {
 })
 
 test_that("tables with embedded titles can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -570,13 +548,7 @@ test_that("tables with embedded titles can be added to a pptx doc", {
       subtitle = "table subtitle"
     )
 
-  ## save word doc to temporary file
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, caption_location = "embed", align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min, caption_location = "embed")[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
@@ -598,8 +570,6 @@ test_that("tables with embedded titles can be added to a pptx doc", {
 })
 
 test_that("tables with spans can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -614,12 +584,7 @@ test_that("tables with spans can be added to a pptx doc", {
       columns = 3:5
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
@@ -656,8 +621,6 @@ test_that("tables with spans can be added to a pptx doc", {
 })
 
 test_that("tables with multi-level spans can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -680,12 +643,7 @@ test_that("tables with multi-level spans can be added to a word doc", {
       columns = 8:9
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:sp[1]//a:t")),
@@ -731,8 +689,6 @@ test_that("tables with multi-level spans can be added to a word doc", {
 })
 
 test_that("tables with footnotes can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -773,12 +729,7 @@ test_that("tables with footnotes can be added to a pptx doc", {
     c("30000", NA)
   )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
@@ -797,8 +748,6 @@ test_that("tables with footnotes can be added to a pptx doc", {
 })
 
 test_that("tables with source notes can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -816,12 +765,7 @@ test_that("tables with source notes can be added to a pptx doc", {
     "9"
   )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:t")),
@@ -836,8 +780,6 @@ test_that("tables with source notes can be added to a pptx doc", {
 })
 
 test_that("long tables can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_letters <-
     dplyr::tibble(
@@ -847,12 +789,7 @@ test_that("long tables can be added to a pptx doc", {
     gt() |>
     tab_header(title = "LETTERS")
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_letters, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_letters)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr//a:tc[1]//a:t")),
@@ -866,8 +803,6 @@ test_that("long tables can be added to a pptx doc", {
 })
 
 test_that("long tables with spans can be added to a word doc", {
-  check_suggests()
-
   ## simple table
   gt_letters <-
     dplyr::tibble(
@@ -881,12 +816,7 @@ test_that("long tables with spans can be added to a word doc", {
       columns = 1:2
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_letters, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_letters)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -905,7 +835,6 @@ test_that("long tables with spans can be added to a word doc", {
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
-  check_suggests()
 
   ## simple table
   gt_exibble_min <-
@@ -948,12 +877,7 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
       locations = cells_stubhead()
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -1021,8 +945,6 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with spanners", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:4, ] |>
@@ -1052,12 +974,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
       locations = cells_stubhead()
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min, align = "center")[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -1134,8 +1051,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with source_notes and footnotes", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -1155,12 +1070,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
       locations = cells_footnotes()
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min, align = "center")[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -1231,8 +1141,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 })
 
 test_that("footnotes styling gets applied to footer marks", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -1241,12 +1149,7 @@ test_that("footnotes styling gets applied to footer marks", {
     tab_footnote("My Footnote 2", locations = cells_column_labels(1)) |>
     opt_footnote_spec(spec_ftr = "(b)")
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble_min, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble_min, align = "center")[[1]]
 
   # first note
   expect_equal(
@@ -1275,7 +1178,6 @@ test_that("footnotes styling gets applied to footer marks", {
 
 test_that("tables preserves spaces in text & can be added to a pptx doc", {
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble <-
@@ -1291,12 +1193,7 @@ test_that("tables preserves spaces in text & can be added to a pptx doc", {
       locations = cells_body(columns = contains("preserve"))
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble, align = "center")[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -1309,9 +1206,7 @@ test_that("tables preserves spaces in text & can be added to a pptx doc", {
 })
 
 test_that("tables respects column and cell alignment and can be added to a word doc", {
-
   skip_on_ci()
-  check_suggests()
 
   ## simple table
   gt_exibble <-
@@ -1342,12 +1237,7 @@ test_that("tables respects column and cell alignment and can be added to a word 
       locations = cells_column_labels(columns = c(tcn4))
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(gt_exibble, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(gt_exibble, align = "center")[[1]]
 
   expect_equal(
     xml_text(xml_find_all(slide, ".//a:tr[1]//a:t")),
@@ -1406,7 +1296,6 @@ test_that("sub_small_vals() and sub_large_vals() are properly encoded", {
 
 test_that("markdown in the tables works out", {
   skip_on_ci()
-  check_suggests()
 
   text_1a <- "
 ### This is Markdown.
@@ -1453,12 +1342,7 @@ There's a quick reference [here](https://commonmark.org/help/).
       locations = cells_column_labels(columns = md)
     )
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(markdown_gt, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(markdown_gt, align = "center")[[1]]
 
   res <- lapply(xml_find_all(slide, ".//a:tc"), function(tc) {
     xml_text(xml_find_all(tc, ".//a:p"))
@@ -1502,7 +1386,6 @@ There's a quick reference [here](https://commonmark.org/help/).
 
 test_that("markdown with urls work", {
   skip_on_ci()
-  check_suggests()
 
   text_sample <- "Hyperlink [here](https://commonmark.org/help/) and to [google](https://www.google.com)"
 
@@ -1514,12 +1397,7 @@ test_that("markdown with urls work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(markdown_gt, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(markdown_gt, align = "center")[[1]]
 
   # For now hyperlink are just styled
   expect_equal(length(xml_find_all(xml_find_all(slide, ".//a:r")[c(3, 5)], ".//a:u")), 2)
@@ -1528,7 +1406,6 @@ test_that("markdown with urls work", {
 
 test_that("markdown with img refs work", {
   skip_on_ci()
-  check_suggests()
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -1547,12 +1424,7 @@ test_that("markdown with img refs work", {
     gt() |>
     fmt_markdown(columns = everything())
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(markdown_gt, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(markdown_gt, align = "center")[[1]]
 
   expect_equal(
     gsub("(^image:)(.*)/(test_image[.].*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:3]),
@@ -1563,7 +1435,6 @@ test_that("markdown with img refs work", {
 
 test_that("table with image refs work - local only", {
   skip_on_ci()
-  check_suggests()
 
   ref_png <- system.file("graphics", "test_image.png", package = "gt")
   ref_svg <- system.file("graphics", "test_image.svg", package = "gt")
@@ -1586,12 +1457,7 @@ test_that("table with image refs work - local only", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(image_gt, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(image_gt, align = "center")[[1]]
 
   expect_equal(
     gsub("(^image:)(.*)/.*/([^/]*)$", "\\1 \\3", xml_text(xml_find_all(slide, ".//a:t"))[2:5]),
@@ -1600,9 +1466,7 @@ test_that("table with image refs work - local only", {
 })
 
 test_that("table with image refs work - https", {
-
   skip_on_ci()
-  check_suggests()
 
   https_image_gt <-
     dplyr::tribble(
@@ -1612,12 +1476,7 @@ test_that("table with image refs work - https", {
     gt() |>
     fmt_image(columns = everything(), sep = ",", height = "2in")
 
-  temp_pptx_file <- tempfile(fileext = ".pptx")
-  gtsave(https_image_gt, temp_pptx_file, align = "center")
-
-  ## Programmatic Review
-  pptx <- officer::read_pptx(temp_pptx_file)
-  slide <- pptx$slide$get_slide(1)$get()
+  slide <- gt_to_pptx_slide(https_image_gt, align = "center")[[1]]
 
   expect_equal(
     gsub("(^image:) (.*)$", "\\1 \\2", xml_text(xml_find_all(slide, ".//a:t")))[2],
@@ -1627,8 +1486,6 @@ test_that("table with image refs work - https", {
 })
 
 test_that("tables with summaries can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble |>
@@ -1752,8 +1609,6 @@ test_that("tables with summaries can be added to a pptx doc", {
 })
 
 test_that("tables with cell & text coloring can be added to a word doc - with summaries (grand/group)", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble |>
@@ -1874,8 +1729,6 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 })
 
 test_that("tables with grand summaries but no rownames can be added to a pptx doc", {
-  check_suggests()
-
   ## simple table
   gt_exibble_min <-
     exibble |>
