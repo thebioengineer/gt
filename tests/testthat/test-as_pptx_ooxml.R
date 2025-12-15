@@ -1511,11 +1511,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(avg_row, './/a:lnT'), "w"),
-    rep("25400", 8)
+    rep("76200", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(avg_row, './/a:lnB'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
 
   total_row <- xml_find_all(xml, './/a:t[text() = "total"]/../../../../..')
@@ -1525,11 +1525,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(total_row, './/a:lnT'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(total_row, './/a:lnB'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
 
   sd_row <- xml_find_all(xml, './/a:t[text() = "s.d."]/../../../../..')
@@ -1539,11 +1539,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(sd_row, './/a:lnT'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(sd_row, './/a:lnB'), "w"),
-    rep("25400", 8)
+    rep("76200", 8)
   )
 
   ## Now place the summary on the top
@@ -1571,11 +1571,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(avg_row, './/a:lnT'), "w"),
-    rep("25400", 8)
+    rep("76200", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(avg_row, './/a:lnB'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
 
   total_row <- xml_find_all(xml, './/a:t[text() = "total"]/../../../../..')
@@ -1585,11 +1585,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(total_row, './/a:lnT'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(total_row, './/a:lnB'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
 
   sd_row <- xml_find_all(xml, './/a:t[text() = "s.d."]/../../../../..')
@@ -1599,11 +1599,11 @@ test_that("tables with summaries can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(sd_row, './/a:lnT'), "w"),
-    rep("3175", 8)
+    rep("9525", 8)
   )
   expect_equal(
     xml_attr(xml_find_all(sd_row, './/a:lnB'), "w"),
-    rep("25400", 8)
+    rep("76200", 8)
   )
 
 })

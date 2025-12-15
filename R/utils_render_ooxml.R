@@ -313,8 +313,8 @@ create_table_grand_summary_rows <- function(ooxml_type, data, split, keep_with_n
       ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
         properties = ooxml_tbl_cell_properties(ooxml_type,
           borders  = list(
-            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
-            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            top    = list(size = if (j == 1) 8 else 1, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 8 else 1, color = table_body_hlines_color),
             left   = list(color = table_body_vlines_color),
             right  = list(color = table_body_vlines_color)
           ),
@@ -822,8 +822,8 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
       ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
         properties = ooxml_tbl_cell_properties(ooxml_type,
           borders  = list(
-            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
-            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            top    = list(size = if (j == 1) 8 else 1, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 8 else 1, color = table_body_hlines_color),
             left   = list(color = table_body_vlines_color),
             right  = list(color = table_body_vlines_color)
           ),

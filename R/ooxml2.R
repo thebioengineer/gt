@@ -294,14 +294,14 @@ ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size =
 
       ooxml_tag(tag, tag_class = "ooxml_cell_border",
         `w:val`   = type,
-        `w:sz`    = if (!is.null(size)) size * 8,
+        `w:sz`    = if (!is.null(size)) size * 2,
         `w:space` = 0,
         `w:color` = color
       )
     },
     pptx = {
       tag   <- arg_match_names(location, c("top"="a:lnT","left"="a:lnL","bottom"="a:lnB","right"="a:lnR"))
-      # TODO: is null ok as in the word version ?
+
       size  <- check_between(size, min = 0, max = 10, default = .5)
       style <- convert_border_style_pptx(type)
 
@@ -309,12 +309,12 @@ ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size =
         return(NULL)
       }
 
-      dash <- if(!is.null(style[["dash_style"]])) {
+      dash <- if (!is.null(style[["dash_style"]])) {
         ooxml_tag("a:prstDash", `val` = style[["dash_style"]])
       }
 
       ooxml_tag(tag, tag_class = "ooxml_cell_border",
-        `w`    = size * 12700,
+        `w`    = px_to_emu(size),
         `cap`  = "flat",
         `cmpd` = style[["compound"]],
         `algn` = "ctr",
@@ -325,6 +325,11 @@ ooxml_cell_border <- function(ooxml_type, ..., location, color = "black", size =
     }
   )
 }
+
+px_to_emu <- function(x) {
+  round(x * 9525)
+}
+
 
 border_style_pptx <- list(
   "solid"  = list(compound = "single", dash_style = NULL),
