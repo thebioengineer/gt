@@ -417,8 +417,6 @@ test_that("tables can be added to a word doc", {
 
   temp_word_file <- tempfile(fileext = ".docx")
   gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
-
-  ## Programmatic Review
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
