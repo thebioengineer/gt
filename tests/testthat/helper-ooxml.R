@@ -19,6 +19,20 @@ gt_to_word_contents <- function(gt, ..., as_word_func = as_word_ooxml) {
   out
 }
 
+gt_to_pptx_slide <- function(gt, ...) {
+  temp_pptx_file <- withr::local_tempfile(fileext = ".pptx")
+  gtsave(gt, temp_pptx_file, ...)
+
+  temp_dir <- withr::local_tempfile()
+  unzip(temp_pptx_file, exdir = temp_dir)
+
+  path_slides <- dir(file.path(temp_dir, "ppt", "slides"), pattern = "^slide", full.names = TRUE)
+  lapply(path_slides, function(file) {
+    xml2::read_xml(file)
+  })
+
+}
+
 
 read_xml_word_nodes <- function(x) {
   xml2::xml_children(suppressWarnings(xml2::read_xml(paste0(
