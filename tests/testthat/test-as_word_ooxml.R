@@ -415,21 +415,8 @@ test_that("tables can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <- officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
 
   ## Programmatic Review
   docx <- officer::read_docx(temp_word_file)
@@ -510,24 +497,8 @@ test_that("tables with special characters can be added to a word doc", {
       subtitle = "table subtitle"
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -596,24 +567,8 @@ test_that("tables with embedded titles can be added to a word doc", {
     )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      caption_location = "embed",
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", caption_location = "embed", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -687,23 +642,8 @@ test_that("tables with spans can be added to a word doc", {
     )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -797,24 +737,8 @@ test_that("tables with multi-level spans can be added to a word doc", {
       columns = 8:9
     )
 
-  ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -928,24 +852,8 @@ test_that("tables with footnotes can be added to a word doc", {
     "superscript"
   )
 
-  # ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(
-      gt_exibble_min,
-      align = "center"
-    )
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1037,20 +945,8 @@ test_that("tables with source notes can be added to a word doc", {
   )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc, target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1132,20 +1028,8 @@ test_that("long tables can be added to a word doc", {
     tab_header(title = "LETTERS")
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_letters, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1207,20 +1091,8 @@ test_that("long tables with spans can be added to a word doc", {
     )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_letters, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_letters, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1315,20 +1187,8 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
   }
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1504,20 +1364,8 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
   }
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1591,20 +1439,8 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
   }
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1687,20 +1523,8 @@ test_that("footnotes styling gets applied to footer marks", {
   }
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble_min, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble_min, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1762,20 +1586,8 @@ test_that("tables preserves spaces in text & can be added to a word doc", {
     )
 
   ## Add table to empty word document
-  word_doc_normal <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc_normal,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble, temp_word_file, align = "center",as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
@@ -1852,20 +1664,8 @@ test_that("tables respects column and cell alignment and can be added to a word 
     )
 
   ## Add table to empty word document
-  word_doc <-
-    officer::read_docx() |>
-    ooxml_body_add_gt(gt_exibble, align = "center")
-
-  ## save word doc to temporary file
   temp_word_file <- tempfile(fileext = ".docx")
-  print(word_doc,target = temp_word_file)
-
-  ## Manual Review
-  if (!testthat::is_testing() && interactive()) {
-    shell.exec(temp_word_file)
-  }
-
-  ## Programmatic Review
+  gtsave(gt_exibble, temp_word_file, align = "center", as_word_func = as_word_ooxml)
   docx <- officer::read_docx(temp_word_file)
 
   ## get docx table contents
