@@ -1,12 +1,22 @@
-gt_to_word_contents <- function(gt, ..., as_word_func = as_word) {
+gt_to_word_contents <- function(gt, ..., as_word_func = as_word_ooxml) {
   temp_word_file <- withr::local_tempfile(fileext = ".docx")
   gtsave(gt, temp_word_file, ..., as_word_func = as_word_func)
 
   temp_dir <- withr::local_tempfile()
-  unzip(temp_word_file, temp_dir)
+  unzip(temp_word_file, exdir = temp_dir)
   doc <- xml2::read_xml(file.path(temp_dir, "word", "document.xml"))
 
-  xml_children(xml_children(doc))
+  out <- xml_children(xml_children(doc))
+  rels <- xml2::read_xml(file.path(temp_dir, "word", "_rels", "document.xml.rels"))
+
+  attr(out, "rels") <- data.frame(
+    Type   = xml_attr(xml_children(rels), "Type"),
+    Id     = xml_attr(xml_children(rels), "Id"),
+    Target = xml_attr(xml_children(rels), "Target"),
+    stringsAsFactors = FALSE
+  )
+
+  out
 }
 
 
