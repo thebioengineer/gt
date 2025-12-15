@@ -1,6 +1,6 @@
-gt_to_word_contents <- function(gt, ...) {
+gt_to_word_contents <- function(gt, ..., as_word_func = as_word) {
   temp_word_file <- withr::local_tempfile(fileext = ".docx")
-  gtsave(gt, temp_word_file, ..., as_word_func = as_word_ooxml)
+  gtsave(gt, temp_word_file, ..., as_word_func = as_word_func)
 
   temp_dir <- withr::local_tempfile()
   unzip(temp_word_file, temp_dir)
