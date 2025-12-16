@@ -215,19 +215,19 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
   xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_tbl_2))
 
   # row groups
-  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../..//a:defRPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
   expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 2"]/../a:rPr'), "sz"), "1000")
-  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
+  expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../..//a:defRPr/a:solidFill/a:srgbClr'), "val"), "0000FF")
   expect_equal(xml_attr(xml_find_all(xml, '//a:t[text() = "My Row Group 1"]/../a:rPr'), "sz"), "1000")
 
   # body rows
   xml_body <- xml_find_all(xml, "//a:tr")[c(3, 4, 6, 7)]
-  for (node in xml_find_all(xml_body, "(.//a:tc)[1]//a:rPr")){
-    expect_equal(xml_attr(xml_find_all(node, ".//a:latin"), "typeface"), "Biome")
-    expect_equal(xml_attr(node, "sz"), "1000")
-    expect_equal(xml_attr(node, "i"), "1")
-    expect_equal(xml_attr(xml_find_all(node, ".//a:solidFill/a:srgbClr"), "val"), "00FF00")
-    expect_equal(xml_attr(node, "b"), "1")
+  for (node in xml_body){
+    expect_equal(xml_attr(xml_find_all(node, ".//a:latin"), "typeface"), rep(c("Biome", "Calibri"), c(1L, 8L)))
+    expect_equal(xml_attr(xml_find_all(node, ".//a:rPr"), "sz"), rep("1000", 9))
+    expect_equal(xml_attr(xml_find_all(node, ".//a:rPr"), "i"), c("1", rep(NA, 8)))
+    expect_equal(xml_attr(xml_find_all(node, ".//a:defRPr/a:solidFill/a:srgbClr"), "val"), "00FF00")
+    expect_equal(xml_attr(xml_find_all(node, ".//a:rPr"), "b"), c("1", rep(NA, 8)))
   }
 
   # orange cells
@@ -840,7 +840,7 @@ test_that("long tables with spans can be added to a word doc", {
   )
 })
 
-test_that("tables with cell & text coloring can be added to a word doc - no spanner", {
+test_that("tables with cell & text coloring can be added to a pptx doc - no spanner", {
 
   ## simple table
   gt_exibble_min <-
@@ -891,12 +891,12 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
   )
 
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tcPr/a:solidFill//a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:tcPr/a:solidFill/a:srgbClr"), "val"),
     c("FFC0CB", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00", "00FF00")
   )
 
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:rPr/a:solidFill//a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[1]//a:defRPr/a:solidFill/a:srgbClr"), "val"),
     rep("008080", 8)
   )
 
@@ -908,7 +908,7 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
     )
 
     expect_equal(
-      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:defRPr/a:solidFill//a:srgbClr")), "val"),
       "0000FF"
     )
   }
@@ -925,12 +925,12 @@ test_that("tables with cell & text coloring can be added to a word doc - no span
     )
 
     expect_equal(
-      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:rPr/a:solidFill//a:srgbClr")), "val"),
+      xml_attr(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc[1]//a:defRPr/a:solidFill//a:srgbClr")), "val"),
       "00FF00"
     )
 
     expect_equal(
-      length(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc//a:rPr/a:solidFill//a:srgbClr"))),
+      length(xml_find_all(slide, glue::glue(".//a:tr[{i}]//a:tc//a:defRPr/a:solidFill//a:srgbClr"))),
       1
     )
   }
@@ -1050,7 +1050,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with sp
   )
 
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[3]//a:tc//a:defRPr/a:solidFill/a:srgbClr"), "val"),
     rep("A020F0", 8L)
   )
 
@@ -1130,17 +1130,17 @@ test_that("tables with cell & text coloring can be added to a word doc - with so
 
   # footnote colors
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[4]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[4]//a:tc//a:defRPr/a:solidFill/a:srgbClr"), "val"),
     "A020F0"
   )
 
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[5]//a:tc//a:defRPr/a:solidFill/a:srgbClr"), "val"),
     "A020F0"
   )
 
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//a:tr[6]//a:tc//a:rPr/a:solidFill/a:srgbClr"), "val"),
+    xml_attr(xml_find_all(slide, ".//a:tr[6]//a:tc//a:defRPr/a:solidFill/a:srgbClr"), "val"),
     "FFA500"
   )
 
@@ -1660,20 +1660,20 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 
   avg_row <- xml_find_all(xml, './/a:t[text() = "avg"]/../../../../..')
   expect_equal(
-    xml_attr(xml_find_all(avg_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(avg_row[1:2], './/a:tc[1]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("00FF00", "00FF00")
   )
   expect_equal(
-    xml_attr(xml_find_all(avg_row[3], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(avg_row[3], './/a:tc[1]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     character()
   )
 
   expect_equal(
-    xml_attr(xml_find_all(avg_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(avg_row[1], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("FFA500")
   )
   expect_equal(
-    xml_attr(xml_find_all(avg_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(avg_row[2], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     character()
   )
   expect_equal(
@@ -1683,7 +1683,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 
   total_row <- xml_find_all(xml, './/a:t[text() = "total"]/../../../../..')
   expect_equal(
-    xml_attr(xml_find_all(total_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(total_row[1:2], './/a:tc[1]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("00FF00", "00FF00")
   )
   expect_equal(
@@ -1692,11 +1692,11 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
   )
 
   expect_equal(
-    xml_attr(xml_find_all(total_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(total_row[1], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("FFA500")
   )
   expect_equal(
-    xml_attr(xml_find_all(total_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(total_row[2], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     character()
   )
   expect_equal(
@@ -1707,20 +1707,20 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
 
   sd_row <- xml_find_all(xml, './/a:t[text() = "s.d."]/../../../../..')
   expect_equal(
-    xml_attr(xml_find_all(sd_row[1:2], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(sd_row[1:2], './/a:tc[1]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("00FF00", "00FF00")
   )
   expect_equal(
-    xml_attr(xml_find_all(sd_row[3], './/a:tc[1]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(sd_row[3], './/a:tc[1]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     character()
   )
 
   expect_equal(
-    xml_attr(xml_find_all(sd_row[1], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(sd_row[1], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     c("FFA500")
   )
   expect_equal(
-    xml_attr(xml_find_all(sd_row[2], './/a:tc[3]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(sd_row[2], './/a:tc[3]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     character()
   )
   expect_equal(
@@ -1728,7 +1728,7 @@ test_that("tables with cell & text coloring can be added to a word doc - with su
     "FFFF00"
   )
   expect_equal(
-    xml_attr(xml_find_all(sd_row[3], './/a:tc[2]//a:rPr/a:solidFill/a:srgbClr'), "val"),
+    xml_attr(xml_find_all(sd_row[3], './/a:tc[2]//a:defRPr/a:solidFill/a:srgbClr'), "val"),
     "A020F0"
   )
 

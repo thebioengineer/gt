@@ -835,7 +835,8 @@ process_cell_content_ooxml <- function(
   processed <- process_ooxml__paragraph(ooxml_type, nodes = processed,
     align          = align %||% cell_style[["cell_text"]][["align"]] %||% align_default,
     keep_with_next = keep_with_next,
-    style          = paragraph_style
+    style          = paragraph_style,
+    color          = color
   )
 
   processed <- process_ooxml__run(ooxml_type, nodes = processed,
@@ -1150,15 +1151,6 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
         xml_add_child(run_style, "a:latin", "typeface" = font)
       }
 
-      # if (any(xml_text(xml_find_all(nodes_run, ".//a:t")) == "num")) browser()
-      if (!"solidFill" %in% names && !is.null(color)) {
-        color <- toupper(gsub("#", "", color))
-        xml_add_child(
-          run_style,
-          as_xml_node(glue::glue('<a:solidFill><a:srgbClr val="{color}" /></a:solidFill>'), create_ns = TRUE, ooxml_type = "pptx")[[1]]
-        )
-      }
-
       if (!"i" %in% attrs_names && identical(style, "italic")) {
         xml_set_attr(run_style, "i", "1")
       }
@@ -1182,14 +1174,14 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
   nodes
 }
 
-process_ooxml__paragraph <- function(ooxml_type, nodes, align = NULL, keep_with_next = TRUE, style = NULL) {
+process_ooxml__paragraph <- function(ooxml_type, nodes, align = NULL, keep_with_next = TRUE, style = NULL, color = NULL) {
   switch_ooxml(ooxml_type,
-    word = process_ooxml__paragraph_word(nodes, align = align, keep_with_next = keep_with_next, style = style),
-    pptx = process_ooxml__paragraph_pptx(nodes, align = align, keep_with_next = keep_with_next, style = style),
+    word = process_ooxml__paragraph_word(nodes, align = align, keep_with_next = keep_with_next, style = style, color = color),
+    pptx = process_ooxml__paragraph_pptx(nodes, align = align, keep_with_next = keep_with_next, style = style, color = color),
   )
 }
 
-process_ooxml__paragraph_word <- function(nodes, align = NULL, keep_with_next = TRUE, style = NULL) {
+process_ooxml__paragraph_word <- function(nodes, align = NULL, keep_with_next = TRUE, style = NULL, color) {
   nodes_p <- xml_find_all(nodes, "//w:p")
 
   # if there are no paragraph, add an empty one
@@ -1243,7 +1235,7 @@ process_ooxml__paragraph_word <- function(nodes, align = NULL, keep_with_next = 
   nodes
 }
 
-process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next, style) {
+process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next, style, color) {
   nodes_p <- xml_find_all(nodes, "//a:p")
 
   # if there are no paragraph, add an empty one
@@ -1263,6 +1255,12 @@ process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next,
     children   <- xml_children(pPr)
     names      <- xml_name(children)
 
+    if (!"defRPr" %in% names && !is.null(color)) {
+      color <- as_hex_code(color)
+      node <- as_xml_node(glue::glue('<a:defRPr><a:solidFill><a:srgbClr val="{color}"/></a:solidFill></a:defRPr>'), create_ns = TRUE, ooxml_type = "pptx")[[1]]
+      xml_add_child(pPr, node, .where = 0)
+    }
+
     if (!"spcBef" %in% names) {
       xml_add_child(pPr, as_xml_node('<a:spcBef><a:spcPts val="0" /></a:spcBef>', create_ns = TRUE, ooxml_type = "pptx"))
     }
@@ -1274,10 +1272,6 @@ process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next,
     if (!is.null(align)) {
       val <- arg_match_names(align, c(left = "l", right = "r", center = "ctr"))
       xml_set_attr(pPr, "algn", val)
-    }
-
-    if (!"endParaRPr" %in% names) {
-      xml_add_child(p, "a:endParaRPr", sz = "1000", lang="en-US")
     }
 
   }

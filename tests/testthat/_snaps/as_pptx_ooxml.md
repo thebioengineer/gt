@@ -60,7 +60,6 @@
                   </a:rPr>
                   <a:t xml:space="default">num</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -103,7 +102,6 @@
                   </a:rPr>
                   <a:t xml:space="default">char</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -141,7 +139,6 @@
                   </a:rPr>
                   <a:t xml:space="default">fctr</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -179,7 +176,6 @@
                   </a:rPr>
                   <a:t xml:space="default">date</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -217,7 +213,6 @@
                   </a:rPr>
                   <a:t xml:space="default">time</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -255,7 +250,6 @@
                   </a:rPr>
                   <a:t xml:space="default">datetime</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -293,7 +287,6 @@
                   </a:rPr>
                   <a:t xml:space="default">currency</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -331,7 +324,6 @@
                   </a:rPr>
                   <a:t xml:space="default">row</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -369,7 +361,6 @@
                   </a:rPr>
                   <a:t xml:space="default">group</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -414,7 +405,6 @@
                   </a:rPr>
                   <a:t xml:space="default">0.1111</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -462,7 +452,6 @@
                   </a:rPr>
                   <a:t xml:space="default">apricot</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -510,7 +499,6 @@
                   </a:rPr>
                   <a:t xml:space="default">one</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -558,7 +546,6 @@
                   </a:rPr>
                   <a:t xml:space="default">2015-01-15</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -606,7 +593,6 @@
                   </a:rPr>
                   <a:t xml:space="default">13:35</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -654,7 +640,6 @@
                   </a:rPr>
                   <a:t xml:space="default">2018-01-01 02:22</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -702,7 +687,6 @@
                   </a:rPr>
                   <a:t xml:space="default">49.95</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -750,7 +734,6 @@
                   </a:rPr>
                   <a:t xml:space="default">row_1</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -798,7 +781,6 @@
                   </a:rPr>
                   <a:t xml:space="default">grp_a</a:t>
                 </a:r>
-                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
             <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
@@ -837,6 +819,11 @@
     Output
       <a:p>
         <a:pPr algn="ctr">
+          <a:defRPr>
+            <a:solidFill>
+              <a:srgbClr val="333333"/>
+            </a:solidFill>
+          </a:defRPr>
           <a:spcBef>
             <a:spcPts val="0"/>
           </a:spcBef>
@@ -847,13 +834,9 @@
         <a:r>
           <a:rPr lang="en-US" sz="1200">
             <a:latin typeface="Calibri"/>
-            <a:solidFill>
-              <a:srgbClr val="333333"/>
-            </a:solidFill>
           </a:rPr>
           <a:t xml:space="default">TABLE TITLE</a:t>
         </a:r>
-        <a:endParaRPr sz="1000" lang="en-US"/>
       </a:p>
 
 ---
@@ -863,6 +846,11 @@
     Output
       <a:p>
         <a:pPr algn="ctr">
+          <a:defRPr>
+            <a:solidFill>
+              <a:srgbClr val="333333"/>
+            </a:solidFill>
+          </a:defRPr>
           <a:spcBef>
             <a:spcPts val="0"/>
           </a:spcBef>
@@ -873,12 +861,8 @@
         <a:r>
           <a:rPr lang="en-US" sz="800">
             <a:latin typeface="Calibri"/>
-            <a:solidFill>
-              <a:srgbClr val="333333"/>
-            </a:solidFill>
           </a:rPr>
           <a:t xml:space="default">table subtitle</a:t>
         </a:r>
-        <a:endParaRPr sz="1000" lang="en-US"/>
       </a:p>
 
