@@ -131,6 +131,12 @@ test_that("pptx ooxml can be generated from gt object", {
   expect_equal(length(xml), 1)
   expect_equal(xml_name(xml), "tbl")
 
+  # make sure there is an expliti noFill
+  expect_equal(
+    length(xml_find_all(xml, "//a:tcPr/a:noFill")),
+    length(xml_find_all(xml, "//a:tcPr"))
+  )
+
   expect_equal(
     xml_attr(xml_find_all(xml, "(//a:tr)[1]//a:pPr"), "algn"),
     c("r", "l", "ctr", "r", "r", "r", "r", "l", "l")
