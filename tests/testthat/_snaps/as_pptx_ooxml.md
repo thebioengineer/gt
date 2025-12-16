@@ -13,7 +13,7 @@
           </a:spcAft>
         </a:pPr>
         <a:r>
-          <a:rPr/>
+          <a:rPr lang="en-US"/>
           <a:t>hello</a:t>
         </a:r>
       </a:p>
@@ -26,6 +26,8 @@
       <a:tbl>
         <a:tblPr firstRow="0" lastRow="0" firstCol="0" lastCol="0" bandCol="0" bandRow="0">
           <a:tableW type="auto" w="0"/>
+          <a:tblLook firstRow="0" lastRow="0" firstCol="0" lastCol="0" noHBand="1" noVBand="1" val="04A0"/>
+          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}</a:tableStyleId>
         </a:tblPr>
         <a:tblGrid>
           <a:gridCol w="1016000"/>
@@ -38,29 +40,10 @@
           <a:gridCol w="1016000"/>
           <a:gridCol w="1016000"/>
         </a:tblGrid>
-        <a:tr h="10000">
+        <a:tr h="254000">
           <a:tc>
-            <a:tcPr>
-              <a:tcBdr>
-                <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnT>
-                <a:lnB w="19050" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnB>
-                <a:lnL w="4762" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnL>
-              </a:tcBdr>
-            </a:tcPr>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -72,16 +55,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">num</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -93,10 +75,17 @@
                     <a:srgbClr val="D3D3D3"/>
                   </a:solidFill>
                 </a:lnB>
+                <a:lnL w="4762" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnL>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="l">
@@ -108,16 +97,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">char</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -131,8 +119,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="ctr">
@@ -144,16 +134,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">fctr</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -167,8 +156,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -180,16 +171,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">date</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -203,8 +193,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -216,16 +208,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">time</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -239,8 +230,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -252,16 +245,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">datetime</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -275,8 +267,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -288,16 +282,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">currency</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -311,8 +304,10 @@
                 </a:lnB>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="l">
@@ -324,16 +319,52 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">row</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
+              <a:tcBdr>
+                <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnT>
+                <a:lnB w="19050" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnB>
+              </a:tcBdr>
+            </a:tcPr>
           </a:tc>
           <a:tc>
-            <a:tcPr>
+            <a:txBody>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
+              <a:lstStyle/>
+              <a:p>
+                <a:pPr algn="l">
+                  <a:spcBef>
+                    <a:spcPts val="0"/>
+                  </a:spcBef>
+                  <a:spcAft>
+                    <a:spcPts val="300"/>
+                  </a:spcAft>
+                </a:pPr>
+                <a:r>
+                  <a:rPr lang="en-US" sz="1000">
+                    <a:latin typeface="Calibri"/>
+                  </a:rPr>
+                  <a:t xml:space="default">group</a:t>
+                </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
+              </a:p>
+            </a:txBody>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="19050" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -352,56 +383,12 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
-            <a:txBody>
-              <a:bodyPr/>
-              <a:lstStyle/>
-              <a:p>
-                <a:pPr algn="l">
-                  <a:spcBef>
-                    <a:spcPts val="0"/>
-                  </a:spcBef>
-                  <a:spcAft>
-                    <a:spcPts val="300"/>
-                  </a:spcAft>
-                </a:pPr>
-                <a:r>
-                  <a:rPr sz="1000">
-                    <a:latin typeface="Calibri"/>
-                  </a:rPr>
-                  <a:t xml:space="default">group</a:t>
-                </a:r>
-              </a:p>
-            </a:txBody>
           </a:tc>
         </a:tr>
-        <a:tr h="10000">
+        <a:tr h="254000">
           <a:tc>
-            <a:tcPr>
-              <a:tcBdr>
-                <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnT>
-                <a:lnB w="4762" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnB>
-                <a:lnL w="4762" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnL>
-                <a:lnR w="4762" cap="flat" cmpd="single" algn="ctr">
-                  <a:solidFill>
-                    <a:srgbClr val="D3D3D3"/>
-                  </a:solidFill>
-                </a:lnR>
-              </a:tcBdr>
-            </a:tcPr>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -413,16 +400,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">0.1111</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -446,8 +432,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="l">
@@ -459,16 +447,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">apricot</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -492,8 +479,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="ctr">
@@ -505,16 +494,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">one</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -538,8 +526,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -551,16 +541,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">2015-01-15</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -584,8 +573,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -597,16 +588,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">13:35</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -630,8 +620,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -643,16 +635,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">2018-01-01 02:22</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -676,8 +667,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="r">
@@ -689,16 +682,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">49.95</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -722,8 +714,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="l">
@@ -735,16 +729,15 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">row_1</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
-          </a:tc>
-          <a:tc>
-            <a:tcPr>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
               <a:tcBdr>
                 <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
                   <a:solidFill>
@@ -768,8 +761,10 @@
                 </a:lnR>
               </a:tcBdr>
             </a:tcPr>
+          </a:tc>
+          <a:tc>
             <a:txBody>
-              <a:bodyPr/>
+              <a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" rtlCol="0" anchor="ctr"/>
               <a:lstStyle/>
               <a:p>
                 <a:pPr algn="l">
@@ -781,13 +776,38 @@
                   </a:spcAft>
                 </a:pPr>
                 <a:r>
-                  <a:rPr sz="1000">
+                  <a:rPr lang="en-US" sz="1000">
                     <a:latin typeface="Calibri"/>
                   </a:rPr>
                   <a:t xml:space="default">grp_a</a:t>
                 </a:r>
+                <a:endParaRPr sz="1000" lang="en-US"/>
               </a:p>
             </a:txBody>
+            <a:tcPr marT="45720" marB="45720" marL="45720" marR="45720" anchor="ctr">
+              <a:tcBdr>
+                <a:lnT w="4762" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnT>
+                <a:lnB w="4762" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnB>
+                <a:lnL w="4762" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnL>
+                <a:lnR w="4762" cap="flat" cmpd="single" algn="ctr">
+                  <a:solidFill>
+                    <a:srgbClr val="D3D3D3"/>
+                  </a:solidFill>
+                </a:lnR>
+              </a:tcBdr>
+            </a:tcPr>
           </a:tc>
         </a:tr>
       </a:tbl>
@@ -807,7 +827,7 @@
           </a:spcAft>
         </a:pPr>
         <a:r>
-          <a:rPr sz="1200">
+          <a:rPr lang="en-US" sz="1200">
             <a:latin typeface="Calibri"/>
             <a:solidFill>
               <a:srgbClr val="333333"/>
@@ -815,6 +835,7 @@
           </a:rPr>
           <a:t xml:space="default">TABLE TITLE</a:t>
         </a:r>
+        <a:endParaRPr sz="1000" lang="en-US"/>
       </a:p>
 
 ---
@@ -832,7 +853,7 @@
           </a:spcAft>
         </a:pPr>
         <a:r>
-          <a:rPr sz="800">
+          <a:rPr lang="en-US" sz="800">
             <a:latin typeface="Calibri"/>
             <a:solidFill>
               <a:srgbClr val="333333"/>
@@ -840,5 +861,6 @@
           </a:rPr>
           <a:t xml:space="default">table subtitle</a:t>
         </a:r>
+        <a:endParaRPr sz="1000" lang="en-US"/>
       </a:p>
 

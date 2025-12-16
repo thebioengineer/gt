@@ -611,9 +611,7 @@ output:
     output = filename
   )
 
-  if (needs_gt_as_pptx_post_processing(md_text)) {
-    gt_as_pptx_post_processing(path = filename)
-  }
+  gt_as_pptx_post_processing(path = filename)
 
 }
 

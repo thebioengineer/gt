@@ -34,7 +34,7 @@ word_tbl_cell_margins <- function() {
   )
 }
 
-word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width = "auto", tableStyle=NULL) {
+word_tbl_properties <- function(..., layout = c("autofit", "fixed"), justify = c("center", "start", "end"), width = "auto", tableStyle = NULL) {
   rlang::check_dots_empty()
 
   if (!rlang::is_character(width, n = 1)) {
@@ -63,14 +63,16 @@ pptx_tbl_properties <- function(..., width = "auto", tableStyle = NULL) {
   ooxml_tag("a:tblPr", tag_class = "ooxml_tbl_properties",
     "firstRow"    = "0",
     "lastRow"     = "0",
-    "firstCol" = "0",
+    "firstCol"    = "0",
     "lastCol"     = "0",
     "bandCol"     = "0",
     "bandRow"     = "0",
 
     ooxml_tbl_width("pptx", width = width),
 
-    if (!is.null(tableStyle)) ooxml_tag("a:tableStyleId", tableStyle)
+    ooxml_tag("a:tblLook", firstRow="0", lastRow="0", firstCol="0", lastCol="0", noHBand="1", noVBand="1", val="04A0"),
+
+    ooxml_tag("a:tableStyleId", tableStyle %||% "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}")
   )
 }
 
@@ -200,7 +202,7 @@ ooxml_tbl_row_height <- function(ooxml_type, value, ..., error_call = current_en
 
   pptx_trHeight <- function() {
     value <- value %||% 10
-    splice3(h = value * 1000)
+    splice3(h = value * 12700 * 2)
   }
 
   switch_ooxml(ooxml_type,
@@ -223,12 +225,13 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
       properties, ...
     ),
     pptx = ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell",
-      properties,
       ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
-        ooxml_tag(tag = "a:bodyPr"),
+        ooxml_tag(tag = "a:bodyPr", vertOverflow="clip", horzOverflow="clip", wrap="square", rtlCol="0", anchor="ctr"),
         ooxml_tag(tag = "a:lstStyle"),
         ...
-      )
+      ),
+      properties,
+
     )
   )
 }
@@ -372,11 +375,11 @@ ooxml_fill <- function(ooxml_type, color = NULL) {
 # ooxml_tbl_cell_margins --------------------------------------------------
 
 ooxml_tbl_cell_margins <- function(ooxml_type, margins = NULL) {
-  if (is.null(margins)) {
-    return(NULL)
-  }
-
   word_tbl_cell_margins <- function() {
+    if (is.null(margins)) {
+      return(NULL)
+    }
+
     xml_margins <- lapply(c("top", "bottom", "left", "right"), function(location) {
       if (is.null(margins[[location]])) {
         return(NULL)
@@ -400,16 +403,27 @@ ooxml_tbl_cell_margins <- function(ooxml_type, margins = NULL) {
   }
 
   pptx_tbl_cell_margins <- function() {
+
+    if (is.null(margins)) {
+      return(rlang::splice(list(
+        marT = "45720",
+        marB = "45720",
+        marL = "45720",
+        marR = "45720",
+        anchor = "ctr"
+      )))
+    }
+
     attrs_margins <- lapply(c("top", "bottom", "left", "right"), function(location) {
       if (is.null(margins[[location]])) {
-        return (NULL)
+        return("0")
       }
       margins[[location]]$width # TODO: should there be a multiplier here ?
     })
 
     names(attrs_margins) <- c("marT", "marB", "marL", "marR")
-    attrs_margins <- attrs_margins[!sapply(attrs_margins, is.null)]
 
+    attrs_margins <- c(attrs_margins, "anchor" = "ctr")
     # in pptx, margins are attributes, so we use a spliced list
     rlang::splice(attrs_margins)
   }
@@ -760,14 +774,14 @@ parse_to_ooxml_simple <- function(text = "", ooxml_type = "word") {
   <a:p>
     <a:pPr>
       <a:spcBef>
-        <a:spcPts val="0"/>
-      </a:spcBef>
+      <a:spcPts val="0"/>
+        </a:spcBef>
       <a:spcAft>
         <a:spcPts val="300"/>
       </a:spcAft>
     </a:pPr>
     <a:r>
-      <a:rPr/>
+      <a:rPr lang="en-US"/>
       <a:t>{text}</a:t>
     </a:r>
   </a:p>
@@ -1037,8 +1051,9 @@ process_ooxml__text <- function(ooxml_type, nodes, whitespace = "default") {
       } else {
         "default"
       }
+      xml_set_attr(txt, "xml:space", spacing)
 
-      xml_attr(txt, attr = "xml:space") <- spacing
+
     }
   }
 
@@ -1115,6 +1130,7 @@ process_ooxml__run_word <- function(nodes, font, size, color, style, weight, str
 process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, stretch) {
 
   nodes_run <- xml_find_all(nodes, "//a:r")
+
   for (run in nodes_run) {
     run_image <- xml_find_first(run, ".//a:drawing")
     run_style <- xml_find_first(run, ".//a:rPr")
@@ -1131,6 +1147,7 @@ process_ooxml__run_pptx <- function(nodes, font, size, color, style, weight, str
         xml_add_child(run_style, "a:latin", "typeface" = font)
       }
 
+      # if (any(xml_text(xml_find_all(nodes_run, ".//a:t")) == "num")) browser()
       if (!"solidFill" %in% names && !is.null(color)) {
         color <- toupper(gsub("#", "", color))
         xml_add_child(
@@ -1224,7 +1241,6 @@ process_ooxml__paragraph_word <- function(nodes, align = NULL, keep_with_next = 
 }
 
 process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next, style) {
-
   nodes_p <- xml_find_all(nodes, "//a:p")
 
   # if there are no paragraph, add an empty one
@@ -1255,6 +1271,10 @@ process_ooxml__paragraph_pptx <- function(nodes, align, stretch, keep_with_next,
     if (!is.null(align)) {
       val <- arg_match_names(align, c(left = "l", right = "r", center = "ctr"))
       xml_set_attr(pPr, "algn", val)
+    }
+
+    if (!"endParaRPr" %in% names) {
+      xml_add_child(p, "a:endParaRPr", sz = "1000", lang="en-US")
     }
 
   }
@@ -1679,12 +1699,38 @@ cmark_rules_ooxml_pptx <- list2(
   # }
 )
 
-needs_gt_as_pptx_post_processing <- function(x) {
-  any(grepl("a:hlinkClick", x, fixed = TRUE))
-}
-
 gt_as_pptx_post_processing <- function(path) {
+  temp_dir <- tempfile()
+  on.exit(unlink(temp_dir, recursive = TRUE))
+  unzip(path, exdir = temp_dir)
 
+  xml_styles <- read_xml(file.path(temp_dir, "ppt", "tableStyles.xml"))
+  tbl_styles <- xml_attr(xml_styles, "def")
+
+  slides <- list.files(file.path(temp_dir, "ppt", "slides"), full.names = TRUE, pattern = "^slide")
+  for (i in seq_along(slides)) {
+    xml <- read_xml(slides[i])
+    styles <- xml_find_all(xml, ".//a:tableStyleId")
+
+    for (style in styles) {
+      if (xml_text(style) %in% tbl_styles) {
+        xml_set_text(style, tbl_styles[1])
+      }
+    }
+
+    if (length(xml_find_all(xml, ".//p:clrMapOvr")) == 0) {
+      xml_add_child(xml, "p:clrMapOvr")
+      xml_add_child(xml_find_all(xml, ".//p:clrMapOvr"), "a:masterClrMapping")
+    }
+    write_xml(xml, slides[i])
+
+  }
+
+  old <- setwd(temp_dir)
+  zip(path, files = list.files(temp_dir, recursive = TRUE), flags = "-q")
+  setwd(old)
+
+  path
 }
 
 
