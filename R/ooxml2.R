@@ -84,7 +84,7 @@ ooxml_tbl_width <- function(ooxml_type, width = "auto") {
   if (identical(width, "auto")) {
     return(switch_ooxml(ooxml_type,
       word = ooxml_tag("w:tblW"  , "w:type" = "auto"),
-      pptx = ooxml_tag("a:tableW", "type" = "auto", w = "0")
+      pptx = ooxml_tag("a:tableW", "type" = "auto", w = "9144000")
     ))
   }
 

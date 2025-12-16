@@ -564,7 +564,7 @@ gt_save_pptx <- function(
       ')
       offset <- offset + 200000
     } else if (xml_name(node) == "tbl") {
-      height <- 6858000 - length(xml_find_all(xml, './/a:p')) * 200000 - 100000
+      height <- 6858000 - length(xml_find_all(xml, './/p:spTree/p:sp')) * 200000 - 100000
 
       txt_cy <- sprintf("%d", height)
       txt_offset <- sprintf("%d", offset)
