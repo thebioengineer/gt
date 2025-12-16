@@ -615,7 +615,7 @@ format_num_to_str <- function(
     # threshold=2: 10^4 (10000, 5 digits)
     # threshold=3: 10^5 (100000, 6 digits)
     magnitude_threshold <- 10^(min_sep_threshold + 2)
-    
+
     # Format all values first to determine their rounded magnitudes
     # We need to check rounded values because 999.5 with 0 decimals becomes "1000"
     # Suppress warnings when both big.mark and decimal.mark are empty strings
@@ -632,7 +632,7 @@ format_num_to_str <- function(
           decimal.mark = dec_mark
         )
       )
-    
+
     # Parse formatted strings to get rounded magnitudes
     # Handle both empty and non-empty dec_mark
     if (nzchar(dec_mark)) {
@@ -640,15 +640,15 @@ format_num_to_str <- function(
     } else {
       x_rounded <- suppressWarnings(as.numeric(x_str_test))
     }
-    
+
     # Determine which values should have separators based on rounded magnitude
     should_use_sep <- abs(x_rounded) >= magnitude_threshold
-    
+
     # Format values below threshold without separators (reuse test formatting)
     if (any(!should_use_sep, na.rm = TRUE)) {
       x_str_no_sep <- x_str_test[!should_use_sep]
     }
-    
+
     # Format values at or above threshold with separators
     # Suppress warnings when both big.mark and decimal.mark are empty strings
     if (any(should_use_sep, na.rm = TRUE)) {
@@ -666,7 +666,7 @@ format_num_to_str <- function(
           )
         )
     }
-    
+
     # Combine the results
     x_str <- character(length(x))
     if (any(!should_use_sep, na.rm = TRUE)) {
@@ -675,7 +675,7 @@ format_num_to_str <- function(
     if (any(should_use_sep, na.rm = TRUE)) {
       x_str[should_use_sep] <- x_str_sep
     }
-    
+
   } else {
     # No min_sep_threshold, use original behavior with separators
     # Suppress warnings when both big.mark and decimal.mark are empty strings
@@ -875,6 +875,8 @@ context_missing_text <- function(missing_text, context) {
       html = ,
       grid = ,
       latex = ,
+      "ooxml/word" =,
+      "ooxml/pptx" =,
       word =
         {
           if (!is_asis && missing_text == "---") {
@@ -923,6 +925,8 @@ context_plusminus_mark <- function(plusminus_mark, context) {
     html = ,
     latex = ,
     grid = ,
+    "ooxml/word" = ,
+    "ooxml/pptx" = ,
     word =
       {
         if (!is_asis && plusminus_mark == " +/- ") {
@@ -986,6 +990,8 @@ context_lte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02264",
     latex = "$\\leq$",
     "<="
@@ -1002,6 +1008,8 @@ context_gte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02265",
     latex = "$\\geq$",
     ">="
@@ -1086,6 +1094,8 @@ context_exp_marks <- function(context) {
     html = c("&nbsp;\U000D7&nbsp;10<sup style='font-size: 65%;'>", "</sup>"),
     latex = c(" $\\times$ 10\\textsuperscript{", "}"),
     rtf = c(" \\'d7 10{\\super ", "}"),
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     word = c(" \U000D7 10^", ""),
     c(" \U000D7 10^", "")
   )
@@ -1112,6 +1122,8 @@ context_exp_str <- function(context, exp_style) {
         html = "<sub style='font-size: 65%;'>10</sub>",
         latex = "{}_10",
         rtf = "{\\sub 10}",
+        "ooxml/word" =,
+        "ooxml/pptx" =,
         word = "10^",
         "E"
       )

@@ -5577,6 +5577,12 @@ fmt_bins <- function(
       rtf = function(x) {
         format_bins_by_context(x, sep = sep, fmt = fmt, context = "rtf")
       },
+      "ooxml/word" = function(x) {
+        format_bins_by_context(x, sep = sep, fmt = fmt, context = "word")
+      },
+      "ooxml/pptx" = function(x) {
+        format_bins_by_context(x, sep = sep, fmt = fmt, context = "word")
+      },
       word = function(x) {
         format_bins_by_context(x, sep = sep, fmt = fmt, context = "word")
       },
@@ -6178,6 +6184,28 @@ fmt_tf <- function(
           context = "rtf"
         )
       },
+      "ooxml/word" = function(x) {
+        format_tf_by_context(
+          x,
+          true_val = true_val,
+          false_val = false_val,
+          na_val = na_val,
+          colors = colors,
+          pattern = pattern,
+          context = "ooxml/word"
+        )
+      },
+      "ooxml/pptx" = function(x) {
+        format_tf_by_context(
+          x,
+          true_val = true_val,
+          false_val = false_val,
+          na_val = na_val,
+          colors = colors,
+          pattern = pattern,
+          context = "ooxml/pptx"
+        )
+      },
       word = function(x) {
         format_tf_by_context(
           x,
@@ -6439,6 +6467,12 @@ fmt_units <- function(
       rtf = function(x) {
         format_units_by_context(x, context = "rtf")
       },
+      "ooxml/word" = function(x) {
+        format_units_by_context(x, context = "ooxml/word")
+      },
+      "ooxml/pptx" = function(x) {
+        format_units_by_context(x, context = "oooxml/pptx")
+      },
       word = function(x) {
         format_units_by_context(x, context = "word")
       },
@@ -6685,6 +6719,20 @@ fmt_chem <- function(
           x,
           is_chemical_formula = TRUE,
           context = "rtf"
+        )
+      },
+      "ooxml/word" = function(x) {
+        format_units_by_context(
+          x,
+          is_chemical_formula = TRUE,
+          context = "ooxml/word"
+        )
+      },
+      "ooxml/pptx" = function(x) {
+        format_units_by_context(
+          x,
+          is_chemical_formula = TRUE,
+          context = "ooxml/pptx"
         )
       },
       word = function(x) {
@@ -7372,6 +7420,8 @@ fmt_url <- function(
       rtf = function(x) {
         x
       },
+      "ooxml/word" = function(x) {x},
+      "ooxml/pptx" = function(x) {x},
       word = function(x) {
         x
       },
@@ -8094,6 +8144,8 @@ fmt_email <- function(
     rtf = function(x) {
       x
     },
+    "ooxml/word" = function(x) {x},
+    "ooxml/pptx" = function(x) {x},
     word = function(x) {
       x
     },
@@ -8571,8 +8623,13 @@ fmt_image <- function(
         x_str
 
       },
+      "ooxml/word" = function(x) {
+        fmt_image_ooxml("word", x, height = height, width = width, file_pattern = file_pattern, path = path)
+      },
+      "ooxml/pptx" = function(x) {
+        fmt_image_ooxml("pptx", x, height = height, width = width, file_pattern = file_pattern, path = path)
+      },
       word = function(x) {
-
         x_str <- character(length(x))
 
         x_str_non_missing <- x[!is.na(x)]
@@ -9186,6 +9243,8 @@ fmt_flag <- function(
       rtf = function(x) {
         x
       },
+      "ooxml/word" = function(x) {x},
+      "ooxml/pptx" = function(x) {x},
       word = function(x) {
         x
       },
@@ -10187,6 +10246,8 @@ fmt_icon <- function(
       rtf = function(x) {
         x
       },
+      "ooxml/word" = function(x) {x},
+      "ooxml/pptx" = function(x) {x},
       word = function(x) {
         x
       },
@@ -10464,6 +10525,12 @@ fmt_markdown <- function(
       },
       word = function(x) {
         markdown_to_xml(x)
+      },
+      "ooxml/word" = function(x) {
+        markdown_to_ooxml(x, ooxml_type = "word")
+      },
+      "ooxml/pptx" = function(x) {
+        markdown_to_ooxml(x, ooxml_type = "pptx")
       },
       grid = function(x) {
         x <- unescape_html(x)
