@@ -57,7 +57,8 @@ as_ooxml <- function(ooxml_type,
       align = align,
       split = split,
       keep_with_next = keep_with_next,
-      embedded_heading = embedded_heading
+      embedded_heading = embedded_heading,
+      table_width = table_width
   ))
   if (!embedded_heading) {
     heading <- create_table_caption_contents_ooxml(ooxml_type, data,
@@ -78,7 +79,8 @@ as_ooxml_tbl <- function(ooxml_type, data,
     align = "center",
     split = FALSE,
     keep_with_next = TRUE,
-    embedded_heading = FALSE
+    embedded_heading = FALSE,
+    table_width = NULL
 ) {
 
   # Perform input object validation
