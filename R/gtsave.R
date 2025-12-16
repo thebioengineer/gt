@@ -544,7 +544,7 @@ gt_save_pptx <- function(
       txt[i] <- glue::glue('
 <p:sp>
   <p:nvSpPr>
-    <p:cNvPr id="{i}" name="{title}"/>
+    <p:cNvPr id="{i + 1}" name="{title}"/>
     <p:cNvSpPr/>
     <p:nvPr/>
   </p:nvSpPr>
@@ -564,14 +564,14 @@ gt_save_pptx <- function(
       ')
       offset <- offset + 200000
     } else if (xml_name(node) == "tbl") {
-      height <- 6858000 - length(xml_find_all(xml, './/a:p')) * 200000 - 100000
+      height <- 6858000 - length(xml_find_all(xml, './/p:spTree/p:sp')) * 200000 - 100000
 
       txt_cy <- sprintf("%d", height)
       txt_offset <- sprintf("%d", offset)
       txt[i] <- glue::glue('
 <p:graphicFrame>
   <p:nvGraphicFramePr>
-    <p:cNvPr id="{i}" name="Table 1"/>
+    <p:cNvPr id="{i + 1}" name="Table 1"/>
     <p:cNvGraphicFramePr/>
     <p:nvPr/>
   </p:nvGraphicFramePr>
@@ -611,9 +611,7 @@ output:
     output = filename
   )
 
-  if (needs_gt_as_pptx_post_processing(md_text)) {
-    gt_as_pptx_post_processing(path = filename)
-  }
+  gt_as_pptx_post_processing(path = filename)
 
 }
 

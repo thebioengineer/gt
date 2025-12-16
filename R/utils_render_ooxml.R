@@ -115,8 +115,6 @@ as_ooxml_tbl <- function(ooxml_type, data,
 # table properties --------------------------------------------------------
 
 create_table_properties_ooxml <- function(ooxml_type, data, align = c("center", "start", "end")) {
-  # TODO: set layout as autofit when dt_boxhead_get()$column_width
-  #       are all NULL and figure out equivalent in pptx
   ooxml_tbl_properties(ooxml_type, justify = align, width = "auto")
 }
 
@@ -148,7 +146,7 @@ create_heading_row <- function(ooxml_type, data, split = FALSE, keep_with_next =
   )
 
   ooxml_tbl_row(ooxml_type, split = split, is_header = TRUE,
-    ooxml_tbl_cell(ooxml_type, !!!paragraphs,
+    ooxml_tbl_cell(ooxml_type, !!!paragraphs, col_span = n_cols,
       properties = ooxml_tbl_cell_properties(ooxml_type,
         borders  = list(
           top    = list(type = "solid", size = 2, color = heading_border_bottom_color),
@@ -313,8 +311,8 @@ create_table_grand_summary_rows <- function(ooxml_type, data, split, keep_with_n
       ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
         properties = ooxml_tbl_cell_properties(ooxml_type,
           borders  = list(
-            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
-            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            top    = list(size = if (j == 1) 8 else 1, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 8 else 1, color = table_body_hlines_color),
             left   = list(color = table_body_vlines_color),
             right  = list(color = table_body_vlines_color)
           ),
@@ -380,7 +378,7 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split, keep_with_next) 
     )
 
     ooxml_tbl_row(ooxml_type, split = split,
-      ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+      ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
         properties = ooxml_tbl_cell_properties(ooxml_type,
           fill     = cell_style[["cell_fill"]][["color"]],
           v_align  = cell_style[["cell_text"]][["v_align"]],
@@ -420,7 +418,7 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
     )
 
     ooxml_tbl_row(ooxml_type, split = split,
-      ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+      ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
         properties = ooxml_tbl_cell_properties(ooxml_type,
           fill     = cell_style[["cell_fill"]][["color"]],
           v_align  = cell_style[["cell_text"]][["v_align"]],
@@ -543,7 +541,7 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
 
       keep_with_next = keep_with_next
     )
-    ooxml_tbl_cell(ooxml_type, properties = ooxml_tbl_cell_properties(ooxml_type,
+    ooxml_tbl_cell(ooxml_type, col_span = colspans[i], properties = ooxml_tbl_cell_properties(ooxml_type,
         borders  = borders,
         fill     = cell_style[["cell_fill"]][["color"]],
         v_align  = cell_style[["cell_text"]][["v_align"]],
@@ -627,7 +625,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
         size_default  = 20
       )
 
-      tagList(ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+      tagList(ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = if (n_stub_cols > 1) n_stub_cols,
         properties = ooxml_tbl_cell_properties(ooxml_type,
           borders  = borders,
           fill     = cell_style[["cell_fill"]][["color"]],
@@ -668,7 +666,7 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
 
     if (single_stub_label) {
       tagList(
-        ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
+        ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = if (n_stub_cols > 1) n_stub_cols,
           properties = ooxml_tbl_cell_properties(ooxml_type,
             borders = borders,
             row_span = 0,
@@ -738,22 +736,43 @@ create_group_heading_row_ooxml <- function(ooxml_type, data, i, split = FALSE, k
     keep_with_next = keep_with_next
   )
 
+  n_data_cols <- length(dt_boxhead_get_vars_default(data = data))
+  n_stub_cols <- length(dt_boxhead_get_var_by_type(data, type = "stub"))
+  n_cols <- n_data_cols + n_stub_cols
 
-  ooxml_tbl_row(ooxml_type, split = split,
-    ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
-      properties = ooxml_tbl_cell_properties(ooxml_type,
-        borders  = NULL, # TODO: = borders
-        fill     = cell_style[["cell_fill"]][["color"]],
-        v_align  = cell_style[["cell_text"]][["v_align"]],
-        col_span = NULL, # TODO: = colspans[i],
-        margins  = list(
-          top = list(width = 25)
-          # TODO: mark with cell_margin() as in the old xml variant
-          #       also should this come from somewhere or just be abritrary 25 as here
-        )
+  main_cell <- ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
+    properties = ooxml_tbl_cell_properties(ooxml_type,
+      borders  = NULL, # TODO: = borders
+      fill     = cell_style[["cell_fill"]][["color"]],
+      v_align  = cell_style[["cell_text"]][["v_align"]],
+      col_span = n_cols,
+      margins  = list(
+        top = list(width = 25)
+        # TODO: mark with cell_margin() as in the old xml variant
+        #       also should this come from somewhere or just be abritrary 25 as here
       )
     )
   )
+
+  empty_cells <- lapply(seq_len(n_cols - 1), function(i) {
+    out <- ooxml_tag("a:tc", hMerge = "1",
+      ooxml_tag("a:txBody",
+        ooxml_tag("a:bodyPr"),
+        ooxml_tag("a:lstStyle"),
+        ooxml_tag("a:p",
+          ooxml_tag("a:endParaRPr")
+        )
+      )
+    )
+    class(out) <- c("ooxml_tbl_cell", class(out))
+    out
+  })
+
+  ooxml_tbl_row(ooxml_type, split = split,
+    main_cell,
+    !!!empty_cells
+  )
+
 }
 
 create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top", "bottom"), keep_with_next = TRUE, split = FALSE) {
@@ -822,8 +841,8 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
       ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
         properties = ooxml_tbl_cell_properties(ooxml_type,
           borders  = list(
-            top    = list(size = if (j == 1) 2 else .25, color = table_body_hlines_color),
-            bottom = list(size = if (j == nrow(summary_df)) 2 else .25, color = table_body_hlines_color),
+            top    = list(size = if (j == 1) 8 else 1, color = table_body_hlines_color),
+            bottom = list(size = if (j == nrow(summary_df)) 8 else 1, color = table_body_hlines_color),
             left   = list(color = table_body_vlines_color),
             right  = list(color = table_body_vlines_color)
           ),
