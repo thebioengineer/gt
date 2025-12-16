@@ -3,7 +3,8 @@ as_pptx_ooxml <- function(
   align = "center",
   caption_location = c("top", "bottom", "embed"),
   caption_align = "left",
-  autonum = FALSE
+  autonum = FALSE,
+  table_width = NULL
 ) {
   if (isTRUE(autonum)) {
     cli::cli_abort("{.arg autonum} is not supported bby pptx")
@@ -12,7 +13,8 @@ as_pptx_ooxml <- function(
   as_ooxml("pptx", data,
     align = align, caption_location = caption_location,
     caption_align = caption_align,
-    autonum = autonum
+    autonum = autonum,
+    table_width = table_width
   )
 }
 
@@ -39,7 +41,8 @@ as_ooxml <- function(ooxml_type,
   caption_align = "left",
   split = FALSE,
   keep_with_next = TRUE,
-  autonum = TRUE
+  autonum = TRUE,
+  table_width = NULL
 ) {
   # Perform input object validation
   stop_if_not_gt_tbl(data = data)
@@ -54,7 +57,8 @@ as_ooxml <- function(ooxml_type,
       align = align,
       split = split,
       keep_with_next = keep_with_next,
-      embedded_heading = embedded_heading
+      embedded_heading = embedded_heading,
+      table_width = table_width
   ))
   if (!embedded_heading) {
     heading <- create_table_caption_contents_ooxml(ooxml_type, data,
@@ -75,14 +79,15 @@ as_ooxml_tbl <- function(ooxml_type, data,
     align = "center",
     split = FALSE,
     keep_with_next = TRUE,
-    embedded_heading = FALSE
+    embedded_heading = FALSE,
+    table_width = NULL
 ) {
 
   # Perform input object validation
   stop_if_not_gt_tbl(data = data)
 
   tbl_properties <- create_table_properties_ooxml(ooxml_type, data = data, align = align)
-  tbl_grid            <- create_table_grid_ooxml(ooxml_type, data = data)
+  tbl_grid            <- create_table_grid_ooxml(ooxml_type, data = data, table_width = table_width)
   tbl_spanner_rows    <- create_spanner_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
   tbl_table_rows      <- create_table_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
   tbl_footnote_rows   <- create_footnote_rows_ooxml(ooxml_type, data = data, split = split, keep_with_next = keep_with_next)
@@ -435,15 +440,16 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
 
 # table grid --------------------------------------------------------------
 
-create_table_grid_ooxml <- function(ooxml_type, data) {
+create_table_grid_ooxml <- function(ooxml_type, data, table_width = NULL) {
   boxh <- dt_boxhead_get(data = data)
 
   widths <- boxh[boxh$type %in% c("default", "stub"), , drop = FALSE]
   # returns vector of column widths where `stub` is first
-  widths <- dplyr::arrange(widths, dplyr::desc(type))$column_width
+  widths <- dplyr::arrange(widths, dplyr::desc(type))$column_width %>%
+    lapply(unlist)
 
   # widths may be NULL, pct(), px() ...
-  ooxml_tbl_grid(ooxml_type, !!!widths)
+  ooxml_tbl_grid(ooxml_type, !!!widths, table_width = table_width)
 }
 
 # spanner rows ------------------------------------------------------------
