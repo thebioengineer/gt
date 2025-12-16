@@ -214,7 +214,7 @@ ooxml_tbl_row_height <- function(ooxml_type, value, ..., error_call = current_en
 
 # ooxml_tbl_cell ----------------------------------------------------------
 
-ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
+ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL, col_span = NULL) {
   if (identical(properties, "remove cell")) {
     return(NULL)
   }
@@ -224,7 +224,7 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL) {
     word = ooxml_tag("w:tc", tag_class = "ooxml_tbl_cell",
       properties, ...
     ),
-    pptx = ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell",
+    pptx = ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell", if (!is.null(col_span) && !identical(col_span, 1L)) splice3(gridSpan = col_span),
       ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
         ooxml_tag(tag = "a:bodyPr", vertOverflow="clip", horzOverflow="clip", wrap="square", rtlCol="0", anchor="ctr"),
         ooxml_tag(tag = "a:lstStyle"),
@@ -256,10 +256,10 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
     borders,
     margins,
+    gridSpan,
     fill,
     v_merge,
-    v_align,
-    gridSpan
+    v_align
   )
 }
 
@@ -487,7 +487,7 @@ ooxml_gridSpan <- function(ooxml_type, col_span = NULL) {
 
   switch_ooxml(ooxml_type,
     word = ooxml_tag("w:gridSpan", "w:val" = col_span),
-    pptx = ooxml_tag("a:gridSpan", "val" = col_span)
+    pptx = NULL
   )
 }
 

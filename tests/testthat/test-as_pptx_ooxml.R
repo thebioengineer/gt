@@ -273,13 +273,13 @@ test_that("pptx ooxml can be generated from gt object with cell styling", {
     expect_equal(xml_text(xml_find_all(xml, paste0("//a:tr[1]/a:tc[", j, "]//a:t"))), "")
   }
   xml_top_span <- xml_find_all(xml, "//a:tr[1]/a:tc[2]")
-  expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:gridSpan"), "val"), "3")
+  expect_equal(xml_attr(xml_top_span, "gridSpan"), "3")
   expect_equal(xml_attr(xml_find_all(xml_top_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FF0000")
   expect_equal(xml_text(xml_find_all(xml_top_span, ".//a:t")), "My Span Label top")
 
   # level 1 span
   xml_bottom_span <- xml_find_all(xml, "//a:tr[2]/a:tc[1]")
-  expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:gridSpan"), "val"), "5")
+  expect_equal(xml_attr(xml_bottom_span, "gridSpan"), "5")
   expect_equal(xml_attr(xml_find_all(xml_bottom_span, "./a:tcPr/a:solidFill/a:srgbClr"), "val"), "FFA500")
   expect_equal(xml_text(xml_find_all(xml_bottom_span, ".//a:t")), "My Span Label")
   for (j in c(2:5)) {
@@ -392,11 +392,9 @@ test_that("multicolumn stub are supported", {
     xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("", "year", "hp", "msrp")
   )
-  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
-  for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
-  }
+
+  tc <- xml_find_all(xml, "(.//a:tr)[1]/a:tc")
+  expect_equal(xml_attr(tc[[1]], "gridSpan"), "3")
 
   # one label: merged
   xml <- test_data |>
@@ -404,11 +402,9 @@ test_that("multicolumn stub are supported", {
     tab_stubhead("one") |>
     as_pptx_ooxml() %>%
     read_xml_pptx_nodes()
-  tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
-  for (i in 2:4) {
-    expect_equal(length(xml_find_all(tcPr[[i]], ".//a:gridSpan")), 0)
-  }
+
+  tc <- xml_find_all(xml, "(.//a:tr)[1]/a:tc")
+  expect_equal(xml_attr(tc[[1]], "gridSpan"), "3")
 
   expect_equal(
     xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
@@ -439,13 +435,13 @@ test_that("multicolumn stub are supported", {
     xml_text(xml_find_all(xml, "(.//a:tr)[1]//a:t")),
     c("one", "two", "three", "", "span")
   )
-  # first row
+
   tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
   expect_equal(length(tcPr), 5)
   for (i in 1:3) {
     expect_equal(xml_attr(xml_find_all(tcPr[[i]], ".//a:rowSpan"), "val"), "2")
   }
-  expect_equal(xml_attr(xml_find_first(tcPr[[5]], ".//a:gridSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_all(xml, "(.//a:tr)[1]/a:tc[5]"), "gridSpan"), "2")
 
   # second row
   tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
@@ -468,8 +464,7 @@ test_that("multicolumn stub are supported", {
   # first row
   tcPr <- xml_find_all(xml, "(.//a:tr)[1]/a:tc/a:tcPr")
   expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:rowSpan"), "val"), "2")
-  expect_equal(xml_attr(xml_find_all(tcPr[[1]], ".//a:gridSpan"), "val"), "3")
-  expect_equal(xml_attr(xml_find_first(tcPr[[3]], ".//a:gridSpan"), "val"), "2")
+  expect_equal(xml_attr(xml_find_all(xml, "(.//a:tr)[1]/a:tc"), "gridSpan"), c("3", NA, "2"))
 
   # second row
   tcPr <- xml_find_all(xml, "(.//a:tr)[2]/a:tc/a:tcPr")
@@ -606,8 +601,8 @@ test_that("tables with spans can be added to a pptx doc", {
     rep(c("", "My Column Span", ""), c(2L, 1L, 4L))
   )
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:gridSpan"), "val"),
-    "3"
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:tc"), "gridSpan"),
+    c(NA, NA, "3", NA, NA, NA, NA)
   )
 
   expect_equal(
@@ -626,7 +621,7 @@ test_that("tables with spans can be added to a pptx doc", {
 
 })
 
-test_that("tables with multi-level spans can be added to a word doc", {
+test_that("tables with multi-level spans can be added to a pptx doc", {
   ## simple table
   gt_exibble_min <-
     exibble[1:2, ] |>
@@ -665,8 +660,8 @@ test_that("tables with multi-level spans can be added to a word doc", {
     c("", "My Column Span L2", "", "", "", "")
   )
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:gridSpan"), "val"),
-    "4"
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[1]//a:tc"), "gridSpan"),
+    c(NA, "4", NA, NA, NA, NA)
   )
 
   expect_equal(
@@ -674,8 +669,8 @@ test_that("tables with multi-level spans can be added to a word doc", {
     c("My 1st Column Span L1", "", "", "My 2nd Column Span L1")
   )
   expect_equal(
-    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:gridSpan"), "val"),
-    c("5", "2")
+    xml_attr(xml_find_all(slide, ".//p:graphicFrame//a:tbl/a:tr[2]//a:tc"), "gridSpan"),
+    c("5", NA, NA, "2")
   )
 
   expect_equal(
@@ -767,7 +762,7 @@ test_that("tables with source notes can be added to a pptx doc", {
     "this is a source note example"
   )
   expect_equal(
-    xml_attr(xml_find_all(xml, ".//a:tr[last()]//a:gridSpan"), "val"),
+    xml_attr(xml_find_all(xml, ".//a:tr[last()]//a:tc"), "gridSpan"),
     "9"
   )
 
