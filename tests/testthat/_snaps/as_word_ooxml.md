@@ -38,8 +38,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
                 <w:start w:val="single" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
@@ -61,8 +61,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -83,8 +83,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -105,8 +105,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -127,8 +127,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -149,8 +149,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -171,8 +171,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -193,8 +193,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
             <w:p>
@@ -215,8 +215,8 @@
           <w:tc>
             <w:tcPr>
               <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"/>
+                <w:top w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
+                <w:bottom w:val="single" w:sz="4" w:space="0" w:color="D3D3D3"/>
                 <w:end w:val="single" w:space="0" w:color="D3D3D3"/>
               </w:tcBorders>
             </w:tcPr>
@@ -594,234 +594,4 @@
     Output
       {xml_nodeset (1)}
       [1] <w:t xml:space="default">p &lt; .05, &gt;&lt;&amp; "'</w:t>
-
-# sub_small_vals() and sub_large_vals() are properly encoded
-
-    Code
-      writeLines(as.character(xml))
-    Output
-      <w:tbl >
-        <w:tblPr>
-          <w:tblCellMar>
-            <w:top w:w="0" w:type="dxa"></w:top>
-            <w:bottom w:w="0" w:type="dxa"></w:bottom>
-            <w:start w:w="60" w:type="dxa"></w:start>
-            <w:end w:w="60" w:type="dxa"></w:end>
-          </w:tblCellMar>
-          <w:tblW w:type="auto"></w:tblW>
-          <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noVBand="0" w:noHBand="0"></w:tblLook>
-          <w:jc w:val="center"></w:jc>
-        </w:tblPr>
-        <w:tr>
-          <w:trPr>
-            <w:cantSplit></w:cantSplit>
-            <w:tblHeader></w:tblHeader>
-          </w:trPr>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="end"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">x</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:sz="16" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="start"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">y</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-        </w:tr>
-        <w:tr>
-          <w:trPr>
-            <w:cantSplit></w:cantSplit>
-          </w:trPr>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="end"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">&amp;lt;0.01</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="start"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">&lt;</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-        </w:tr>
-        <w:tr>
-          <w:trPr>
-            <w:cantSplit></w:cantSplit>
-          </w:trPr>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="end"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">0.01</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="start"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">%</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-        </w:tr>
-        <w:tr>
-          <w:trPr>
-            <w:cantSplit></w:cantSplit>
-          </w:trPr>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="end"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">&gt;=100</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-          <w:tc>
-            <w:tcPr>
-              <w:tcBorders>
-                <w:top w:val="single" w:space="0" w:color="D3D3D3"></w:top>
-                <w:bottom w:val="single" w:space="0" w:color="D3D3D3"></w:bottom>
-                <w:start w:val="single" w:space="0" w:color="D3D3D3"></w:start>
-                <w:end w:val="single" w:space="0" w:color="D3D3D3"></w:end>
-              </w:tcBorders>
-            </w:tcPr>
-            <w:p>
-        <w:pPr>
-          <w:spacing w:before="0" w:after="60"/>
-          <w:keepNext/>
-          <w:jc w:val="start"/>
-        </w:pPr>
-        <w:r>
-          <w:rPr>
-            <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
-            <w:sz w:val="20"/>
-          </w:rPr>
-          <w:t xml:space="default">&gt;</w:t>
-        </w:r>
-      </w:p>
-          </w:tc>
-        </w:tr>
-      </w:tbl>
 
