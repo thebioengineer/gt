@@ -142,14 +142,15 @@ derive_ooxml_width_pptx <- function(widths, table_width = NULL){
   table_width_remainder <- table_width <- table_width %||% 9144000
   warned_on_negative_table_width_remainder <- FALSE
 
-  ## Types of columns widths
-  pct_cols <- sapply(widths, function(.x){endsWith(.x, "%")})
-  defined_cols <- sapply(widths, function(.x){grepl("(in|pt|cm|emu|em|px)$", x = .x)})
+
+  ## Types of columns widths - pct, defined (px, cm, etc), or undefined
+  pct_cols <- sapply(widths, function(.x){if(is.character(.x)){endsWith(.x, "%")}else{FALSE}})
+  defined_cols <- sapply(widths, function(.x){if(is.character(.x)){grepl("(in|pt|cm|emu|em|px)$", x = .x)}else{FALSE}})
   undefined_cols <- !pct_cols & !defined_cols
 
   ## convert pct cols to EMU
   if(sum(pct_cols) > 0){
-    pct_cols_widths <- (as.numeric(gsub("%", "", widths[pct_cols], fixed = TRUE))/100 )* table_width
+    pct_cols_widths <- round(( as.numeric(gsub("%", "", widths[pct_cols], fixed = TRUE))/100 )* table_width)
     pct_cols_widths <-  pmax(
       pct_cols_widths,
       9525*22 ## smallest allowable width is .23in, or 22px
@@ -189,7 +190,7 @@ derive_ooxml_width_pptx <- function(widths, table_width = NULL){
   if(sum(undefined_cols) > 0){
 
     undefined_cols_widths <- max(
-      table_width_remainder / sum(undefined_cols), ## split remainder of the table evenly
+      round(table_width_remainder / sum(undefined_cols)), ## split remainder of the table evenly
       9525*22 ## smallest allowable width is .23in, or 22px
       )
 
