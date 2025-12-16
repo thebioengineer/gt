@@ -108,7 +108,7 @@ ooxml_tbl_width <- function(ooxml_type, width = "auto") {
 
 ## tbl_grid -----------------------------------------------------------
 
-ooxml_tbl_grid <- function(ooxml_type, ...) {
+ooxml_tbl_grid <- function(ooxml_type, ..., table_width = NULL) {
   dots <- list2(...)
   if (identical(ooxml_type, "word") && all(sapply(dots, is.null))) {
     return(NULL)
@@ -117,6 +117,10 @@ ooxml_tbl_grid <- function(ooxml_type, ...) {
   tblGrid_tag <- switch_ooxml_tag(ooxml_type, "tblGrid")
   gridCol_tag <- switch_ooxml_tag(ooxml_type, "gridCol")
 
+  if(identical(ooxml_type, "pptx")){
+    dots <- derive_ooxml_width_pptx(widths = dots, table_width = table_width)
+  }
+
   grid_cols <- lapply(dots, \(width) {
     if (ooxml_type == "word") {
       if (is.null(width)) {
@@ -124,11 +128,83 @@ ooxml_tbl_grid <- function(ooxml_type, ...) {
       } else
       ooxml_tag(gridCol_tag, "w:w" = width)
     } else {
-      # TODO: fix width pptx based on width etc ...
-      ooxml_tag(gridCol_tag, "w" = width %||% 9144000 / length(dots))
+      ooxml_tag(gridCol_tag, "w" = width)
     }
   })
   ooxml_tag(tblGrid_tag, tag_class = "ooxml_tbl_grid", !!!grid_cols)
+}
+
+
+derive_ooxml_width_pptx <- function(widths, table_width = NULL){
+
+  widths_out <- vector("numeric", length = length(widths))
+
+  table_width_remainder <- table_width <- table_width %||% 9144000
+  warned_on_negative_table_width_remainder <- FALSE
+
+  ## Types of columns widths
+  pct_cols <- sapply(widths, function(.x){endsWith(.x, "%")})
+  defined_cols <- sapply(widths, function(.x){grepl("(in|pt|cm|emu|em|px)$", x = .x)})
+  undefined_cols <- !pct_cols & !defined_cols
+
+  ## convert pct cols to EMU
+  if(sum(pct_cols) > 0){
+    pct_cols_widths <- (as.numeric(gsub("%", "", widths[pct_cols], fixed = TRUE))/100 )* table_width
+    pct_cols_widths <-  pmax(
+      pct_cols_widths,
+      9525*22 ## smallest allowable width is .23in, or 22px
+    )
+    widths_out[pct_cols] <- pct_cols_widths
+    table_width_remainder <- table_width_remainder - sum(pct_cols_widths)
+    if(table_width_remainder < 0 & !warned_on_negative_table_width_remainder){
+      warn("Defined column widths are wider than the defined table")
+      warned_on_negative_table_width_remainder <- TRUE
+    }
+  }
+
+  ## convert defined cols to EMU
+  if(sum(defined_cols) > 0){
+    defined_cols_widths <- widths[defined_cols] %>% purrr::map_dbl(function(.x){
+      if(grepl("(in|pt|cm|emu|em)$", x = .x)){
+        px <- convert_to_px(.x)
+      }else{
+        px <- as.numeric(gsub("px$", "", .x))
+      }
+      px * 9525 # https://stackoverflow.com/questions/66541210/convert-google-slides-emu-units-to-pixels-api
+      })
+    defined_cols_widths <-  pmax(
+      defined_cols_widths,
+      9525*22 ## smallest allowable width is .23in, or 22px
+    )
+
+    widths_out[defined_cols] <- defined_cols_widths
+    table_width_remainder <- table_width_remainder - sum(defined_cols_widths)
+    if(table_width_remainder < 0 & !warned_on_negative_table_width_remainder){
+      warn("Defined column widths are wider than the defined table")
+      warned_on_negative_table_width_remainder <- TRUE
+    }
+  }
+
+  ## undefined columns split table width evenly
+  if(sum(undefined_cols) > 0){
+
+    undefined_cols_widths <- max(
+      table_width_remainder / sum(undefined_cols), ## split remainder of the table evenly
+      9525*22 ## smallest allowable width is .23in, or 22px
+      )
+
+    widths_out[undefined_cols] <- undefined_cols_widths
+
+    if(table_width_remainder < 0 & !warned_on_negative_table_width_remainder){
+      warn("Defined column widths are wider than the defined table")
+      warned_on_negative_table_width_remainder <- TRUE
+    }
+
+  }
+
+  return(as.list(widths_out))
+
+
 }
 
 # tbl_row -----------------------------------------------------------
