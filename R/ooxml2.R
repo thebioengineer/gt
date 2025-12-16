@@ -360,7 +360,7 @@ ooxml_fill <- function(ooxml_type, color = NULL) {
       ooxml_tag("w:shd", tag_class = "ooxml_fill",
         `w:val`   = "clear",
         `w:color` = "auto",
-        `w:fill`  = color
+        `w:fill`  = as_hex_code(color)
       )
     },
     pptx = {
