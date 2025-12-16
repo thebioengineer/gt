@@ -355,20 +355,23 @@ convert_border_style_pptx <- function(x, error_call = caller_env()){
 # ooxml_fill --------------------------------------------------------------
 
 ooxml_fill <- function(ooxml_type, color = NULL) {
-  if (is.null(color)) {
-    return(NULL)
-  }
-  color <- as_hex_code(color)
-
   switch_ooxml(ooxml_type,
-    word = ooxml_tag("w:shd", tag_class = "ooxml_fill",
-      `w:val`   = "clear",
-      `w:color` = "auto",
-      `w:fill`  = color
-    ),
-    pptx = ooxml_tag("a:solidFill", tag_class = "ooxml_fill",
-      ooxml_tag("a:srgbClr", "val" = color)
-    )
+    word = if (!is.null(color)) {
+      ooxml_tag("w:shd", tag_class = "ooxml_fill",
+        `w:val`   = "clear",
+        `w:color` = "auto",
+        `w:fill`  = color
+      )
+    },
+    pptx = {
+      if (is.null(color)) {
+        ooxml_tag("a:noFill", tag_class = "ooxml_fill")
+      } else {
+        ooxml_tag("a:solidFill", tag_class = "ooxml_fill",
+          ooxml_tag("a:srgbClr", "val" = as_hex_code(color))
+        )
+      }
+    }
   )
 }
 
