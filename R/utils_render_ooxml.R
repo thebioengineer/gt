@@ -377,20 +377,23 @@ create_footnote_rows_ooxml <- function(ooxml_type, data, split, keep_with_next) 
       keep_with_next = keep_with_next
     )
 
-    ooxml_tbl_row(ooxml_type, split = split,
-      ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
-        properties = ooxml_tbl_cell_properties(ooxml_type,
-          fill     = cell_style[["cell_fill"]][["color"]],
-          v_align  = cell_style[["cell_text"]][["v_align"]],
-          col_span = n_cols
-        )
+    cell <- ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
+      properties = ooxml_tbl_cell_properties(ooxml_type,
+        fill     = cell_style[["cell_fill"]][["color"]],
+        v_align  = cell_style[["cell_text"]][["v_align"]],
+        col_span = n_cols
       )
+    )
+
+    merge_cells <- ooxml_merge_cells(ooxml_type, n_cols - 1)
+
+    ooxml_tbl_row(ooxml_type, split = split,
+      cell, !!!merge_cells
     )
   })
 
   tagList3(!!!footnote_rows)
 }
-
 
 # source notes ------------------------------------------------------------
 
@@ -417,14 +420,17 @@ create_sourcenote_rows_ooxml <- function(ooxml_type, data, split = split, keep_w
       keep_with_next = keep_with_next
     )
 
-    ooxml_tbl_row(ooxml_type, split = split,
-      ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
-        properties = ooxml_tbl_cell_properties(ooxml_type,
-          fill     = cell_style[["cell_fill"]][["color"]],
-          v_align  = cell_style[["cell_text"]][["v_align"]],
-          col_span = n_cols
-        )
+    merge_cells <- merge_cells <- ooxml_merge_cells(ooxml_type, n_cols - 1)
+
+    cell <- ooxml_tbl_cell(ooxml_type, !!!to_tags(content), col_span = n_cols,
+      properties = ooxml_tbl_cell_properties(ooxml_type,
+        fill     = cell_style[["cell_fill"]][["color"]],
+        v_align  = cell_style[["cell_text"]][["v_align"]],
+        col_span = n_cols
       )
+    )
+    ooxml_tbl_row(ooxml_type, split = split,
+      cell, !!!merge_cells
     )
   })
 
@@ -754,23 +760,11 @@ create_group_heading_row_ooxml <- function(ooxml_type, data, i, split = FALSE, k
     )
   )
 
-  empty_cells <- lapply(seq_len(n_cols - 1), function(i) {
-    out <- ooxml_tag("a:tc", hMerge = "1",
-      ooxml_tag("a:txBody",
-        ooxml_tag("a:bodyPr"),
-        ooxml_tag("a:lstStyle"),
-        ooxml_tag("a:p",
-          ooxml_tag("a:endParaRPr")
-        )
-      )
-    )
-    class(out) <- c("ooxml_tbl_cell", class(out))
-    out
-  })
+  merge_cells <- ooxml_merge_cells(ooxml_type, n_cols - 1)
 
   ooxml_tbl_row(ooxml_type, split = split,
     main_cell,
-    !!!empty_cells
+    !!!merge_cells
   )
 
 }
@@ -1039,4 +1033,22 @@ paste_footnote_ooxml <- function(ooxml_type, text, footmark_xml, position = "rig
     xml_add_child(text_xml, footmark_xml, .where = 1)
   }
   paste0("<md_container>", as.character(text_xml), "</md_container>")
+}
+
+ooxml_merge_cells <- function(ooxml_type, n) {
+  if (ooxml_type != "pptx" || n == 0) {
+    return(NULL)
+  }
+  lapply(seq_len(n), function(i) {
+    ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell", hMerge = "1",
+      ooxml_tag("a:txBody",
+        ooxml_tag("a:bodyPr"),
+        ooxml_tag("a:lstStyle"),
+        ooxml_tag("a:p",
+          ooxml_tag("a:endParaRPr")
+        )
+      ),
+      ooxml_tag("a:tcPr")
+    )
+  })
 }
