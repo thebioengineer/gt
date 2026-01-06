@@ -1790,3 +1790,90 @@ test_that("tables with grand summaries but no rownames can be added to a pptx do
     )
   )
 })
+
+test_that("pptx ooxml can be generated from gt object with defined column widths", {
+
+  # Create a one-row table for these tests
+  gt_exibble_min <- gt(exibble[1, ])
+
+  ## basic table
+  gt_exibble_min_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+
+  # make sure there is an explit gridcols all of the same width, ~ 9144000/9 = 1016000
+  expect_equal(
+    xml_find_all(gt_exibble_min_xml, "//a:gridCol") %>% xml_attr("w"),
+    c("1016000", "1016000", "1016000", "1016000", "1016000", "1016000",
+      "1016000", "1016000", "1016000")
+  )
+
+  ## basic table with one defined column width of 60px
+  gt_exibble_min_set_width <- gt_exibble_min |>
+    cols_width(
+      char ~ px(60)
+    )
+
+  gt_exibble_min_set_width_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min_set_width))
+
+  # make sure the second gridwidth is 60px (571500 EMU) and remainder is  ~ (9144000-571500)/8 = 1071563
+  expect_equal(
+    xml_find_all(gt_exibble_min_set_width_xml, "//a:gridCol") %>% xml_attr("w"),
+    c("1071562", "571500", "1071562", "1071562", "1071562", "1071562",
+      "1071562", "1071562", "1071562")
+  )
+
+  ## basic table with one defined column width of 60px
+  gt_exibble_min_pct_width <- gt_exibble_min |>
+    cols_width(
+      char ~ pct(50)
+    )
+
+  gt_exibble_min_pct_width_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min_pct_width))
+
+  # make sure the second gridwidth is 50% (4572000 EMU) and remainder is  ~ (9144000-4572000)/8 = 571500
+  expect_equal(
+    xml_find_all(gt_exibble_min_pct_width_xml, "//a:gridCol") %>% xml_attr("w"),
+    c("571500", "4572000", "571500", "571500", "571500", "571500",
+      "571500", "571500", "571500")
+  )
+
+  ## basic table with two defined column widths, one of 60px, another 50%
+  gt_exibble_min_set_and_pct_width <- gt_exibble_min |>
+    cols_width(
+      num ~ px(30),
+      char ~ pct(50)
+    )
+
+  gt_exibble_min_set_and_pct_width_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min_set_and_pct_width))
+
+  # make sure the first gridwidth is 30px (285750 EMU), second gridwidth is 50% (4572000 EMU) and remainder is  ~ (9144000-285750-4572000)/7 = 612321
+  expect_equal(
+    xml_find_all(gt_exibble_min_set_and_pct_width_xml, "//a:gridCol") %>% xml_attr("w"),
+    c("285750", "4572000", "612321", "612321", "612321", "612321",
+      "612321","612321","612321")
+  )
+
+  ## basic table with two defined column widths, both at 80%
+  gt_exibble_min_too_wide_width <- gt_exibble_min |>
+    cols_width(
+      num ~ pct(80),
+      char ~ pct(80)
+    )
+
+
+  ## should return warning if the set columns are wider than expected
+  expect_warning(
+    as_pptx_ooxml(gt_exibble_min_too_wide_width),
+    "Defined column widths are wider than the defined table"
+    )
+
+  gt_exibble_min_too_wide_width_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min_too_wide_width))
+
+  # make sure the first two gridwidths are 80% (285750 EMU), and remainder is  209550 - smallest allowable width is .23in, or 22px
+  expect_equal(
+    xml_find_all(gt_exibble_min_too_wide_width_xml, "//a:gridCol") %>% xml_attr("w"),
+    c("7315200", "7315200", "209550", "209550", "209550", "209550",
+      "209550","209550","209550")
+  )
+
+
+})
