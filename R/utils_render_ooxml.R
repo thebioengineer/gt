@@ -515,7 +515,7 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
 
   cells <- lapply(seq_along(values), \(i) {
     if (colspans[i] == 0) {
-      return (NULL)
+      return (ooxml_merge_cell(ooxml_type))
     }
 
     if (is.na(spanner_row_ids[i])) {
@@ -1046,15 +1046,24 @@ ooxml_merge_cells <- function(ooxml_type, n) {
     return(NULL)
   }
   lapply(seq_len(n), function(i) {
-    ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell", hMerge = "1",
-      ooxml_tag("a:txBody",
-        ooxml_tag("a:bodyPr"),
-        ooxml_tag("a:lstStyle"),
-        ooxml_tag("a:p",
-          ooxml_tag("a:endParaRPr")
-        )
-      ),
-      ooxml_tag("a:tcPr")
-    )
+    ooxml_merge_cell(ooxml_type)
   })
 }
+
+ooxml_merge_cell <- function(ooxml_type) {
+  if (ooxml_type != "pptx") {
+    return(NULL)
+  }
+
+  ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell", hMerge = "1",
+    ooxml_tag("a:txBody",
+      ooxml_tag("a:bodyPr"),
+      ooxml_tag("a:lstStyle"),
+      ooxml_tag("a:p",
+        ooxml_tag("a:endParaRPr")
+      )
+    ),
+    ooxml_tag("a:tcPr")
+  )
+}
+
