@@ -701,9 +701,9 @@ create_table_rows_ooxml <- function(ooxml_type, data, split = FALSE, keep_with_n
   for (i in seq_len(nrow(body))) {
     rows <- list3(
       create_group_heading_row_ooxml(ooxml_type, data, i, split = split, keep_with_next = keep_with_next),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "top", split = split, keep_with_next = keep_with_next),
+      !!!create_summary_section_row_ooxml(ooxml_type, data, i, "top", split = split, keep_with_next = keep_with_next),
       create_body_row_ooxml(ooxml_type, data, i, split = split, keep_with_next = keep_with_next, hierarchical_stub_info = hierarchical_stub_info),
-      create_summary_section_row_ooxml(ooxml_type, data, i, "bottom", split = split, keep_with_next = keep_with_next)
+      !!!create_summary_section_row_ooxml(ooxml_type, data, i, "bottom", split = split, keep_with_next = keep_with_next)
     )
     out <- append(out, rows)
   }
@@ -857,8 +857,7 @@ create_summary_section_row_ooxml <- function(ooxml_type, data, i, side = c("top"
     ooxml_tbl_row(ooxml_type, split = split, is_header = FALSE, !!!cells)
   })
 
-  tagList3(!!!rows)
-
+  rows
 }
 
 
