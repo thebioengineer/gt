@@ -763,7 +763,7 @@ test_that("tables with source notes can be added to a pptx doc", {
   )
   expect_equal(
     xml_attr(xml_find_all(xml, ".//a:tr[last()]//a:tc"), "gridSpan"),
-    "9"
+    c("9", rep(NA, 8))
   )
 
   slide <- gt_to_pptx_slide(gt_exibble_min)[[1]]
@@ -1358,7 +1358,8 @@ There's a quick reference [here](https://commonmark.org/help/).
       c("countrypops", "sza", "indented col", "newval", "another val", "will this work"),
       "Info on Markdown syntax can be found at https://daringfireball.net/projects/markdown/.",
       "There's a quick reference https://commonmark.org/help/.",
-      "1This is text"
+      "1This is text",
+      ""
     )
   expect_equal(res, expected)
 
