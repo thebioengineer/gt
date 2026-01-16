@@ -478,7 +478,6 @@ resolve_footnotes_styles <- function(data, tbl_type) {
 
 #' @noRd
 set_footnote_marks_columns <- function(data, context = "html") {
-
   boxh <- dt_boxhead_get(data = data)
   footnotes_tbl <- dt_footnotes_get(data = data)
 
@@ -967,7 +966,9 @@ footnotes_dispatch <-
     rtf = footnote_mark_to_rtf,
     grid = footnote_mark_to_grid,
     latex = footnote_mark_to_latex,
-    word = footnote_mark_to_xml
+    word = footnote_mark_to_xml,
+    "ooxml/word" = footnote_mark_to_ooxml_word,
+    "ooxml/pptx" = footnote_mark_to_ooxml_pptx
   )
 
 apply_footnotes_method <-
@@ -976,5 +977,7 @@ apply_footnotes_method <-
     rtf = paste0,
     grid = paste0,
     latex = paste_footnote_latex,
-    word = paste_footnote_xml
+    word = paste_footnote_xml,
+    "ooxml/word" = function(...) paste_footnote_ooxml("word", ...),
+    "ooxml/pptx" = function(...) paste_footnote_ooxml("pptx", ...)
   )

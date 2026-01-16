@@ -875,6 +875,8 @@ context_missing_text <- function(missing_text, context) {
       html = ,
       grid = ,
       latex = ,
+      "ooxml/word" =,
+      "ooxml/pptx" =,
       word =
         {
           if (!is_asis && missing_text == "---") {
@@ -923,6 +925,8 @@ context_plusminus_mark <- function(plusminus_mark, context) {
     html = ,
     latex = ,
     grid = ,
+    "ooxml/word" = ,
+    "ooxml/pptx" = ,
     word =
       {
         if (!is_asis && plusminus_mark == " +/- ") {
@@ -986,6 +990,8 @@ context_lte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02264",
     latex = "$\\leq$",
     "<="
@@ -1002,6 +1008,8 @@ context_gte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02265",
     latex = "$\\geq$",
     ">="
@@ -1086,6 +1094,8 @@ context_exp_marks <- function(context) {
     html = c("&nbsp;\U000D7&nbsp;10<sup style='font-size: 65%;'>", "</sup>"),
     latex = c(" $\\times$ 10\\textsuperscript{", "}"),
     rtf = c(" \\'d7 10{\\super ", "}"),
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     word = c(" \U000D7 10^", ""),
     c(" \U000D7 10^", "")
   )
@@ -1112,6 +1122,8 @@ context_exp_str <- function(context, exp_style) {
         html = "<sub style='font-size: 65%;'>10</sub>",
         latex = "{}_10",
         rtf = "{\\sub 10}",
+        "ooxml/word" =,
+        "ooxml/pptx" =,
         word = "10^",
         "E"
       )
