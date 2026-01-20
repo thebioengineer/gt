@@ -868,7 +868,6 @@ create_body_row_ooxml <- function(ooxml_type, data, i, split = FALSE, keep_with_
   data_cells <- lapply(seq_along(vars), \(j) {
     create_body_row_data_cell_ooxml(ooxml_type, data, i = i, j = j, keep_with_next = keep_with_next)
   })
-
   stub_cells <- create_body_row_stub_cells_ooxml(ooxml_type, data, i, keep_with_next = keep_with_next, hierarchical_stub_info = hierarchical_stub_info)
   ooxml_tbl_row(ooxml_type, split = split, !!!stub_cells, !!!data_cells)
 }
@@ -937,30 +936,56 @@ create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j, keep_with_ne
 
 
 create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align = cell_style[["cell_text"]][["align"]], keep_with_next = TRUE, row_span = NULL) {
-  table_body_hlines_color   <- dt_options_get_value(data, option = "table_body_hlines_color")
-  table_body_vlines_color   <- dt_options_get_value(data, option = "table_body_vlines_color")
-  table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
-  table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
+
+
+  # table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
+  # table_border_top_color    <- dt_options_get_value(data, option = "table_border_top_color")
 
   content <- process_cell_content_ooxml(ooxml_type, text,
     cell_style     = cell_style,
     keep_with_next = keep_with_next,
     align          = align
   )
+
+  browser()
+
+  borders <- get_border_attribute_list(cell_style, data)
+
   ooxml_tbl_cell(ooxml_type, !!!to_tags(content),
     properties = ooxml_tbl_cell_properties(ooxml_type,
-      borders  = list(
-        top    = list(color = table_body_hlines_color),
-        bottom = list(color = table_body_hlines_color),
-        left   = list(color = table_body_vlines_color),
-        right  = list(color = table_body_vlines_color)
-      ),
+      borders  = borders,
       fill     = cell_style[["cell_fill"]][["color"]],
       v_align  = cell_style[["cell_text"]][["v_align"]],
       margins  = NULL,
       row_span = row_span
     )
   )
+}
+
+get_border_attribute_list <- function(cell_style, data){
+
+  table_body_hlines_color   <- dt_options_get_value(data, option = "table_body_hlines_color")
+  table_body_vlines_color   <- dt_options_get_value(data, option = "table_body_vlines_color")
+
+  border_id <- c("top","bottom","left","right")
+
+  borders <- lapply(border_id,function(id){
+
+    border_styling <- cell_style[[paste0("cell_border_",id)]]
+
+    # if(is.null(border_styling)){
+    #   return(NULL)
+    # }else{
+      default_color <- ifelse(id %in% c("top","bottom"), table_body_hlines_color, table_body_vlines_color)
+      list(
+        color = border_styling[["color"]] %||% default_color,
+        size = convert_to_px(border_styling[["width"]] %||% "1.333px"),
+        type = border_styling[["style"]] %||% "solid"
+      )
+    # }
+  })
+  names(borders) <- border_id
+  borders
 }
 
 # tools ------------------------------------------------------------------------

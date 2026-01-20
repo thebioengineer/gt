@@ -1886,3 +1886,23 @@ test_that("pptx ooxml can be generated from gt object with defined column widths
 
 
 })
+
+test_that("pptx_ooxml can be generated with defined cell borders",{
+
+  gtcars_tbl <-
+    gtcars |>
+    dplyr::filter(ctry_origin == "United Kingdom") |>
+    dplyr::select(mfr, model, year, hp) |>
+    gt() |>
+    tab_style(style = list(cell_borders(color = "red")),
+              locations = cells_body(columns = hp, rows = 1:2)) |>
+    tab_style(style = list(cell_borders(color = "orange")),
+              locations = cells_body(columns = hp, rows = 3:4))
+
+  gt_exibble_min_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+
+  gtsave(gtcars_tbl, filename = "test.pptx")
+
+
+
+})
