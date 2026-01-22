@@ -1893,15 +1893,23 @@ test_that("pptx_ooxml can be generated with defined cell borders",{
     gtcars |>
     dplyr::filter(ctry_origin == "United Kingdom") |>
     dplyr::select(mfr, model, year, hp) |>
-    gt() |>
+    gt(rowname_col = c("mfr","model")) |>
     tab_style(style = list(cell_borders(color = "red")),
-              locations = cells_body(columns = hp, rows = 1:2)) |>
+              locations = cells_body(columns = 4, rows = 1:2)) |>
     tab_style(style = list(cell_borders(color = "orange")),
-              locations = cells_body(columns = hp, rows = 3:4))
+              locations = cells_body(columns = 4, rows = 3:4)) |>
+    tab_style(style = list(cell_borders(color = "green")),
+            locations = cells_body(columns = 3, rows = 3:4)) |>
+    tab_style(style = list(cell_borders(color = "blue")),
+              locations = cells_column_labels(columns = 3)) |>
+    tab_style(style = list(cell_borders(color = "pink")),
+              locations = cells_stub(rows = 2, columns = 1))
 
-  gt_exibble_min_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gt_exibble_min))
+  gt_exibble_min_xml <- read_xml_pptx_nodes(as_pptx_ooxml(gtcars_tbl))
 
   gtsave(gtcars_tbl, filename = "test.pptx")
+
+  shell.exec("test.pptx")
 
 
 

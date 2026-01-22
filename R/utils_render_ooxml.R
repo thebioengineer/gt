@@ -879,17 +879,18 @@ create_body_row_stub_cells_ooxml <- function(ooxml_type, data, i, keep_with_next
   styles_tbl <- dt_styles_get(data = data)
 
   stub_available    <- dt_stub_components_has_rowname(stub_components) || summaries_present
-  n_stub_cols   <- length(dt_boxhead_get_var_by_type(data, type = "stub"))
 
   if (stub_available) {
 
-    cell_style <- vctrs::vec_slice(styles_tbl,
-      styles_tbl$locname == "stub" & styles_tbl$rownum == i
-    )
-    cell_style <- cell_style$styles[1][[1]]
+    browser()
+    stub_col_names <- dt_boxhead_get_var_by_type(data, type = "stub")
+    n_stub_cols   <- length(stub_col_names)
 
     lapply(seq_len(n_stub_cols), \(j) {
-      text <- as.character(body[i, dt_boxhead_get_var_stub(data = data)[j]])
+
+      cell_style <- get_cell_style_ooxml(styles_tbl, c("stub", "stub_column"), i = i, colname = stub_col_names[j])
+
+      text <- as.character(body[i, stub_col_names[j]])
 
       create_body_row_cell_ooxml(ooxml_type, data,
         cell_style = cell_style,
@@ -918,10 +919,7 @@ create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j, keep_with_ne
 
   var <- dt_boxhead_get_vars_default(data = data)[j]
 
-  cell_style <- vctrs::vec_slice(styles_tbl,
-    styles_tbl$locname %in% "data" & styles_tbl$rownum == i & styles_tbl$colnum == j
-  )
-  cell_style <- cell_style$styles[1][[1]]
+  cell_style <- get_cell_style_ooxml(styles_tbl, "data", i = i, j = j)
 
   boxh  <- dt_boxhead_get(data = data)
 
@@ -932,6 +930,43 @@ create_body_row_data_cell_ooxml <- function(ooxml_type, data, i, j, keep_with_ne
     align = cell_style[["cell_text"]][["align"]] %||% vctrs::vec_slice(boxh$column_align, boxh$type == "default")[j],
     keep_with_next = keep_with_next
   )
+}
+
+slice_cell_style_tbl <- function(styles_tbl, location, i = NULL, j = NULL, colname = NULL){
+
+  slice_bool <-  styles_tbl$locname %in% location
+
+  if(!rlang::is_empty(i)){
+    slice_bool <- slice_bool & styles_tbl$rownum == i
+  }
+
+  if(!rlang::is_empty(j)){
+    slice_bool <- slice_bool & styles_tbl$colnum == j
+  }
+
+  if(!rlang::is_empty(colname)){
+    slice_bool <- slice_bool & styles_tbl$colname == colname
+  }
+
+  vctrs::vec_slice(styles_tbl,slice_bool)$styles[1][[1]]
+
+}
+
+get_cell_style_ooxml <- function(styles_tbl, location, i = NULL, j = NULL, colname = NULL){
+
+  cell_style <- slice_cell_style_tbl(styles_tbl, location = location, i = i, j = j, colname = colname)
+
+  ## check border for cell below if bottom border isn't set
+  if(is.null(cell_style[["cell_border_bottom"]])){
+    cell_style[["cell_border_bottom"]] <- slice_cell_style_tbl(styles_tbl, location = location, i = i + 1 , j = j, colname = colname)[["cell_border_top"]]
+  }
+
+  ## check border for cell to the right if right border isn't set
+  if(is.null(cell_style[["cell_border_right"]])){
+    cell_style[["cell_border_right"]] <- slice_cell_style_tbl(styles_tbl, location = location, i = i, j = j + 1, colname = colname)[["cell_border_left"]]
+  }
+
+  cell_style
 }
 
 
@@ -946,8 +981,6 @@ create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align
     keep_with_next = keep_with_next,
     align          = align
   )
-
-  browser()
 
   borders <- get_border_attribute_list(cell_style, data)
 
@@ -973,16 +1006,16 @@ get_border_attribute_list <- function(cell_style, data){
 
     border_styling <- cell_style[[paste0("cell_border_",id)]]
 
-    # if(is.null(border_styling)){
-    #   return(NULL)
-    # }else{
+    if(is.null(border_styling)){
+      return(NULL)
+    }else{
       default_color <- ifelse(id %in% c("top","bottom"), table_body_hlines_color, table_body_vlines_color)
       list(
         color = border_styling[["color"]] %||% default_color,
         size = convert_to_px(border_styling[["width"]] %||% "1.333px"),
         type = border_styling[["style"]] %||% "solid"
       )
-    # }
+    }
   })
   names(borders) <- border_id
   borders
