@@ -360,7 +360,6 @@ ooxml_cell_borders <- function(ooxml_type, border = NULL) {
     if (is.null(border[[location]])){
       return(ooxml_cell_border_default(ooxml_type = ooxml_type, location = location))
     }
-
     x <- border[[location]]
     rlang::exec(ooxml_cell_border, ooxml_type = ooxml_type, location = location, !!!x)
   })
@@ -435,7 +434,7 @@ ooxml_cell_border_default <- function(ooxml_type, location){
         ooxml_type = ooxml_type,
         location = location,
         color = NULL,
-        size = 1.3333,
+        size = 1,
         type = "solid"
         )
     }
@@ -1833,7 +1832,8 @@ gt_as_pptx_post_processing <- function(path) {
   on.exit(unlink(temp_dir, recursive = TRUE))
   unzip(path, exdir = temp_dir)
 
-  xml_styles <- read_xml(file.path(temp_dir, "ppt", "tableStyles.xml"))
+  ooxml_tableStyles_path <- file.path(temp_dir, "ppt", "tableStyles.xml")
+  xml_styles <- read_xml(ooxml_tableStyles_path)
   tbl_styles <- xml_attr(xml_styles, "def")
 
   slides <- list.files(file.path(temp_dir, "ppt", "slides"), full.names = TRUE, pattern = "^slide")
