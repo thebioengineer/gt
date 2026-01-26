@@ -1911,6 +1911,23 @@ test_that("pptx_ooxml can be generated with defined cell borders",{
 
   shell.exec("test.pptx")
 
+  gtcars_tbl2 <-
+    gtcars |>
+    dplyr::filter(ctry_origin == "United Kingdom") |>
+    dplyr::select(mfr, model, year, hp) |>
+    gt() |>
+    tab_spanner("Test span 1", columns = 1:3, level = 1, id = "span1")|>
+    tab_spanner("Test span 2", columns = 2:4, level = 2, id = "span2")|>
+    tab_style(style = list(cell_borders(color = "red")),
+              locations = cells_column_spanners(spanners = "span1"))|>
+    tab_style(style = list(cell_borders(color = "orange")),
+              locations = cells_column_spanners(spanners = "span2"))
+
+
+  gtsave(gtcars_tbl, filename = "test.pptx")
+
+
+
 
 
 })

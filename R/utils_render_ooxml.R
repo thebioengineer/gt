@@ -482,6 +482,8 @@ create_spanner_row_ooxml <- function(ooxml_type, data, span_row_idx, split = FAL
   column_labels_border_top_color    <- dt_options_get_value(data = data, option = "column_labels_border_top_color")
   column_labels_border_bottom_color <- dt_options_get_value(data = data, option = "column_labels_border_bottom_color")
 
+  browser()
+
   boxh <- dt_boxhead_get(data = data)
   headings_vars <- vctrs::vec_slice(boxh$var, boxh$type == "default")
   headings_labels <- dt_boxhead_get_vars_labels_default(data = data)
@@ -618,12 +620,13 @@ create_spanner_row_stub_cells_ooxml <- function(ooxml_type, data, i = 1, keep_wi
   }
 
   if (i == 1) {
+
     cell_style <- styles_tbl[styles_tbl$locname %in% "stubhead", "styles", drop = TRUE]
     cell_style <- cell_style[1][[1]]
 
     borders <- list(
       top    = list(color = column_labels_border_top_color),
-      bottom = list(size = 8, color = column_labels_border_bottom_color),
+      bottom = list(size = 1, color = column_labels_border_bottom_color),
       left   = list(color = column_labels_vlines_color),
       right  = list(color = column_labels_vlines_color)
     )
@@ -882,24 +885,23 @@ create_body_row_stub_cells_ooxml <- function(ooxml_type, data, i, keep_with_next
 
   if (stub_available) {
 
-    browser()
     stub_col_names <- dt_boxhead_get_var_by_type(data, type = "stub")
     n_stub_cols   <- length(stub_col_names)
 
     lapply(seq_len(n_stub_cols), \(j) {
 
-      cell_style <- get_cell_style_ooxml(styles_tbl, c("stub", "stub_column"), i = i, colname = stub_col_names[j])
+      stub_name <- stub_col_names[[j]]
+      cell_style <- get_cell_style_ooxml(styles_tbl, c("stub", "stub_column"), i = i, colname = stub_name)
+      text <- as.character(body[i, stub_name])
+      span <- hierarchical_stub_info[[stub_name]][["rowspans"]][i] %||% 1
+      mask <- hierarchical_stub_info[[stub_name]][["display_mask"]][i] %||% FALSE
 
-      text <- as.character(body[i, stub_col_names[j]])
 
       create_body_row_cell_ooxml(ooxml_type, data,
         cell_style = cell_style,
         text = text,
         keep_with_next = keep_with_next,
         row_span = if (j < n_stub_cols) {
-          span <- hierarchical_stub_info[[j]]$rowspans[i]
-          mask <- hierarchical_stub_info[[j]]$display_mask[i]
-
           if (span > 1) {
             span
           } else if (!mask){
@@ -970,7 +972,7 @@ get_cell_style_ooxml <- function(styles_tbl, location, i = NULL, j = NULL, colna
 }
 
 
-create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align = cell_style[["cell_text"]][["align"]], keep_with_next = TRUE, row_span = NULL) {
+create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align = cell_style[["cell_text"]][["align"]], keep_with_next = TRUE, col_span = NULL, row_span = NULL) {
 
 
   # table_border_bottom_color <- dt_options_get_value(data, option = "table_border_bottom_color")
@@ -991,7 +993,9 @@ create_body_row_cell_ooxml <- function(ooxml_type, data, text, cell_style, align
       v_align  = cell_style[["cell_text"]][["v_align"]],
       margins  = NULL,
       row_span = row_span
-    )
+    ),
+    col_span = col_span,
+    row_span = row_span
   )
 }
 

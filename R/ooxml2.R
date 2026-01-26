@@ -291,7 +291,8 @@ ooxml_tbl_row_height <- function(ooxml_type, value, ..., error_call = current_en
 
 # ooxml_tbl_cell ----------------------------------------------------------
 
-ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL, col_span = NULL) {
+ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL, col_span = NULL, row_span = NULL) {
+
   if (identical(properties, "remove cell")) {
     return(NULL)
   }
@@ -303,15 +304,32 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL, col_span = NULL) 
       ooxml_tag("w:tc", tag_class = "ooxml_tbl_cell", properties, ...)
     },
     pptx = {
-      ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell",
-                if (!is.null(col_span) && !identical(col_span, 1L)) splice3(gridSpan = col_span),
-                ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
-                          ooxml_tag(tag = "a:bodyPr"),#, vertOverflow="clip", horzOverflow="clip", wrap="square", rtlCol="0", anchor="ctr"),
-                          ooxml_tag(tag = "a:lstStyle"),
-                          ...
-                          ),
-                properties
-                )
+
+      if(identical(row_span, 0) | identical(col_span, 0)){
+        ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell",
+                  if (!is.null(col_span) && isTRUE(col_span > 1L)) splice3(gridSpan = col_span),
+                  if (identical(col_span, 0)) splice3(hMerge = 1),
+                  if (!is.null(row_span) &&  isTRUE(row_span > 1L)) splice3(rowSpan = row_span),
+                  if (identical(row_span, 0)) splice3(vMerge = 1),
+                  ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
+                            ooxml_tag(tag = "a:bodyPr"),
+                            ooxml_tag(tag = "a:lstStyle"),
+                            ooxml_tag(tag = "a:p", ooxml_tag(tag = "a:endParaRPr"))
+                  )
+        )
+
+      }else{
+        ooxml_tag("a:tc", tag_class = "ooxml_tbl_cell",
+                  if (!is.null(col_span) && isTRUE(col_span > 1L)) splice3(gridSpan = col_span),
+                  if (!is.null(row_span) &&  isTRUE(row_span > 1L)) splice3(rowSpan = row_span),
+                  ooxml_tag("a:txBody", tag_class = "ooxml_text_body",
+                            ooxml_tag(tag = "a:bodyPr", vertOverflow="clip", horzOverflow="clip", wrap="square", rtlCol="0", anchor="ctr"),
+                            ooxml_tag(tag = "a:lstStyle"),
+                            ...
+                  ),
+                  properties
+        )
+      }
     }
   )
 }
@@ -321,9 +339,6 @@ ooxml_tbl_cell <- function(ooxml_type, ..., properties = NULL, col_span = NULL) 
 ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NULL, margins = NULL, row_span = NULL, col_span = NULL, v_align = NULL) {
   rlang::check_dots_empty()
 
-  if (ooxml_type == "pptx" && identical(row_span, 0)) {
-    return("remove cell")
-  }
 
   margins  <- ooxml_tbl_cell_margins(ooxml_type, margins)
   borders  <- ooxml_cell_borders(ooxml_type, borders)
@@ -331,6 +346,7 @@ ooxml_tbl_cell_properties <- function(ooxml_type, ..., borders = NULL, fill = NU
   v_merge  <- ooxml_vMerge(ooxml_type, row_span)
   v_align  <- ooxml_vAlign(ooxml_type, v_align)
   gridSpan <- ooxml_gridSpan(ooxml_type, col_span)
+
 
   tag <- switch_ooxml_tag(ooxml_type, "tcPr")
   ooxml_tag(tag, tag_class = "ooxml_tbl_cell_properties",
