@@ -989,6 +989,8 @@ process_text <- function(text, context = "html") {
 
     return(text)
 
+  } else if (grepl("^ooxml/", context)) {
+    return(process_text_ooxml(text, ooxml_type = sub("^ooxml/", "", context)))
   } else if (context == "grid") {
     # Skip any formatting (unless wrapped in from_md)
     if (inherits(text, "from_markdown")) {
@@ -1177,6 +1179,7 @@ markdown_to_xml <- function(text) {
     USE.NAMES = FALSE,
     FUN = function(x, ...) commonmark::markdown_xml(linebreak_br(x), ...)
   )
+
   vapply(
     res,
     FUN.VALUE = character(1L),
@@ -1225,9 +1228,21 @@ markdown_to_xml <- function(text) {
         }
       }
 
-      res <- lapply(children, apply_rules)
-      res <- vapply(res, FUN = as.character, FUN.VALUE = character(1L))
-      res <-  paste0(res, collapse = "")
+      if(length(children)){
+        res <- lapply(children, apply_rules)
+        res <- vapply(res, FUN = as.character, FUN.VALUE = character(1L))
+        res <-  paste0(res, collapse = "")
+      }else{
+        res <- xml_p(
+          xml_pPr(
+            xml_spacing(before = 0, after = 60)
+          ),
+          xml_r(
+            xml_rPr(),
+            xml_t()
+          )
+        )
+      }
       paste0("<md_container>", res, "</md_container>")
     }
   )

@@ -10,6 +10,7 @@ vec_fmt_number_si(
   decimals = 2,
   drop_trailing_zeros = FALSE,
   drop_trailing_dec_mark = TRUE,
+  drop_leading_zero = FALSE,
   scale_by = 1,
   prefix_mode = c("engineering", "decimal"),
   pattern = "{x}",
@@ -57,6 +58,14 @@ Remove trailing zeros after the decimal point (e.g., "1.50" becomes "1.5").}
 
 Remove the decimal mark if all decimal places are zero (e.g., "1." becomes
 "1").}
+
+\item{drop_leading_zero}{\emph{Drop the leading zero}
+
+\verb{scalar<logical>} // \emph{default:} \code{FALSE}
+
+A logical value that determines whether a leading zero should be dropped
+from values between -1 and 1. When set to \code{TRUE}, a value such as \code{0.75}
+will be formatted as \code{.75} and \code{-0.35} will be formatted as \code{-.35}.}
 
 \item{scale_by}{\emph{Scale values by a fixed multiplier}
 

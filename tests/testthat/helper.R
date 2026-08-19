@@ -108,6 +108,30 @@ expect_no_match_html <- function(
   }
 }
 
+expect_match_latex <- function(
+    object,
+    regexp,
+    perl = FALSE,
+    fixed = FALSE,
+    ...,
+    all = TRUE,
+    info = NULL,
+    label = NULL
+) {
+  f <- function(x) as.character(as_latex(x))
+  expect_match_html(
+    object = object,
+    regexp = regexp,
+    f = f,
+    perl = perl,
+    fixed = fixed,
+    ...,
+    all = TRUE,
+    info = NULL,
+    label = NULL
+  )
+}
+
 expect_merge_locale_sep <- function(
     locale = NULL,
     global_locale = NULL,
@@ -162,6 +186,10 @@ expect_snapshot_latex <- function(gt_tbl) {
 
 expect_snapshot_word <- function(gt_tbl, ...) {
   expect_snapshot(as_word(gt_tbl, ...))
+}
+
+expect_snapshot_ooxml_word <- function(gt_tbl, ...) {
+  expect_snapshot(as_word_ooxml(gt_tbl, ...))
 }
 
 expect_snapshot_rtf <- function(gt_tbl) {

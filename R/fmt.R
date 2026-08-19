@@ -564,6 +564,7 @@ format_num_to_str <- function(
     dec_mark,
     drop_trailing_zeros,
     drop_trailing_dec_mark,
+    drop_leading_zero = FALSE,
     format = "f",
     replace_minus_mark = TRUE,
     min_sep_threshold = 1,
@@ -744,6 +745,15 @@ format_num_to_str <- function(
       )
   }
 
+  if (drop_leading_zero) {
+    neg_lead_zero <- startsWith(x_str, paste0("-0", dec_mark))
+    x_str[neg_lead_zero] <-
+      paste0("-", substring(x_str[neg_lead_zero], 3L))
+
+    pos_lead_zero <- startsWith(x_str, paste0("0", dec_mark))
+    x_str[pos_lead_zero] <- substring(x_str[pos_lead_zero], 2L)
+  }
+
   # Replace the minus mark (a hyphen) with a context-specific minus sign
   if (replace_minus_mark) {
     x_str <- format_minus(x_str = x_str, x = x, context = context)
@@ -765,6 +775,7 @@ format_num_to_str_c <- function(
     dec_mark,
     drop_trailing_zeros = FALSE,
     drop_trailing_dec_mark,
+    drop_leading_zero = FALSE,
     min_sep_threshold = 1,
     system = c("intl", "ind")
 ) {
@@ -780,6 +791,7 @@ format_num_to_str_c <- function(
     dec_mark = dec_mark,
     drop_trailing_zeros = drop_trailing_zeros,
     drop_trailing_dec_mark = drop_trailing_dec_mark,
+    drop_leading_zero = drop_leading_zero,
     min_sep_threshold = min_sep_threshold,
     format = "f",
     system = system
@@ -875,6 +887,8 @@ context_missing_text <- function(missing_text, context) {
       html = ,
       grid = ,
       latex = ,
+      "ooxml/word" =,
+      "ooxml/pptx" =,
       word =
         {
           if (!is_asis && missing_text == "---") {
@@ -923,6 +937,8 @@ context_plusminus_mark <- function(plusminus_mark, context) {
     html = ,
     latex = ,
     grid = ,
+    "ooxml/word" = ,
+    "ooxml/pptx" = ,
     word =
       {
         if (!is_asis && plusminus_mark == " +/- ") {
@@ -986,6 +1002,8 @@ context_lte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02264",
     latex = "$\\leq$",
     "<="
@@ -1002,6 +1020,8 @@ context_gte_mark <- function(context) {
     context,
     grid = ,
     word = ,
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     html = "\U02265",
     latex = "$\\geq$",
     ">="
@@ -1086,6 +1106,8 @@ context_exp_marks <- function(context) {
     html = c("&nbsp;\U000D7&nbsp;10<sup style='font-size: 65%;'>", "</sup>"),
     latex = c(" $\\times$ 10\\textsuperscript{", "}"),
     rtf = c(" \\'d7 10{\\super ", "}"),
+    "ooxml/word" =,
+    "ooxml/pptx" =,
     word = c(" \U000D7 10^", ""),
     c(" \U000D7 10^", "")
   )
@@ -1112,6 +1134,8 @@ context_exp_str <- function(context, exp_style) {
         html = "<sub style='font-size: 65%;'>10</sub>",
         latex = "{}_10",
         rtf = "{\\sub 10}",
+        "ooxml/word" =,
+        "ooxml/pptx" =,
         word = "10^",
         "E"
       )

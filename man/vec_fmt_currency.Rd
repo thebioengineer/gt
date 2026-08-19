@@ -10,6 +10,7 @@ vec_fmt_currency(
   use_subunits = TRUE,
   decimals = NULL,
   drop_trailing_dec_mark = TRUE,
+  drop_leading_zero = FALSE,
   use_seps = TRUE,
   accounting = FALSE,
   scale_by = 1,
@@ -83,6 +84,14 @@ even if there are no decimal digits to display after formatting. For
 example, when \code{use_subunits = FALSE} or \code{decimals = 0} a formatted value
 such as \code{"$23"} can be fashioned as \code{"$23."} by setting
 \code{drop_trailing_dec_mark = FALSE}.}
+
+\item{drop_leading_zero}{\emph{Drop the leading zero}
+
+\verb{scalar<logical>} // \emph{default:} \code{FALSE}
+
+A logical value that determines whether a leading zero should be dropped
+from values between -1 and 1. When set to \code{TRUE}, a value such as \code{0.75}
+will be formatted as \code{.75} and \code{-0.35} will be formatted as \code{-.35}.}
 
 \item{use_seps}{\emph{Use digit group separators}
 

@@ -12,6 +12,7 @@ fmt_number(
   n_sigfig = NULL,
   drop_trailing_zeros = FALSE,
   drop_trailing_dec_mark = TRUE,
+  drop_leading_zero = FALSE,
   use_seps = TRUE,
   accounting = FALSE,
   scale_by = 1,
@@ -87,6 +88,14 @@ zeros after the decimal mark).}
 A logical value that determines whether decimal marks should always appear
 even if there are no decimal digits to display after formatting (e.g., \code{23}
 becomes \code{23.} if \code{FALSE}). By default trailing decimal marks are not shown.}
+
+\item{drop_leading_zero}{\emph{Drop the leading zero}
+
+\verb{scalar<logical>} // \emph{default:} \code{FALSE}
+
+A logical value that determines whether a leading zero should be dropped
+from values between -1 and 1. When set to \code{TRUE}, a value such as \code{0.75}
+will be formatted as \code{.75} and \code{-0.35} will be formatted as \code{-.35}.}
 
 \item{use_seps}{\emph{Use digit group separators}
 
@@ -258,6 +267,7 @@ arguments provide support for \code{\link[=from_column]{from_column()}}:
 \item \code{n_sigfig}
 \item \code{drop_trailing_zeros}
 \item \code{drop_trailing_dec_mark}
+\item \code{drop_leading_zero}
 \item \code{use_seps}
 \item \code{accounting}
 \item \code{scale_by}
@@ -377,6 +387,18 @@ runs of trailing zeros in the decimal part with \code{drop_trailing_zeros = TRUE
 \if{html}{\out{
 <img src="https://raw.githubusercontent.com/rstudio/gt/master/images/man_fmt_number_4.png" alt="This image of a table was generated from the fourth code example in the `fmt_number()` help file." style="width:100\%;">
 }}
+
+When working with values bounded between -1 and 1 (such as correlations or
+proportions), you might want to drop the leading zero to save space and follow
+conventions used in certain fields. Use \code{drop_leading_zero = TRUE} to do this.
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{dplyr::tibble(
+  x = c("polarity", "intensity", "trust"),
+  r = c(0.75, -0.013, 0.928)
+) |>
+  gt() |>
+  fmt_number(columns = r, decimals = 3, drop_leading_zero = TRUE)
+}\if{html}{\out{</div>}}
 
 Another strategy for dealing with precision of decimals is to have a separate
 column of values that specify how many decimal digits to retain. Such a

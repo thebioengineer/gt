@@ -77,7 +77,6 @@ render_formats <- function(data, skip_compat_check = FALSE, context) {
 
   # Render input data to output data where formatting is specified
   for (fmt in formats)  {
-
     # Determine if the formatting function has a function relevant to
     # the context; if not, use the `default` function (which should
     # always be present)
@@ -133,17 +132,17 @@ is_compatible_formatter <- function(table, column, rows, compat) {
   }
 
   column_data <- table[[column]][rows]
-  
+
   # Check for standard class inheritance
   if (inherits(column_data, compat)) {
     return(TRUE)
   }
-  
+
   # If compat includes numeric or integer types, also check for bit64::integer64
   if (any(c("numeric", "integer") %in% compat) && inherits(column_data, "integer64")) {
     return(TRUE)
   }
-  
+
   FALSE
 }
 
@@ -317,6 +316,9 @@ reorder_footnotes <- function(data) {
 
   rownum_final <- as.numeric(stub_df$rownum_i)
 
+  # Track which footnotes should be kept (not targeting hidden rows)
+  keep_footnote <- rep(TRUE, nrow(footnotes_tbl))
+
   for (i in seq_len(nrow(footnotes_tbl))) {
 
     if (
@@ -324,10 +326,19 @@ reorder_footnotes <- function(data) {
       footnotes_tbl[i, ][["locname"]] %in% c("data", "stub")
     ) {
 
-      footnotes_tbl[i, ][["rownum"]] <-
-        which(rownum_final == footnotes_tbl[i, ][["rownum"]])
+      new_rownum <- which(rownum_final == footnotes_tbl[i, ][["rownum"]])
+
+      if (length(new_rownum) == 0) {
+        # Row is hidden, mark footnote for removal
+        keep_footnote[i] <- FALSE
+      } else {
+        footnotes_tbl[i, ][["rownum"]] <- new_rownum
+      }
     }
   }
+
+  # Filter out footnotes targeting hidden rows
+  footnotes_tbl <- footnotes_tbl[keep_footnote, , drop = FALSE]
 
   dt_footnotes_set(data = data, footnotes = footnotes_tbl)
 }
@@ -343,20 +354,31 @@ reorder_styles <- function(data) {
   sz <- nrow(styles_tbl)
   tmp_rownum <- vector("integer", sz)
   tmp_mask <- vector("logical", sz)
+  keep_style <- rep(TRUE, sz)  # Track which styles to keep
 
   for (i in seq_len(sz)) {
     if (
       !is.na(styles_tbl$rownum[i]) &&
       !grepl("summary_cells", styles_tbl$locname[i], fixed = TRUE)
     ) {
-      tmp_mask[i] <- TRUE
-      tmp_rownum[i] <- which(rownum_final == styles_tbl$rownum[i])
+      new_rownum <- which(rownum_final == styles_tbl$rownum[i])
+
+      if (length(new_rownum) == 0) {
+        # Row is hidden, mark style for removal
+        keep_style[i] <- FALSE
+      } else {
+        tmp_mask[i] <- TRUE
+        tmp_rownum[i] <- new_rownum
+      }
     }
   }
 
   final_rownum <- styles_tbl$rownum
   final_rownum[tmp_mask] <- tmp_rownum[tmp_mask]
   styles_tbl$rownum <- final_rownum
+
+  # Filter out styles targeting hidden rows
+  styles_tbl <- styles_tbl[keep_style, , drop = FALSE]
 
   dt_styles_set(data = data, styles = styles_tbl)
 }
@@ -374,6 +396,8 @@ resolve_secondary_pattern <- function(x) {
     m <- gregexpr("<<[^<]*?>>", x, perl = TRUE)
 
     matched <- unlist(regmatches(x, m))[1]
+
+    if (is.na(matched)) break
 
     m_start <- as.integer(m[[1]])
     m_length <- attr(m[[1]], "match.length")
@@ -487,9 +511,20 @@ perform_col_merge <- function(data, context) {
           "i" = "Review {.arg pattern} provided to {.fn cols_merge}."
         ))
       }
+
+      has_secondary <- grepl("<<.*?>>", pattern)
+
+      if (has_secondary) {
+        glue_src_data <-
+          lapply(glue_src_data, function(vals) {
+            vals <- gsub("<", "\x01", vals, fixed = TRUE)
+            gsub(">", "\x02", vals, fixed = TRUE)
+          })
+      }
+
       glued_cols <- as.character(glue_gt(glue_src_data, pattern))
 
-      if (grepl("<<.*?>>", pattern)) {
+      if (has_secondary) {
 
         glued_cols <-
           vapply(
@@ -500,6 +535,8 @@ perform_col_merge <- function(data, context) {
           )
 
         glued_cols <- gsub("<<|>>", "", glued_cols)
+        glued_cols <- gsub("\x01", "<", glued_cols, fixed = TRUE)
+        glued_cols <- gsub("\x02", ">", glued_cols, fixed = TRUE)
       }
 
       glued_cols <- gsub(missing_val_token, "NA", glued_cols, fixed = TRUE)

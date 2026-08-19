@@ -11,6 +11,7 @@ fmt_engineering(
   decimals = 2,
   drop_trailing_zeros = FALSE,
   drop_trailing_dec_mark = TRUE,
+  drop_leading_zero = FALSE,
   scale_by = 1,
   exp_style = "x10n",
   pattern = "{x}",
@@ -72,6 +73,14 @@ zeros after the decimal mark).}
 A logical value that determines whether decimal marks should always appear
 even if there are no decimal digits to display after formatting (e.g., \code{23}
 becomes \code{23.} if \code{FALSE}). By default trailing decimal marks are not shown.}
+
+\item{drop_leading_zero}{\emph{Drop the leading zero}
+
+\verb{scalar<logical>} // \emph{default:} \code{FALSE}
+
+A logical value that determines whether a leading zero should be dropped
+from values between -1 and 1. When set to \code{TRUE}, a value such as \code{0.75}
+will be formatted as \code{.75} and \code{-0.35} will be formatted as \code{-.35}.}
 
 \item{scale_by}{\emph{Scale values by a fixed multiplier}
 
@@ -185,6 +194,7 @@ arguments provide support for \code{\link[=from_column]{from_column()}}:
 \item \code{decimals}
 \item \code{drop_trailing_zeros}
 \item \code{drop_trailing_dec_mark}
+\item \code{drop_leading_zero}
 \item \code{scale_by}
 \item \code{exp_style}
 \item \code{pattern}
